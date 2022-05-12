@@ -28,7 +28,7 @@ export default function ({ id, title, allCount, next, setTotalData }) {
       {askList.current.map(item => (
         <Li key={item.id}>
           <input type='radio' name='test_chk' id={'c_' + item.id} value={item.id} onChange={e => setData(e.target.value)} />
-          <label for={'c_' + item.id}>{item.name}</label>
+          <label htmlFor={'c_' + item.id}>{item.name}</label>
         </Li>
       ))}
       <div>
@@ -65,5 +65,5 @@ const Li = Styled.li`
 `;
 const NextBtn = Styled.button`
   width: 100%;
-  margin: 0;
+  margin: 40px 0 60px;
 `;

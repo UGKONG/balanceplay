@@ -3,7 +3,7 @@ import Styled from 'styled-components';
 import useStore from '%/useStore';
 import { useNavigate } from 'react-router-dom';
 
-export default function ({ item, path }) {
+export default function 메뉴 ({ item, path }) {
   const navigate = useNavigate();
   const dispatch = useStore(x => x.setState);
 

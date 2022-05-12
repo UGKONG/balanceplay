@@ -34,14 +34,19 @@ const pages = [
   '/survey/:id', 
   '/survey/:id/new', 
   '/notice', 
-  '/noice/:id',
+  '/notice/:id',
   '/duplicate',
   '/terms',
+  '/testInformation',
+  '/myInfo',
+  '/info',
+  '/mySchedule'
 ];
 pages.forEach(page => app.use(page, express.static(basePath)));
 
 // API
 const {
+  devLogin,
   join,
   snsLogin,
   login, 
@@ -51,18 +56,26 @@ const {
   getTotalResult,
   getDetailResult,
   getDoSurvey,
+  postDoSurvey,
   getNotice,
   getNoticeDetail,
+  getTestInformation,
+  getMyTestList,
 } = require('./api');
+
+app.post('/api/devLogin', devLogin);
 app.get('/api/isSession', isSession);
 app.post('/api/join', join);
 app.post('/api/snsLogin', snsLogin);
 app.post('/api/login', login);
 app.get('/api/logout', logout);
 app.get('/api/center', getCenter);
-app.get('/api/totalResult', getTotalResult);
+app.get('/api/testInformation', getTestInformation);
+app.get('/api/myTestList', getMyTestList);
+app.get('/api/totalResult/:id', getTotalResult);
 app.get('/api/detailResult/:id', getDetailResult);
 app.get('/api/doSurvey/:id', getDoSurvey);
+app.post('/api/doSurvey/:id', postDoSurvey);
 app.get('/api/notice', getNotice);
 app.get('/api/notice/:id', getNoticeDetail);
 

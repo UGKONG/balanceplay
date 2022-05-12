@@ -4,7 +4,7 @@ import useAxios from '%/useAxios';
 import PageAnimate from '%/PageAnimate';
 import NoticeLi from './NoticeLi';
 
-export default function () {
+export default function 공지 () {
   const [list, setList] = useState([]);
   const theadList = useRef(['No', '제목', '작성일']);
 
@@ -20,7 +20,7 @@ export default function () {
 
   return (
     <PageAnimate name='slide-up'>
-      <h2>공지사항</h2>
+      <Title>공지사항</Title>
       <Table>
         <thead>
           <tr>
@@ -37,6 +37,9 @@ export default function () {
   )
 }
 
+const Title = Styled.h2`
+
+`;
 const Table = Styled.table`
   th {
     &:nth-of-type(1) {

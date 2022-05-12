@@ -61,5 +61,5 @@ const Textarea = Styled.textarea`
 `;
 const NextBtn = Styled.button`
   width: 100%;
-  margin: 0;
+  margin: 40px 0 60px;
 `;

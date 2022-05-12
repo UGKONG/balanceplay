@@ -1,16 +1,20 @@
 // 리액트 라우터 페이지 전환 애니메이션 함수
-import React, { useRef } from "react";
+import React, { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import useStore from '%/useStore';
 
 export default function PageAnimate (props) {
   const dispatch = useStore(x => x.setState);
-  const mainRef = useRef(null);
-  if (!props.children) return console.warn('애니메이션 할 요소가 없습니다.');
+  const location = useLocation();
+  if (!props.children) return <main></main>;
   let duration = props.duration || .3;
   let name = props.name;
+  let style = props?.style ?? null;
   let _in;
   let _out;
+
+  useEffect(() => dispatch('scroll', 0), [location]);
 
   switch (name) {
     case 'fade':
@@ -49,7 +53,7 @@ export default function PageAnimate (props) {
   const scroll = e => dispatch('scroll', e.target?.scrollTop ?? 0);
 
   return (
-    <motion.main initial={_out} animate={_in} exit={_out} transition={{ duration }} onScroll={scroll} >
+    <motion.main initial={_out} animate={_in} exit={_out} transition={{ duration }} style={style} onScroll={scroll} >
       {props.children}
     </motion.main>
   )

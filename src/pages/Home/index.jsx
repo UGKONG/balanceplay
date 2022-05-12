@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Styled from 'styled-components';
 import PageAnimate from '%/PageAnimate';
+import useAxios from '%/useAxios';
+import useAlert from '%/useAlert';
 import Li from './Li';
 import testIcon1 from '~/images/testIcons/1.png';
 // import testIcon2 from '~/images/testIcons/2.png';
@@ -13,7 +15,7 @@ import testIcon8 from '~/images/testIcons/8.png';
 import testIcon9 from '~/images/testIcons/9.png';
 import testIcon10 from '~/images/testIcons/10.png';
 
-export default function Home() {
+export default function 메인페이지 () {
   const theadList = useRef(["날짜", "시간", "검사"]);
   const icons = useMemo(() => ({
     testIcon1,
@@ -26,118 +28,93 @@ export default function Home() {
     testIcon9,
     testIcon10
   }), []);
-  const [list, setList] = useState([
-    {
-      "id": 1,
-      "date": "2022-04-01 14:00:20",
-      "testId": 1,
-      "testType": 1,
-      "testName": "영유아 운동 선별 검사"
-    },
-    {
-      "id": 2,
-      "date": "2022-04-10 16:00:20",
-      "testId": 4,
-      "testType": 2,
-      "testName": "밸런스 기질 검사"
-    },
-    {
-      "id": 3,
-      "date": "2022-04-22 22:22:22",
-      "testId": 5,
-      "testType": 2,
-      "testName": "밸런스 감각 검사"
-    },
-    {
-      "id": 4,
-      "date": "2022-04-22 20:20:20",
-      "testId": 6,
-      "testType": 2,
-      "testName": "감각 운동 검사"
-    }
-  ]);
+  const [list, setList] = useState([]);
   const [dateList, setDateList] = useState([]);
 
   const getList = () => {
-    // API.get('/myTestList').then(({ data }) => {
+    useAxios.get('/myTestList').then(({ data }) => {
+      if (!data?.result) {
+        useAlert.error('검사 리스트', data?.msg);
+        setDateList([]);
+        setList([]);
+        return;
+      }
+
       let temp = [];
-      list && list?.forEach(li => {
-        let date = li?.date?.split(' ')[0];
-        li.icon = icons["testIcon" + li?.testId];
-        dateList.indexOf(date) == -1 && temp.push(date);
+      data?.data && setList(data?.data);
+      data?.data && data?.data?.forEach(li => {
+        let date = li?.DATE?.split(' ')[0];
+        li.ICON = icons["testIcon" + li?.TEST_ID] ?? null;
+        temp.indexOf(date) === -1 && temp.push(date);
+      });
+      temp.sort((x, y) => {
+        let _x = Number(x?.replaceAll('-', ''));
+        let _y = Number(y?.replaceAll('-', ''));
+        return _y - _x;
       });
       setDateList(temp);
-    // })
+    })
   }
 
   const getTestList = useCallback(date => (
-    list?.filter(x => x?.date?.split(' ')[0] == date)
+    list?.filter(x => x?.DATE?.split(' ')[0] === date)
   ), [list]);
   
   useEffect(getList, []);
 
-
   return (
     <PageAnimate name='slide-up'>
-      <Header>
-        <h2>검사 리스트</h2>
-        <div option></div>
-      </Header>
+      <Title>검사 리스트</Title>
 
-      <Table>
-        <thead>
-          <tr>
-            {theadList.current && theadList.current.map(
-              item => <th key={item}>{item}</th>
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {dateList && dateList.map((item, i) => (
-            <Li key={i} item={item} list={getTestList(item)} />
+      <Table.Wrap>
+        <Table.Thead>
+          <Table.Tr>
+            {theadList.current.length > 0 && theadList.current.map(item => (
+              <th key={item}>{item}</th>
+            ))}
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {dateList.length > 0 && dateList.map((date, i) => (
+            <Li key={i} date={date} list={getTestList(date)} />
           ))}
-        </tbody>
-      </Table>
+        </Table.Tbody>
+      </Table.Wrap>
     </PageAnimate>
   )
 }
 
-const Header = Styled.header`
-  overflow: auto;
-  padding: 0 4px;
-  h2 {
-    font-weight: 500;
-    font-size: 20px;
-    margin-bottom: 10px;
-    float: left;
-    color: #008a87;
-  }
-`;
-const Table = Styled.table`
-  th {
-    letter-spacing: 3px;
-    background-color: #f1f9f8;
-    &:nth-of-type(1) {
-      width: 110px;
+const Title = Styled.h2``;
+const Table = {
+  Wrap: Styled.table``,
+  Thead: Styled.thead`
+    th {
+      letter-spacing: 3px;
+      background-color: #f1f9f8;
+      &:nth-of-type(1) {
+        width: 110px;
+      }
+      &:nth-of-type(2) {
+        width: 100px;
+      }
     }
-    &:nth-of-type(2) {
-      width: 100px;
+    @media screen and (min-width: 700px) {
+      th:nth-of-type(1) {
+        width: 180px;
+      }
+      th:nth-of-type(2) {
+        width: 170px;
+      }
     }
-  }
-  @media screen and (min-width: 700px) {
-    th:nth-of-type(1) {
-      width: 180px;
+    @media screen and (max-width: 500px) {
+      th:nth-of-type(1) {
+        width: 110px;
+      }
+      th:nth-of-type(2) {
+        display: none;
+      }
     }
-    th:nth-of-type(2) {
-      width: 170px;
-    }
-  }
-  @media screen and (max-width: 500px) {
-    th:nth-of-type(1) {
-      width: 110px;
-    }
-    th:nth-of-type(2) {
-      display: none;
-    }
-  }
-`
+  `,
+  Tr: Styled.tr``,
+  Tbody: Styled.tbody``
+}

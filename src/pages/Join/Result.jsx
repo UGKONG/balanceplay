@@ -4,7 +4,7 @@ import Styled from 'styled-components';
 import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 
-export default function ({ id, title, allCount, setTotalData }) {
+export default function ({ id, title, allCount, totalData, setTotalData }) {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
 
@@ -33,7 +33,7 @@ export default function ({ id, title, allCount, setTotalData }) {
     save();
   }
 
-  useEffect(() => setTotalData(prev => setData(prev)), []);
+  useEffect(() => setData(totalData), []);
 
   return (
     <>

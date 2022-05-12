@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Styled from 'styled-components';
 
 export default function ({ data, setIsModal }) {
@@ -10,7 +10,7 @@ export default function ({ data, setIsModal }) {
         <div className='contents'>
           <MainDescription>{data?.main}</MainDescription>
           {data?.sub && data?.sub.map(item => (
-            <SubDescription key={item.ID}>{item.DESCRIPTION}</SubDescription>
+            <SubDescription key={item.ID} dangerouslySetInnerHTML={{__html: item.DESCRIPTION}} />
           ))}
         </div>
         <button onClick={() => setIsModal(false)}>닫 기</button>

@@ -4,7 +4,7 @@ import useStore from '%/useStore';
 import logo from '~/images/logo.svg';
 import Styled from 'styled-components';
 
-export default function () {
+export default function 해더 () {
   const navigate = useNavigate();
   const dispatch = useStore(x => x.setState);
   const scroll = useStore(x => x.scroll);
@@ -29,7 +29,7 @@ const Wrap = Styled.header`
   align-items: center;
   justify-content: space-between;
   transition: 0.3s;
-  padding: 20px;
+  padding: 10px;
   position: relative;
   user-select: none;
 
@@ -59,8 +59,8 @@ const Wrap = Styled.header`
     align-items: center;
     justify-content: space-between;
     flex-flow: column;
-    width: 44px;
-    height: 94%;
+    width: 40px;
+    height: 62%;
     background-color: transparent;
     padding: 5px 5px !important;
     border: none;

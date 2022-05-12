@@ -8,7 +8,7 @@ import Now from './Now';
 import Other from './Other';
 import Result from './Result';
 
-export default function () {
+export default function 회원가입 () {
   const navigate = useNavigate();
   const location = useLocation();
   const loginData = location.state;
@@ -27,16 +27,25 @@ export default function () {
 
   const next = () => setActive(x => x + 1);
   const loginCheck = () => {
+    if (!loginData) return;
     !loginData?.userAuthId && navigate('/login');
+  }
+  const cancelBtnClick = () => {
+    let ask = confirm('초기면접지를 작성하지 않으면 회원가입을 진행하실 수 없습니다.\n정말 취소하시겠습니까?');
+    if (!ask) return;
+    navigate('/login');
   }
 
   useEffect(loginCheck, []);
 
 	return (
 		<Wrap>
-			<Title>초기면접지 작성</Title>
+			<Title>
+        초기면접지 작성
+        <CancelBtn onClick={cancelBtnClick}>닫 기</CancelBtn>
+      </Title>
       <Status>
-        {pages.current.map(item => (
+        {pages.current && pages.current.map(item => (
           <span key={item.id}
             className={active === item.id ? 'active' : ''}
           />
@@ -44,7 +53,7 @@ export default function () {
       </Status>
       
       <Page>
-        {pages.current.map(item => (
+        {pages.current && pages.current.map(item => (
           active === item.id && <item.component
             key={item.id}
             id={item.id}
@@ -56,6 +65,7 @@ export default function () {
             userImg={loginData?.userImg ?? null}
             allCount={pages.current.length}
             next={next}
+            totalData={totalData}
             setTotalData={setTotalData}
           />
         ))}
@@ -83,6 +93,9 @@ const Title = Styled.h1`
   flex-flow: row;
   flex-wrap: nowrap;
   padding-bottom: 20px;
+`;
+const CancelBtn = Styled.button`
+
 `;
 const Status = Styled.div`
   display: flex;

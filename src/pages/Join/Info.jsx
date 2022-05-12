@@ -154,7 +154,7 @@ export default function ({
         <Select id="center" onChange={e => setCenter(centerList.find(x => x?.ID == e.target.value) ?? null)}>
           <option value=''>센터선택</option>
           {centerList.length > 0 && centerList.map(item => (
-            <option value={item?.ID}>{item?.NAME} / {item?.CENTER_PHONE || '연락처 없음'}</option>
+            <option key={item?.ID} value={item?.ID}>{item?.NAME} / {item?.CENTER_PHONE || '연락처 없음'}</option>
           ))}
         </Select>
       </Row>
@@ -270,5 +270,5 @@ const Select = Styled.select`
 `;
 const NextBtn = Styled.button`
   width: 100%;
-  margin: 0;
+  margin: 40px 0 60px;
 `;

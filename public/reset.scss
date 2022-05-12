@@ -25,11 +25,13 @@ html {
   background-color: $bg;
 }
 button, a[btn], .btn {
+  $buttonHeight: 32px;
   @include font(13px, 400, $buttonText);
   @include border(1px solid $button, 3px);
   background-color: $button;
   padding: 0 12px;
-  height: 30px;
+  height: $buttonHeight;
+  line-height: $buttonHeight - 2px;
   margin: 0 0 0 5px;
   cursor: pointer;
 
@@ -127,7 +129,7 @@ $modalW: 600px;
 
 .modal {
   position: relative;
-  z-index: $index2;
+  z-index: $index9;
 
   & >.wrap {
     background-color: $white;
@@ -135,11 +137,11 @@ $modalW: 600px;
     overflow: hidden;
     position: fixed;
     box-shadow: 1px 2px 5px $bg;
-    z-index: $index2;
+    z-index: $index9;
     width: 80%;
-    height: 50%;
+    height: 440px;
     left: calc(50% - 40%);
-    top: calc(50% - 25%);
+    top: calc(50% - 220px);
 
     & > h2 {
       margin-bottom: 0;
@@ -158,7 +160,7 @@ $modalW: 600px;
 
     & > div.contents {
       @include font(13px, 400, #444, 1px);
-      height: calc(100% - 80px);
+      height: calc(100% - 94px);
       padding: 8px 12px;
       position: relative;
       overflow: auto;
@@ -166,9 +168,10 @@ $modalW: 600px;
 
     & > button, .close {
       @include flex(center);
-      @include size(100%, 40px);
+      @include size(100%, 44px);
       background-color: $main;
       margin: 0;
+      margin-top: 10px;
       border-top-left-radius: 0;
       border-top-right-radius: 0;
       &:focus {
@@ -184,7 +187,7 @@ $modalW: 600px;
     width: 100%;
     height: 100%;
     background-color: $modalBg;
-    z-index: $index1;
+    z-index: $index6;
   }
 }
 
@@ -196,7 +199,7 @@ $modalW: 600px;
   background-color: $bg;
 
   & > main {
-    padding: 10px 20px 20px;
+    padding: 10px 10px 20px;
     max-width: 1200px;
     margin: 0 auto;
 

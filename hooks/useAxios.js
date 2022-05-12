@@ -1,7 +1,7 @@
 import axios from "axios";
-import { APIBaseURL } from '../server/config.json';
+import conf from '../server/config.json';
 
 export default axios.create({
-  baseURL: APIBaseURL,
+  baseURL: conf.APIBaseURL,
   timeout: 10000
 });

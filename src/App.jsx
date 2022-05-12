@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Styled from 'styled-components';
-import { programName } from '../server/config.json';
+import conf from '../server/config.json';
 import useTitle from '%/useTitle';
 import useAxios from '%/useAxios';
 import useStore from '%/useStore';
@@ -16,25 +16,32 @@ import Terms from './pages/Join/Terms';
 import Duplicate from '@/pages/Duplicate';
 import TotalResult from '@/pages/TotalResult';
 import Survey from '@/pages/Survey';
-import DoSurvey from '@/pages/Survey/DoSurvey';
+import DoSurvey from '@/pages/DoSurvey';
 import Notice from '@/pages/Notice';
 import NoticeDetail from '@/pages/NoticeDetail';
+import TestInformation from '@/pages/TestInformation';
+import MySchedule from '@/pages/MySchedule';
+import MyInfo from '@/pages/MyInfo';
+import Info from '@/pages/Info';
 
-export default function App() {
+export default function 앱 () {
   const dispatch = useStore(x => x.setState);
+  const isLogin = useStore(x => x.isLogin);
   const location = useLocation();
   const navigate = useNavigate();
   const [isSession, setIsSession] = useState(false);
-  useTitle(programName);
+  useTitle(conf.programName);
+
+  const notSession = [
+    'login', 'join', 'duplicate', 'terms',
+  ];
   
   const sessionChk = () => {
     let path = location.pathname;
-    if (
-      path.indexOf('login') > -1 || 
-      path.indexOf('join') > -1 || 
-      path.indexOf('duplicate') > -1 || 
-      path.indexOf('terms') > -1
-    ) return;
+    for (let i = 0; i < notSession.length; i++) {
+      let isTrue = path.indexOf(notSession[i]) > -1;
+      if (isTrue) return;
+    }
 
     useAxios.get('/isSession').then(({ data }) => {
       if (!data.result) {
@@ -50,27 +57,31 @@ export default function App() {
   
   useEffect(sessionChk, [location]);
 
-  const tag = useMemo(() => (
+  const RoutesMemo = useCallback(() => (
     <div id='wrap'>
-      <Name>{programName}</Name>
-      {isSession && <Header programName={programName} />}
+      <Name>{conf.programName}</Name>
+      {isLogin && isSession && <Header programName={conf.programName} />}
       <Routes>
         <Route path='/terms' element={<Terms />} />
         <Route path='/login' element={<Login />} />
         <Route path='/join' element={<Join />} />
         <Route path='/duplicate' element={<Duplicate />} />
-        {isSession && <Route path='/' element={<Home />} />}
-        {isSession && <Route path='/totalresult/:id' element={<TotalResult />} />}
-        {isSession && <Route path='/survey/:id' element={<Survey />} />}
-        {isSession && <Route path='/survey/:id/new' element={<DoSurvey />} />}
-        {isSession && <Route path='/notice' element={<Notice />} />}
-        {isSession && <Route path='/notice/:id' element={<NoticeDetail />} />}
+        {isLogin && isSession && <Route path='/' element={<Home />} />}
+        {isLogin && isSession && <Route path='/testInformation' element={<TestInformation />} />}
+        {isLogin && isSession && <Route path='/totalresult/:id' element={<TotalResult />} />}
+        {isLogin && isSession && <Route path='/survey/:id' element={<Survey />} />}
+        {isLogin && isSession && <Route path='/survey/:id/new' element={<DoSurvey />} />}
+        {isLogin && isSession && <Route path='/notice' element={<Notice />} />}
+        {isLogin && isSession && <Route path='/notice/:id' element={<NoticeDetail />} />}
+        {isLogin && isSession && <Route path='/mySchedule' element={<MySchedule />} />}
+        {isLogin && isSession && <Route path='/myInfo' element={<MyInfo />} />}
+        {isLogin && isSession && <Route path='/info' element={<Info />} />}
       </Routes>
-      <SideMenu />
+      {isLogin && isSession && <SideMenu />}
     </div>
-  ), [isSession, programName]);
+  ), [isLogin, isSession, conf.programName]);
 
-  return tag;
+  return <RoutesMemo />;
 }
 
 const Name = Styled.h1`display: none`;

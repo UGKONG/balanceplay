@@ -72,37 +72,37 @@ export default function () {
       <TermsDescription>{termsInfoText}</TermsDescription>
       <Row>
         <Title>1. 수집하는 개인정보</Title>
-        <Text value={termsText1} readonly />
+        <Text defaultValue={termsText1} readonly />
         <CheckboxWrap status={termsCheck1}>동의
-          <Checkbox checked={termsCheck1} onChange={e => setTermsCheck1(e)} />
+          <Checkbox checked={termsCheck1} onChange={checked => setTermsCheck1(checked)} />
         </CheckboxWrap>
       </Row>
       <Row>
         <Title>2. 수집한 개인정보의 이용</Title>
-        <Text value={termsText2} readonly />
+        <Text defaultValue={termsText2} readonly />
         <CheckboxWrap status={termsCheck2}>동의
-          <Checkbox checked={termsCheck2} onChange={e => setTermsCheck2(e)} />
+          <Checkbox checked={termsCheck2} onChange={checked => setTermsCheck2(checked)} />
         </CheckboxWrap>
       </Row>
       <Row>
         <Title>3. 개인정보의 보관기간</Title>
-        <Text value={termsText3} readonly />
+        <Text defaultValue={termsText3} readonly />
         <CheckboxWrap status={termsCheck3}>동의
-          <Checkbox checked={termsCheck3} onChange={e => setTermsCheck3(e)} />
+          <Checkbox checked={termsCheck3} onChange={checked => setTermsCheck3(checked)} />
         </CheckboxWrap>
       </Row>
       <Row>
         <Title>4. 개인정보 수집 및 이용동의를 거부할 권리</Title>
-        <Text value={termsText4} readonly />
+        <Text defaultValue={termsText4} readonly />
         <CheckboxWrap status={termsCheck4}>동의
-          <Checkbox checked={termsCheck4} onChange={e => setTermsCheck4(e)} />
+          <Checkbox checked={termsCheck4} onChange={checked => setTermsCheck4(checked)} />
         </CheckboxWrap>
       </Row>
       <Row>
         <Title>5. 개인정보 3자 동의</Title>
-        <Text value={termsText5} readonly />
+        <Text defaultValue={termsText5} readonly />
         <CheckboxWrap status={termsCheck5}>동의
-          <Checkbox checked={termsCheck5} onChange={e => setTermsCheck5(e)} />
+          <Checkbox checked={termsCheck5} onChange={checked => setTermsCheck5(checked)} />
         </CheckboxWrap>
       </Row>
       <RowCenter>
@@ -117,7 +117,8 @@ export default function () {
         </CheckboxWrap>
       </RowCenter>
       <Row>
-        <NextBtn class='btn' onClick={validator}>확인</NextBtn>
+        <NextBtn onClick={validator}>확인</NextBtn>
+        <CancelBtn onClick={() => navigate('/login')}>로그인 페이지로 이동</CancelBtn>
       </Row>
     </Wrap>
   )
@@ -135,6 +136,10 @@ const TermsDescription = Styled.pre`
 `;
 const Row = Styled.div`
   margin-bottom: 20px;
+  &:last-of-type {
+    margin-top: 40px;
+    margin-bottom: 0;
+  }
 `;
 const RowCenter = Styled.div`
   margin-bottom: 20px;
@@ -151,7 +156,7 @@ const Text = Styled.textarea`
     width: 5px !important;
   }
 `;
-const CheckboxWrap = Styled.p`
+const CheckboxWrap = Styled.div`
   font-size: 13px;
   display: flex;
   align-items: center;
@@ -160,4 +165,17 @@ const CheckboxWrap = Styled.p`
 `;
 const NextBtn = Styled.button`
   width: 100%;
+  margin: 0 0 10px;
+`;
+const CancelBtn = Styled.button`
+  width: 100%;
+  margin: 0;
+  background-color: #137977;
+  border: 1px solid #137977;
+  &:hover {
+    background-color: #116866 !important;
+  }
+  &:active {
+    background-color: #0e5857 !important;
+  }
 `;

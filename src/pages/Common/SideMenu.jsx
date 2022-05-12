@@ -8,7 +8,7 @@ import useStore from '%/useStore';
 import useAxios from '%/useAxios';
 import MenuLi from './MenuLi';
 
-export default function () {
+export default function 사이드메뉴 () {
   const navigate = useNavigate();
   const location = useLocation();
   const locationPath = location.pathname;

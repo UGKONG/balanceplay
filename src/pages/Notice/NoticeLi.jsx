@@ -10,8 +10,8 @@ export default function ({ item, idx }) {
   return (
     <Wrap onClick={detailView}>
       <td>{idx + 1}</td>
-      <td>{item?.TITLE}</td>
-      <td>{item?.DATE}</td>
+      <td>{item?.TITLE ?? '-'}</td>
+      <td>{item?.DATE ?? '-'}</td>
     </Wrap>
   )
 }
