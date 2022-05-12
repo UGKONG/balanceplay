@@ -2,13 +2,13 @@
   "name": "cra",
   "version": "3.0.15",
   "description": "",
-  "main": "server/index.js",
+  "main": "web.js",
   "scripts": {
     "watch": "webpack -w",
-    "server": "nodemon server/index.js",
+    "server": "nodemon web.js",
     "build": "webpack --mode production",
     "dev": "concurrently \"npm run watch\" \"npm run server\"",
-    "start": "pm2 start server/index.js"
+    "start": "node web.js"
   },
   "keywords": [],
   "author": "",

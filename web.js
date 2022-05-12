@@ -4,9 +4,9 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
-const conf = require('./config.json');
+const conf = require('./server/config.json');
 const app = express();
-const basePath = __dirname + '/../build';
+const basePath = __dirname + '/build';
 
 // 엔진 셋팅
 app.use(cors());
@@ -61,7 +61,7 @@ const {
   getNoticeDetail,
   getTestInformation,
   getMyTestList,
-} = require('./api');
+} = require('./server/api');
 
 app.post('/api/devLogin', devLogin);
 app.get('/api/isSession', isSession);
@@ -80,4 +80,4 @@ app.get('/api/notice', getNotice);
 app.get('/api/notice/:id', getNoticeDetail);
 
 // 서버 시작
-app.listen(80);
+app.listen(80, () => console.log('Server Start!!'));
