@@ -1,0 +1,12 @@
+{
+  "programName": "밸런스 플레이",
+  "APIBaseURL": "/api/",
+  "db": {
+    "host": "db.eps32444.gabia.io",
+    "port": 3306,
+    "user": "eps32444",
+    "password": "eps3353244!!",
+    "database": "dbeps32444",
+    "multipleStatements": true
+  }
+}
