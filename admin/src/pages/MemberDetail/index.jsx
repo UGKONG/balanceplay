@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Styled from 'styled-components';
 import PageAnimate from '%/PageAnimate';
@@ -25,9 +25,21 @@ export default function 회원상세페이지 () {
         useAlert.error('알림', '회원정보가 존재하지 않습니다.');
         return navigate('/member');
       }
-      console.log(data?.data);
       setData(data?.data);
     })
+  }
+  const deleteMember = () => {
+    let ask = confirm('회원을 삭제하시겠습니까?');
+    if (!ask) return;
+
+    useAxios.delete('/member', { data: { idArr: [id] } }).then(({ data }) => {
+      if (!data?.result) {
+        useAlert.error('회원삭제', '회원이 삭제되지 않았습니다.');
+        return;
+      }
+      useAlert.success('회원삭제', '회원이 삭제되었습니다.');
+      navigate('/member');
+    });
   }
 
   useEffect(getData, []);
@@ -38,11 +50,14 @@ export default function 회원상세페이지 () {
     <PageAnimate name='slide-up'>
       <Header>
         <Title>회원정보 상세보기</Title>
-        <BackBtn onClick={() => navigate('/member')}>뒤로가기</BackBtn>
+        <span>
+          <DeleteBtn onClick={deleteMember}>삭제</DeleteBtn>
+          <BackBtn onClick={() => navigate('/member')}>뒤로가기</BackBtn>
+        </span>
       </Header>
       <Contents>
         <Left>
-          <Info data={data} />
+          <Info data={data} setData={setData} />
           <Menu activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
         </Left>
         <Right>
@@ -59,6 +74,16 @@ export default function 회원상세페이지 () {
 
 const Header = Styled.section``;
 const Title = Styled.h2``;
+const DeleteBtn = Styled.button`
+  border: 1px solid #ff4f4f !important;
+  background-color: #ee6d6d !important;
+  &:hover {
+    background-color: #ec6565 !important;
+  }
+  &:focus {
+    box-shadow: 0 0 0 4px rgb(238 109 109 / 25%) !important;
+  }
+`;
 const BackBtn = Styled.button``;
 const Contents = Styled.section`
   display: flex;

@@ -84,7 +84,16 @@ const Title = Styled.h2`
 const Contents = Styled.section``;
 const OptionBtnWrap = Styled.span``;
 const EditBtn = Styled.button``;
-const DeleteBtn = Styled.button``;
+const DeleteBtn = Styled.button`
+  border: 1px solid #ff4f4f !important;
+  background-color: #ee6d6d !important;
+  &:hover {
+    background-color: #ec6565 !important;
+  }
+  &:focus {
+    box-shadow: 0 0 0 4px rgb(238 109 109 / 25%) !important;
+  }
+`;
 const BackBtn = Styled.button`
   
 `;

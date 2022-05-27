@@ -108,6 +108,9 @@ const {
   getMemberDetail,
   deleteMember,
   getVoucher,
+  putChangeTestFlag,
+  putMemberModify,
+  getUserVoucher,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -145,6 +148,9 @@ app.get('/api/member', getMember);
 app.get('/api/member/:id', getMemberDetail);
 app.delete('/api/member', deleteMember);
 app.get('/api/voucher', getVoucher);
+app.put('/api/changeTestFlag', putChangeTestFlag);
+app.put('/api/memberModify', putMemberModify);
+app.get('/api/userVoucher/:id', getUserVoucher);
 
 
 app.get('/api/:table', getOtherList);

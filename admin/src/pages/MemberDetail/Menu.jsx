@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import Styled from 'styled-components';
-import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 
 export default function 메뉴 ({ activeMenu, setActiveMenu }) {

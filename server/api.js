@@ -1200,7 +1200,7 @@ module.exports.deleteMember = (req, res) => {
     })
   })
 }
-// 이용권 리스트 조회
+// 이용권, 이용권 카테고리 리스트 조회
 module.exports.getVoucher = (req, res) => {
   log(req);
   dbConnect(db => {
@@ -1224,5 +1224,88 @@ module.exports.getVoucher = (req, res) => {
       
       res.send(success(send));
     });
+  })
+}
+// 테스트 플래그 수정
+module.exports.putChangeTestFlag = (req, res) => {
+  log(req);
+  let userId = req?.body?.userId;
+  let flag = req?.body?.flag;
+  if (!userId) return res.send(fail('유저 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      UPDATE tn_user
+      SET TEST_FLAG = ${flag} 
+      WHERE USER_SN = ${userId};
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('저장에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(null));
+    })
+  })
+}
+// 회원 정보 수정
+module.exports.putMemberModify = (req, res) => {
+  log(req);
+  let userId = req?.body?.ID;
+  let name = req?.body?.NAME;
+  let gender = req?.body?.GENDER;
+  let birth = req?.body?.BIRTH;
+  let email = req?.body?.EMAIL;
+  let height = req?.body?.HEIGHT;
+  let weight = req?.body?.WEIGHT;
+  let schoolName = req?.body?.SCHOOL_NAME;
+
+  if (!userId) return res.send(fail('유저 아이디가 없습니다.'));
+  if (!name || !email || !height || !weight || !schoolName) return res.send(fail('수정 데이터가 없습니다.'));
+  
+  dbConnect(db => {
+    db.query(`
+      UPDATE tn_user SET
+      USER_NM = '${name}', EMAIL = '${email}',
+      BIRTH = '${birth}', GNDR = '${gender}',
+      HGHT = '${height}', WGHT = '${weight}',
+      OGDP = '${schoolName}'
+      WHERE USER_SN = '${userId}';
+    `, (err, result) => {
+      if (err) {
+        console.log(err);
+        res.send(fail('수정에 실패했습니다.'));
+        return;
+      }
+      res.send(success(null));
+    })
+  })
+}
+// 회원 이용권 리스트 조회
+module.exports.getUserVoucher = (req, res) => {
+  log(req);
+  let userId = req?.params?.id;
+  if (!userId) return res.send(fail('유저 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT
+      a.ID, a.REMAIN_COUNT, a.REMAIN_DATE, a.BUY_DT AS BUY_DATE,
+      b.CATEGORY_ID, c.NAME AS CATEGORY_NAME, 
+      b.NAME, b.PLACE, b.USE_TYPE, b.USE_COUNT, b.USE_DAY
+      FROM tn_user_voucher a
+      LEFT JOIN tn_voucher b ON a.VOUCHER_ID = b.ID
+      LEFT JOIN tn_voucher_category c ON b.CATEGORY_ID = c.ID
+      WHERE a.USER_ID = ${userId};
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('유저 이용권 정보 조회에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(result));
+    })
   })
 }
