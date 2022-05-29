@@ -25,4 +25,5 @@ const Date = Styled.p`
   right: 8px;
   font-size: 12px;
   letter-spacing: 1px;
+  color: #777;
 `;
