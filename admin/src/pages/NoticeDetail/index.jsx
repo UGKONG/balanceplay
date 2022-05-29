@@ -65,7 +65,7 @@ export default function 공지상세페이지 () {
         </Row>
         <Row style={{ marginTop: 50 }}>
           <RowTitle style={{ minWidth: '100%' }}>내용</RowTitle>
-          <RowContents 
+          <RowContentsText 
             dangerouslySetInnerHTML={{ __html: data?.CONTENT }} 
             style={{ 
               width: '100%', marginTop: 10, paddingLeft: 10
@@ -116,6 +116,10 @@ const RowTitle = Styled.p`
   max-width: 80px;
 `;
 const RowContents = Styled.div`
+  flex: 1;
+  color: #444;
+`;
+const RowContentsText = Styled.pre`
   flex: 1;
   color: #444;
 `;

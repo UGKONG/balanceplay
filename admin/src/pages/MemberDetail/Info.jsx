@@ -40,6 +40,10 @@ export default function 회원정보박스 ({ data, setData }) {
       if (!data?.result) return useAlert.error('알림', data?.msg);
     });
   }
+  const dateKoreaFormat = date => {
+    let [y, m, d] = date?.split('-');
+    return y + '년 ' + m + '월 ' + d + '일';
+  }
 
   return (
     <>
@@ -112,7 +116,7 @@ export default function 회원정보박스 ({ data, setData }) {
               />
             </RowContent>
           ) : (
-            <RowContent>{data?.BIRTH ?? '-'}</RowContent>
+            <RowContent>{data?.BIRTH ? dateKoreaFormat(data?.BIRTH) : '-'}</RowContent>
           )}
         </Row>
         <Row>
@@ -161,11 +165,15 @@ export default function 회원정보박스 ({ data, setData }) {
         </Row>
         <Row>
           <RowTitle>가입일</RowTitle>
-          <RowContent>{data?.DATE?.split(' ')[0] ?? '-'}</RowContent>
+          <RowContent>
+            {data?.DATE?.split(' ')[0] ? dateKoreaFormat(data?.DATE?.split(' ')[0]) : '-'}
+          </RowContent>
         </Row>
         <Row>
           <RowTitle>최근 수정일</RowTitle>
-          <RowContent>{data?.MODIFY_DATE?.split(' ')[0] ?? '-'}</RowContent>
+          <RowContent>
+            {data?.MODIFY_DATE?.split(' ')[0] ? dateKoreaFormat(data?.MODIFY_DATE?.split(' ')[0]) : '-'}
+          </RowContent>
         </Row>
       </RowWrap>
     </Wrap>

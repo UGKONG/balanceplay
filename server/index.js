@@ -111,6 +111,11 @@ const {
   putChangeTestFlag,
   putMemberModify,
   getUserVoucher,
+  getUserMemo,
+  postUserMemo,
+  putUserMemo,
+  deleteUserMemo,
+  getUserHistory,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -151,7 +156,11 @@ app.get('/api/voucher', getVoucher);
 app.put('/api/changeTestFlag', putChangeTestFlag);
 app.put('/api/memberModify', putMemberModify);
 app.get('/api/userVoucher/:id', getUserVoucher);
-
+app.get('/api/userMemo/:id', getUserMemo);
+app.post('/api/userMemo/:id', postUserMemo);
+app.put('/api/userMemo/:memoId', putUserMemo);
+app.delete('/api/userMemo/:memoId', deleteUserMemo);
+app.get('/api/userHistory/:id', getUserHistory);
 
 app.get('/api/:table', getOtherList);
 app.get('/api/:table/:id', getOtherData);

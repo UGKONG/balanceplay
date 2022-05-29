@@ -1273,6 +1273,7 @@ module.exports.putMemberModify = (req, res) => {
       OGDP = '${schoolName}'
       WHERE USER_SN = '${userId}';
     `, (err, result) => {
+      db.end();
       if (err) {
         console.log(err);
         res.send(fail('수정에 실패했습니다.'));
@@ -1303,6 +1304,124 @@ module.exports.getUserVoucher = (req, res) => {
       if (err) {
         console.log(err);
         res.send(fail('유저 이용권 정보 조회에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(result));
+    })
+  })
+}
+// 회원 메모 리스트 조회
+module.exports.getUserMemo = (req, res) => {
+  log(req);
+  let userId = req?.params?.id;
+  if (!userId) return res.send(fail('유저 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT
+      ID, USER_ID, MEMO, IS_UPDATE,
+      DATE_FORMAT(CREATE_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DT,
+      DATE_FORMAT(MODIFY_DT, '%Y-%m-%d %H:%i:%s') AS MODIFY_DT
+      FROM tn_user_memo
+      WHERE USER_ID = ${userId}
+      ORDER BY CREATE_DT ASC;
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('유저 메모 리스트 조회에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(result));
+    })
+  })
+}
+// 회원 메모 저장
+module.exports.postUserMemo = (req, res) => {
+  log(req);
+  let userId = req?.params?.id;
+  let value = req?.body?.value;
+  if (!userId) return res.send(fail('유저 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      INSERT INTO tn_user_memo
+      (USER_ID, MEMO)
+      VALUES
+      ('${userId}', '${value}');
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('리스트 조회에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(result));
+    })
+  })
+}
+// 회원 메모 수정
+module.exports.putUserMemo = (req, res) => {
+  log(req);
+  let memoId = req?.params?.memoId;
+  let value = req?.body?.value;
+  if (!memoId) return res.send(fail('메모 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      UPDATE tn_user_memo SET
+      MEMO = '${value}', IS_UPDATE = 1
+      WHERE ID = ${memoId};
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('수정에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(null));
+    })
+  })
+}
+// 회원 메모 삭제
+module.exports.deleteUserMemo = (req, res) => {
+  log(req);
+  let memoId = req?.params?.memoId;
+  if (!memoId) return res.send(fail('메모 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      DELETE FROM tn_user_memo WHERE ID = ${memoId};
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('삭제에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(null));
+    })
+  })
+}
+// 회원 히스토리 조회
+module.exports.getUserHistory = (req, res) => {
+  log(req);
+  let userId = req?.params?.id;
+  if (!userId) return res.send(fail('회원 아이디가 없습니다.'));
+  
+  dbConnect(db => {
+    db.query(`
+      SELECT
+      ID, USER_ID, HISTORY,
+      DATE_FORMAT(CREATE_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DT
+      FROM tn_user_history 
+      WHERE USER_ID = '${userId}'
+      ORDER BY CREATE_DT DESC;
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('조회에 실패하였습니다.'));
         return;
       }
       res.send(success(result));

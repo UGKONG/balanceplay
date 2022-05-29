@@ -7,7 +7,8 @@
     "watch": "webpack -w",
     "server": "nodemon server/index.js",
     "build": "webpack --mode production",
-    "dev": "concurrently \"npm run watch\" \"npm run server\""
+    "admin": "cd admin && npm run watch",
+    "dev": "concurrently \"npm run watch\" \"npm run server\" \"npm run admin\""
   },
   "keywords": [],
   "author": "",
