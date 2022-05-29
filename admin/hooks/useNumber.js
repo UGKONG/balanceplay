@@ -1,9 +1,5 @@
-import React, { useState } from "react";
-
 // 숫자 포맷 함수
-export default function useNumber (defaultValue) {
-  const [value, setValue] = useState(String(defaultValue));
-  if (value === undefined) return;
-  let result = value.replaceAll(',', '').replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return [result, setValue];
+export default function useNumber (value = 0) {
+  let result = String(value).replaceAll(',', '').replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return result;
 }

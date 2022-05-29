@@ -178,7 +178,7 @@ export default function 회원정보박스 ({ data, setData }) {
       </RowWrap>
     </Wrap>
     <Wrap type='testFlag'>
-      <Row style={{ padding: '0 10px' }}>
+      <Row style={{ padding: '0 10px', margin: 0 }}>
         <RowTitle>테스트 권한</RowTitle>
         <RowContent>
           <Checkbox 

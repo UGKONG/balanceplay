@@ -1226,6 +1226,32 @@ module.exports.getVoucher = (req, res) => {
     });
   })
 }
+// 이용권 정보 조회
+module.exports.getVoucherDetail = (req, res) => {
+  log(req);
+  let voucherId = req?.params?.id;
+  if (!voucherId) return res.send(fail('이용권 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT
+      a.ID, a.NAME, a.PLACE, a.USE_TYPE, 
+      a.USE_COUNT, a.USE_DAY, b.NAME AS CATEGORY_NAME
+      FROM tn_voucher a
+      LEFT JOIN tn_voucher_category b ON a.CATEGORY_ID = b.ID
+      WHERE a.ID = '${voucherId}';
+    `, (err, result) => {
+      db.end();
+      if (err || !result[0]) {
+        console.log(err);
+        res.send(fail('이용권 정보 조회를 실패하였습니다.'));
+        return;
+      }
+      
+      res.send(success(result[0]));
+    });
+  })
+}
 // 테스트 플래그 수정
 module.exports.putChangeTestFlag = (req, res) => {
   log(req);
@@ -1292,7 +1318,8 @@ module.exports.getUserVoucher = (req, res) => {
   dbConnect(db => {
     db.query(`
       SELECT
-      a.ID, a.REMAIN_COUNT, a.REMAIN_DATE, a.BUY_DT AS BUY_DATE,
+      a.ID, b.ID AS VOUCHER_ID,a.REMAIN_COUNT, a.REMAIN_DATE, a.STATUS,
+      DATE_FORMAT(a.BUY_DT, '%Y-%m-%d %H:%i:%s') AS BUY_DT,
       b.CATEGORY_ID, c.NAME AS CATEGORY_NAME, 
       b.NAME, b.PLACE, b.USE_TYPE, b.USE_COUNT, b.USE_DAY
       FROM tn_user_voucher a
@@ -1422,6 +1449,29 @@ module.exports.getUserHistory = (req, res) => {
       if (err) {
         console.log(err);
         res.send(fail('조회에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(result));
+    })
+  })
+}
+// 회원 이용권 정지/재개
+module.exports.putUserVoucherStatus = (req, res) => {
+  log(req);
+  let userVoucherId = req?.params?.userVoucherId;
+  let status = req?.body?.status;
+  if (!userVoucherId) return res.send(fail('회원의 이용권 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      UPDATE tn_user_voucher
+      SET STATUS = '${status}'
+      WHERE ID = '${userVoucherId}';
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail((status === 1 ? '재개' : '정지') + '에 실패하였습니다.'));
         return;
       }
       res.send(success(result));

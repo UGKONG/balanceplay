@@ -108,6 +108,7 @@ const {
   getMemberDetail,
   deleteMember,
   getVoucher,
+  getVoucherDetail,
   putChangeTestFlag,
   putMemberModify,
   getUserVoucher,
@@ -116,6 +117,7 @@ const {
   putUserMemo,
   deleteUserMemo,
   getUserHistory,
+  putUserVoucherStatus,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -153,9 +155,11 @@ app.get('/api/member', getMember);
 app.get('/api/member/:id', getMemberDetail);
 app.delete('/api/member', deleteMember);
 app.get('/api/voucher', getVoucher);
+app.get('/api/voucher/:id', getVoucherDetail);
 app.put('/api/changeTestFlag', putChangeTestFlag);
 app.put('/api/memberModify', putMemberModify);
 app.get('/api/userVoucher/:id', getUserVoucher);
+app.put('/api/userVoucher/:userVoucherId', putUserVoucherStatus);
 app.get('/api/userMemo/:id', getUserMemo);
 app.post('/api/userMemo/:id', postUserMemo);
 app.put('/api/userMemo/:memoId', putUserMemo);

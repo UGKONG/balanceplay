@@ -21,6 +21,7 @@ export default function 히스토리 () {
   useEffect(getList, []);
   return (
     <PageAnimate name='slide-up' style={{ overflow: 'auto', padding: 10 }}>
+      {list?.length === 0 && <NotLi>회원의 히스토리가 없습니다.</NotLi>}
       {list?.map(item => (
         <HistoryLi key={item?.ID} data={item} />
       ))}
@@ -28,3 +29,13 @@ export default function 히스토리 () {
   )
 }
 
+
+const NotLi = Styled.div`
+  color: #888;
+  font-size: 14px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+`;
