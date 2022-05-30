@@ -8,6 +8,7 @@ import { FiCheck, FiEdit, FiX } from "react-icons/fi";
 export default function 회원정보박스 ({ data, setData }) {
   const [isEdit, setIsEdit] = useState(false);
   const [editData, setEditData] = useState(data);
+  const [isFold, setIsFold] = useState(true);
 
   const validate = () => {
     if (editData?.NAME?.trim() === '') return useAlert.warn('알림', '이름을 적어주세요.');
@@ -60,88 +61,8 @@ export default function 회원정보박스 ({ data, setData }) {
       <ProfileImage img={data?.IMG} htmlFor='memberProfileImage' />
       <RowWrap>
         <Row>
-          <RowTitle>이름</RowTitle>
-          {isEdit ? (
-            <RowContent>
-              <Input defaultValue={data?.NAME ?? ''}
-                onChange={e => setEditData(prev => ({ ...prev, NAME: e.target.value }))}
-              />
-            </RowContent>
-          ) : (
-            <RowContent>{data?.NAME ?? '-'}</RowContent>
-          )}
-        </Row>
-        <Row>
-          <RowTitle>성별</RowTitle>
-          {isEdit ? (
-            <RowContent>
-              <Label>
-                <Radio type='radio' name='GENDER' value='M'
-                  defaultChecked={data?.GENDER === 'M'}
-                  onChange={e => setEditData(prev => ({ ...prev, GENDER: e.target.value }))}
-                />
-                남자
-              </Label>
-              <Label>
-                <Radio type='radio' name='GENDER' value='F'
-                  defaultChecked={data?.GENDER === 'F'}
-                  onChange={e => setEditData(prev => ({ ...prev, GENDER: e.target.value }))}
-                />
-                여자
-              </Label>
-            </RowContent>
-          ): (
-            <RowContent>{data?.GENDER === 'M' ? '남자' : data?.GENDER === 'F' ? '여자' : '-'}</RowContent>
-          )}
-        </Row>
-        <Row>
-          <RowTitle>이메일</RowTitle>
-          {isEdit ? (
-            <RowContent>
-              <Input defaultValue={data?.EMAIL ?? ''}
-                onChange={e => setEditData(prev => ({ ...prev, EMAIL: e.target.value }))}
-              />
-            </RowContent>
-          ) : (
-            <RowContent>{data?.EMAIL ?? '-'}</RowContent>
-          )}
-        </Row>
-        <Row>
-          <RowTitle>생년월일</RowTitle>
-          {isEdit ? (
-            <RowContent>
-              <Input type='date' defaultValue={data?.BIRTH ?? ''}
-                onKeyUp={dateKeyBlock}
-                onChange={e => setEditData(prev => ({ ...prev, BIRTH: e.target.value }))}
-              />
-            </RowContent>
-          ) : (
-            <RowContent>{data?.BIRTH ? dateKoreaFormat(data?.BIRTH) : '-'}</RowContent>
-          )}
-        </Row>
-        <Row>
-          <RowTitle>신장</RowTitle>
-          {isEdit ? (
-            <RowContent>
-              <Input type='number' defaultValue={data?.HEIGHT ?? ''}
-                onChange={e => setEditData(prev => ({ ...prev, HEIGHT: e.target.value }))}
-              />
-            </RowContent>
-          ) : (
-            <RowContent>{data?.HEIGHT ? data?.HEIGHT + 'Cm' : '-'}</RowContent>
-          )}
-        </Row>
-        <Row>
-          <RowTitle>체중</RowTitle>
-          {isEdit ? (
-            <RowContent>
-              <Input type='number' defaultValue={data?.WEIGHT ?? ''}
-                onChange={e => setEditData(prev => ({ ...prev, WEIGHT: e.target.value }))}
-              />
-            </RowContent>
-          ) : (
-            <RowContent>{data?.WEIGHT ? data?.WEIGHT + 'Kg' : '-'}</RowContent>
-          )}
+          <RowTitle>소속 센터</RowTitle>
+          <RowContent>{data?.CENTER_NAME ?? '-'}</RowContent>
         </Row>
         <Row>
           <RowTitle>소속 기관</RowTitle>
@@ -156,25 +77,112 @@ export default function 회원정보박스 ({ data, setData }) {
           )}
         </Row>
         <Row>
-          <RowTitle>소속 센터</RowTitle>
-          <RowContent>{data?.CENTER_NAME ?? '-'}</RowContent>
+          <RowTitle>이름</RowTitle>
+          {isEdit ? (
+            <RowContent>
+              <Input defaultValue={data?.NAME ?? ''}
+                onChange={e => setEditData(prev => ({ ...prev, NAME: e.target.value }))}
+              />
+            </RowContent>
+          ) : (
+            <RowContent>{data?.NAME ?? '-'}</RowContent>
+          )}
         </Row>
         <Row>
-          <RowTitle>가입 플랫폼</RowTitle>
-          <RowContent>{data?.PLATFORM === 'kakao' ? '카카오' : data?.PLATFORM === 'naver' ? '네이버' : '-'}</RowContent>
+          <RowTitle>이메일</RowTitle>
+          {isEdit ? (
+            <RowContent>
+              <Input defaultValue={data?.EMAIL ?? ''}
+                onChange={e => setEditData(prev => ({ ...prev, EMAIL: e.target.value }))}
+              />
+            </RowContent>
+          ) : (
+            <RowContent>{data?.EMAIL ?? '-'}</RowContent>
+          )}
         </Row>
-        <Row>
-          <RowTitle>가입일</RowTitle>
-          <RowContent>
-            {data?.DATE?.split(' ')[0] ? dateKoreaFormat(data?.DATE?.split(' ')[0]) : '-'}
-          </RowContent>
-        </Row>
-        <Row>
-          <RowTitle>최근 수정일</RowTitle>
-          <RowContent>
-            {data?.MODIFY_DATE?.split(' ')[0] ? dateKoreaFormat(data?.MODIFY_DATE?.split(' ')[0]) : '-'}
-          </RowContent>
-        </Row>
+        {!isFold && (
+          <>
+            <Row>
+              <RowTitle>성별</RowTitle>
+              {isEdit ? (
+                <RowContent>
+                  <Label>
+                    <Radio type='radio' name='GENDER' value='M'
+                      defaultChecked={data?.GENDER === 'M'}
+                      onChange={e => setEditData(prev => ({ ...prev, GENDER: e.target.value }))}
+                    />
+                    남자
+                  </Label>
+                  <Label>
+                    <Radio type='radio' name='GENDER' value='F'
+                      defaultChecked={data?.GENDER === 'F'}
+                      onChange={e => setEditData(prev => ({ ...prev, GENDER: e.target.value }))}
+                    />
+                    여자
+                  </Label>
+                </RowContent>
+              ): (
+                <RowContent>{data?.GENDER === 'M' ? '남자' : data?.GENDER === 'F' ? '여자' : '-'}</RowContent>
+              )}
+            </Row>
+            <Row>
+              <RowTitle>생년월일</RowTitle>
+              {isEdit ? (
+                <RowContent>
+                  <Input type='date' defaultValue={data?.BIRTH ?? ''}
+                    onKeyUp={dateKeyBlock}
+                    onChange={e => setEditData(prev => ({ ...prev, BIRTH: e.target.value }))}
+                  />
+                </RowContent>
+              ) : (
+                <RowContent>{data?.BIRTH ? dateKoreaFormat(data?.BIRTH) : '-'}</RowContent>
+              )}
+            </Row>
+            <Row>
+              <RowTitle>신장</RowTitle>
+              {isEdit ? (
+                <RowContent>
+                  <Input type='number' defaultValue={data?.HEIGHT ?? ''}
+                    onChange={e => setEditData(prev => ({ ...prev, HEIGHT: e.target.value }))}
+                  />
+                </RowContent>
+              ) : (
+                <RowContent>{data?.HEIGHT ? data?.HEIGHT + 'Cm' : '-'}</RowContent>
+              )}
+            </Row>
+            <Row>
+              <RowTitle>체중</RowTitle>
+              {isEdit ? (
+                <RowContent>
+                  <Input type='number' defaultValue={data?.WEIGHT ?? ''}
+                    onChange={e => setEditData(prev => ({ ...prev, WEIGHT: e.target.value }))}
+                  />
+                </RowContent>
+              ) : (
+                <RowContent>{data?.WEIGHT ? data?.WEIGHT + 'Kg' : '-'}</RowContent>
+              )}
+            </Row>
+            <Row>
+              <RowTitle>가입 플랫폼</RowTitle>
+              <RowContent>{data?.PLATFORM === 'kakao' ? '카카오' : data?.PLATFORM === 'naver' ? '네이버' : '-'}</RowContent>
+            </Row>
+            <Row>
+              <RowTitle>가입일</RowTitle>
+              <RowContent>
+                {data?.DATE?.split(' ')[0] ? dateKoreaFormat(data?.DATE?.split(' ')[0]) : '-'}
+              </RowContent>
+            </Row>
+            <Row>
+              <RowTitle>최근 수정일</RowTitle>
+              <RowContent>
+                {data?.MODIFY_DATE?.split(' ')[0] ? dateKoreaFormat(data?.MODIFY_DATE?.split(' ')[0]) : '-'}
+              </RowContent>
+            </Row>
+          </>
+        )}
+        <FoldBtn onClick={() => setIsFold(prev => !prev)}>
+          {isFold ? '확장' : '가리기'}
+        </FoldBtn>
       </RowWrap>
     </Wrap>
     <Wrap type='testFlag'>
@@ -276,7 +284,7 @@ const ProfileImage = Styled.label`
 const RowWrap = Styled.article`
   flex: 1;
   overflow: auto;
-  padding: 0 10px;
+  padding: 5px 10px;
   ::-webkit-scrollbar {
     width: 5px;
     background-color: #dbf1ef;
@@ -318,6 +326,13 @@ const Label = Styled.label`
 const Radio = Styled.input`
   margin-left: 2px;
   margin-right: 5px;
+`;
+const FoldBtn = Styled.button`
+  width: 100%;
+  height: 28px;
+  line-height: 26px;
+  font-size: 12px;
+  margin-top: 10px;
 `;
 const FileInput = Styled.input`
   display: none;

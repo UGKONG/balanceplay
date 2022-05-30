@@ -6,9 +6,10 @@ export default function 메뉴 ({ activeMenu, setActiveMenu }) {
   const menuList = useRef([
     { id: 1, name: '검사', test: false },
     { id: 2, name: '보유 이용권', test: false },
-    { id: 3, name: '메 모', test: false },
-    { id: 4, name: '히스토리', test: false },
-    { id: 5, name: '건강 데이터', test: true },
+    { id: 3, name: '스케줄', test: false },
+    { id: 4, name: '메 모', test: false },
+    { id: 5, name: '히스토리', test: false },
+    // { id: 6, name: '건강 데이터', test: true },
   ]);
 
   const onClick = (id, isTest) => {

@@ -62,10 +62,10 @@ export default function 메모리스트 ({ data, getList }) {
   )
 }
 
-const Container = Styled.article`
+const Container = Styled.li`
   display: flex;
   flex-flow: column;
-  align-items: flex-end;
+  align-items: flex-start;
 `;
 const Wrap = Styled.div`
   padding: 10px;
@@ -86,22 +86,22 @@ const Wrap = Styled.div`
 `;
 const Option = Styled.div`
   display: flex;
-  align-items: flex-end !important;
+  align-items: flex-start !important;
   justify-content: center;
   flex-flow: column;
   font-size: 12px;
   position: absolute;
-  right: calc(100%);
+  left: calc(100%);
   top: 0;
   color: #999;
   width: 70px;
   height: 100%;
   justify-content: space-between;
-  padding: 2px 5px 2px 0;
+  padding: 2px 0px 2px 5px;
 `;
 const Edited = Styled.p`
   white-space: nowrap;
-  padding-right: 2px;
+  padding-left: 2px;
 `;
 const Btns = Styled.div`
   align-items: center;

@@ -26,7 +26,9 @@ export default function 보유이용권리스트 ({ data, getList }) {
       getList();
     })
   }
+  const deleteVoucher = () => {
 
+  }
   const changeInfoView = () => {
     if (!isInfoView) return;
     useAxios.get('/voucher/' + data?.VOUCHER_ID).then(({ data }) => {
@@ -54,7 +56,6 @@ export default function 보유이용권리스트 ({ data, getList }) {
             <Row>유형: {data?.USE_TYPE === 1 ? '횟수' : '기간'}제 이용권</Row>
             {data?.REMAIN_COUNT && <Row>이용권 잔여수: {data?.REMAIN_COUNT}회</Row>}
             {data?.REMAIN_DATE && <Row>이용권 만료일: {data?.REMAIN_DATE}</Row>}
-            
           </Body>
           <ButtonWrap>
             {!isFinishVoucher && (
@@ -64,6 +65,7 @@ export default function 보유이용권리스트 ({ data, getList }) {
             )}
             <Button>기간 및 횟수 조정</Button>
             <Button onClick={() => setIsInfoView(true)}>이용권 정보</Button>
+            <Button onClick={deleteVoucher}>삭제</Button>
           </ButtonWrap>
         </>
       ) : (
@@ -91,13 +93,13 @@ const Wrap = Styled.div`
   flex: 1;
   min-width: 200px;
   max-width: 250px;
+  height: 340px;
   box-shadow: 0px 3px 4px #00000020;
   border: 1px solid #c9ebe7;
   border-radius: 5px;
   margin: 5px;
   font-size: 13px;
   color: #333;
-  height: 300px;
   display: flex;
   align-items: flex-start;
   flex-flow: column;

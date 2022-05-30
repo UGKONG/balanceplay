@@ -8,6 +8,7 @@ import Info from './Info';
 import Menu from './Menu';
 import Test from './pages/Test';
 import Voucher from './pages/Voucher';
+import Schedule from './pages/Schedule';
 import Memo from './pages/Memo';
 import History from './pages/History';
 import Body from './pages/Body';
@@ -22,7 +23,7 @@ export default function 회원상세페이지 () {
   const getData = () => {
     useAxios.get('/member/' + id).then(({ data }) => {
       if (!data?.result || !data?.data) {
-        useAlert.error('알림', '회원정보가 존재하지 않습니다.');
+        useAlert.error('알림', '회원 정보가 존재하지 않습니다.');
         return navigate('/member');
       }
       setData(data?.data);
@@ -63,9 +64,10 @@ export default function 회원상세페이지 () {
         <Right>
           {activeMenu === 1 && <Test />}
           {activeMenu === 2 && <Voucher />}
-          {activeMenu === 3 && <Memo />}
-          {activeMenu === 4 && <History />}
-          {activeMenu === 5 && <Body />}
+          {activeMenu === 3 && <Schedule />}
+          {activeMenu === 4 && <Memo memo={data?.MEMO} />}
+          {activeMenu === 5 && <History />}
+          {activeMenu === 6 && <Body />}
         </Right>
       </Contents>
     </PageAnimate>

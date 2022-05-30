@@ -22,6 +22,7 @@ import Voucher from '@/pages/Voucher';
 import Account from '@/pages/Account';
 import History from '@/pages/History';
 import Teacher from '@/pages/Teacher';
+import TeacherDetail from '@/pages/TeacherDetail';
 import Setting from '@/pages/Setting';
 
 export default function 앱 () {
@@ -102,6 +103,7 @@ export default function 앱 () {
             {isLogin && isSession && <Route path='/account' element={<Account />} />}
             {isLogin && isSession && <Route path='/history' element={<History />} />}
             {isLogin && isSession && <Route path='/teacher' element={<Teacher />} />}
+            {isLogin && isSession && <Route path='/teacher/:id' element={<TeacherDetail />} />}
             {isLogin && isSession && <Route path='/setting' element={<Setting />} />}
           </Routes>
         </Container2>

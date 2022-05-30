@@ -64,6 +64,7 @@ const adminPages = [
   '/account',
   '/history',
   '/teacher',
+  '/teacher/:id',
   '/setting',
 ];
 adminPages.forEach(page => app.use('/admin' + page, express.static(basePath + '/admin')));
@@ -118,6 +119,12 @@ const {
   deleteUserMemo,
   getUserHistory,
   putUserVoucherStatus,
+  memberListDownload,
+  getTeacher,
+  getTeacherDetail,
+  putUserDefaultMemo,
+  getAccount,
+  deleteAccount,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -165,6 +172,12 @@ app.post('/api/userMemo/:id', postUserMemo);
 app.put('/api/userMemo/:memoId', putUserMemo);
 app.delete('/api/userMemo/:memoId', deleteUserMemo);
 app.get('/api/userHistory/:id', getUserHistory);
+app.get('/api/memberListDownload', memberListDownload);
+app.get('/api/teacher', getTeacher);
+app.get('/api/teacher/:id', getTeacherDetail);
+app.put('/api/userDefaultMemo/:id', putUserDefaultMemo);
+app.get('/api/account', getAccount);
+app.delete('/api/account', deleteAccount);
 
 app.get('/api/:table', getOtherList);
 app.get('/api/:table/:id', getOtherData);

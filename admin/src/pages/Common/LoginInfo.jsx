@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Styled from 'styled-components';
 import { FaUserCircle } from "react-icons/fa";
 import useStore from '%/useStore';
@@ -6,10 +7,13 @@ import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 
 export default function 로그인정보 () {
+  const navigate = useNavigate();
   const isLogin = useStore(x => x.isLogin);
 
+  const click = () => navigate('/teacher/' + isLogin?.ID);
+
   return (
-    <Wrap>
+    <Wrap onClick={click}>
       {isLogin?.IMAGE_PATH ? (
         <Image img={isLogin?.IMAGE_PATH} />
       ) : (

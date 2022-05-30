@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const conf = require('./config.json');
 const { getClientIp } = require('request-ip');
+const ExcelJS = require('exceljs');
 
 // DB 연결 함수
 const dbConnect = callback => {
@@ -167,7 +168,7 @@ const userSelectQuery = `
   CENTER_SN AS CENTER_ID, CENTER_NM AS CENTER_NAME,
   OGDP_TYPE AS SCHOOL_TYPE, OGDP AS SCHOOL_NAME,
   GNDR AS GENDER, HGHT AS HEIGHT, WGHT AS WEIGHT,
-  IS_DELETE, TEST_FLAG,
+  IS_DELETE, TEST_FLAG, MEMO,
   DATE_FORMAT(CRT_DT, '%Y-%m-%d %H:%i:%s') AS DATE, 
   DATE_FORMAT(MDFCN_DT, '%Y-%m-%d %H:%i:%s') AS MODIFY_DATE
 `
@@ -1475,6 +1476,152 @@ module.exports.putUserVoucherStatus = (req, res) => {
         return;
       }
       res.send(success(result));
+    })
+  })
+}
+// 회원 리스트 다운로드 (엑셀)
+module.exports.memberListDownload = (req, res) => {
+  log(req);
+  let centerId = req.session?.isLogin?.CENTER_ID;
+  let centerName = req.session?.isLogin?.CENTER_NAME;
+  if (!centerId || !centerName) return res.send(fail('센터 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT ${userSelectQuery} FROM tn_user 
+      WHERE CENTER_SN = '${centerId}';
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('회원 리스트를 조회하는데 실패하였습니다.'));
+        return;
+      }
+      res.send(success(result));
+    })
+  })
+}
+// 선생님 리스트
+module.exports.getTeacher = (req, res) => {
+  log(req);
+  let centerId = req?.session?.isLogin?.CENTER_ID;
+  if (!centerId) return res.send(fail('센터 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT
+      a.ID, a.NAME, b.CENTER_NM AS CENTER_NAME, a.PHONE, a.EMAIL, a.GENDER, a.IMAGE_PATH AS IMG,
+      DATE_FORMAT(a.CREATE_DT, '%Y-%m-%d %H:%i:%s') AS DATE,
+      DATE_FORMAT(a.MODIFY_DT, '%Y-%m-%d %H:%i:%s') AS MODIFY_DATE
+      FROM tn_admin a
+      LEFT JOIN tb_center b ON a.CENTER_ID = b.CENTER_SN
+      WHERE a.CENTER_ID = '${centerId}';
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('선생님 리스트 조회에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(result));
+    })
+  })
+}
+// 선생님 상세정보 조회
+module.exports.getTeacherDetail = (req, res) => {
+  log(req);
+  let teacherId = req?.params?.id;
+  let centerId = req?.session?.isLogin?.CENTER_ID;
+  if (!teacherId) return res.send(fail('선생님 아이디가 없습니다.'));
+  if (!centerId) return res.send(fail('센터 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT
+      a.ID, a.NAME, b.CENTER_NM AS CENTER_NAME, a.PHONE, a.EMAIL, a.GENDER, a.IMAGE_PATH AS IMG,
+      DATE_FORMAT(a.CREATE_DT, '%Y-%m-%d %H:%i:%s') AS DATE,
+      DATE_FORMAT(a.MODIFY_DT, '%Y-%m-%d %H:%i:%s') AS MODIFY_DATE
+      FROM tn_admin a
+      LEFT JOIN tb_center b ON a.CENTER_ID = b.CENTER_SN
+      WHERE a.ID = '${teacherId}' AND a.CENTER_ID = '${centerId}';
+    `, (err, result) => {
+      db.end();
+      if (err || !result[0]) {
+        err && console.log(err);
+        res.send(fail('선생님 정보 조회에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(result[0]));
+    })
+  })
+}
+// 회원 기본 메모 수정
+module.exports.putUserDefaultMemo = (req, res) => {
+  log(req);
+  let userId = req?.params?.id;
+  let memo = req?.body?.memo;
+  if (!userId) return res.send(fail('회원의 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      UPDATE tn_user 
+      SET MEMO = '${memo}'
+      WHERE USER_SN = '${userId}';
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('메모 저장에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(memo));
+    })
+  })
+}
+// 입출금 리스트 조회
+module.exports.getAccount = (req, res) => {
+  log(req);
+  let centerId = req?.session?.isLogin?.CENTER_ID;
+  let searchText = req?.query?.q ?? '';
+  if (!centerId) return res.send(fail('입출금 내역 조회에 실패하였습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT
+      ID, IS_AUTO, CATEGORY, DESCRIPTION, MONEY_TYPE, MONEY,
+      DATE_FORMAT(CREATE_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+      FROM tn_account
+      WHERE CENTER_ID = '${centerId}' AND 
+      IS_DELETE = 0 AND
+      DESCRIPTION LIKE '%${searchText}%'
+      ORDER BY CREATE_DT DESC;
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('입출금 내역 조회에 실패하였습니다.'));
+      }
+      res.send(success(result));
+    })
+  })
+}
+// 입출금내역 삭제
+module.exports.deleteAccount = (req, res) => {
+  let idArr = req?.body?.idArr ?? [];
+  if (idArr?.length === 0) return res.send(fail('삭제할 항목이 없습니다.'));
+  let query = idArr.map(x => 'ID = ' + x);
+  query = query.join(' OR ');
+  dbConnect(db => {
+    db.query(`
+      UPDATE tn_account SET IS_DELETE = 1 WHERE ${query};
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('입출금내역 삭제를 실패하였습니다.'));
+        return;
+      }
+      res.send(success(null));
     })
   })
 }
