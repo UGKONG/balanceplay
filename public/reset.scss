@@ -49,6 +49,16 @@ button, a[btn], .btn {
     cursor: default;
   }
 }
+button.red {
+  border: 1px solid #ff4f4f !important;
+  background-color: #ee6d6d !important;
+  &:hover {
+    background-color: #ec6565 !important;
+  }
+  &:focus {
+    box-shadow: 0 0 0 4px rgb(238 109 109 / 25%) !important;
+  }
+}
 table {
   width: 100%;
   table-layout: fixed;

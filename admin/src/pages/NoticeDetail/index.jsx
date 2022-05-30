@@ -46,7 +46,7 @@ export default function 공지상세페이지 () {
         <Title>공지사항 상세보기</Title>
         <OptionBtnWrap>
           <EditBtn onClick={edit}>수정</EditBtn>
-          <DeleteBtn onClick={del}>삭제</DeleteBtn>
+          <DeleteBtn className='red' onClick={del}>삭제</DeleteBtn>
           <BackBtn onClick={() => navigate('/notice')}>뒤로가기</BackBtn>
         </OptionBtnWrap>
       </Header>
@@ -84,16 +84,7 @@ const Title = Styled.h2`
 const Contents = Styled.section``;
 const OptionBtnWrap = Styled.span``;
 const EditBtn = Styled.button``;
-const DeleteBtn = Styled.button`
-  border: 1px solid #ff4f4f !important;
-  background-color: #ee6d6d !important;
-  &:hover {
-    background-color: #ec6565 !important;
-  }
-  &:focus {
-    box-shadow: 0 0 0 4px rgb(238 109 109 / 25%) !important;
-  }
-`;
+const DeleteBtn = Styled.button``;
 const BackBtn = Styled.button`
   
 `;

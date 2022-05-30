@@ -10,17 +10,18 @@ import TableCheckbox from '../Common/TableCheckbox';
 export default function 입출금내역 () {
   const head = [
     { name: 'No', width: 60 }, 
-    { name: '일시', width: '15%' }, 
-    { name: '구분', width: '10%' }, 
-    { name: '세부내용', width: '55%' }, 
-    { name: '입금액', width: '10%' }, 
-    { name: '출금액', width: '10%' },
+    { name: '일시', width: '20%' }, 
+    { name: '구분', width: '15%' }, 
+    { name: '세부내용', width: '35%' }, 
+    { name: '입금액', width: '15%' }, 
+    { name: '출금액', width: '15%' },
   ];
   const [list, setList] = useState([]);
   const [checkList, setCheckList] = useState([]);
   const [searchText, setSearchText] = useState('');
 
   const getList = (text, callback = null) => {
+    console.log('getList 호출');
     let temp = text ?? searchText;
     setCheckList([]);
     useAxios.get('/account?q=' + temp).then(({ data }) => {
@@ -36,8 +37,6 @@ export default function 입출금내역 () {
   }
 
   const allCheck = bool => setCheckList(bool ? [...list?.filter(x => x?.IS_AUTO === 0)] : []);
-
-  useEffect(getList, []);
 
   return (
     <PageAnimate name='slide-up'>

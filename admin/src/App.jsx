@@ -20,6 +20,8 @@ import NoticeModify from '@/pages/NoticeModify';
 import Schedule from '@/pages/Schedule';
 import Voucher from '@/pages/Voucher';
 import Account from '@/pages/Account';
+import AccountCreate from '@/pages/AccountCreate';
+import AccountModify from '@/pages/AccountModify';
 import History from '@/pages/History';
 import Teacher from '@/pages/Teacher';
 import TeacherDetail from '@/pages/TeacherDetail';
@@ -101,6 +103,8 @@ export default function 앱 () {
             {isLogin && isSession && <Route path='/schedule' element={<Schedule />} />}
             {isLogin && isSession && <Route path='/voucher' element={<Voucher />} />}
             {isLogin && isSession && <Route path='/account' element={<Account />} />}
+            {isLogin && isSession && <Route path='/account/new' element={<AccountCreate />} />}
+            {isLogin && isSession && <Route path='/accountModify/:id' element={<AccountModify />} />}
             {isLogin && isSession && <Route path='/history' element={<History />} />}
             {isLogin && isSession && <Route path='/teacher' element={<Teacher />} />}
             {isLogin && isSession && <Route path='/teacher/:id' element={<TeacherDetail />} />}
@@ -151,7 +155,9 @@ const Footer = Styled.div`
   }
 `;
 const ProgramInfo = Styled.p`
-
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 `;
 const LogoutBtn = Styled.p`
   cursor: pointer;

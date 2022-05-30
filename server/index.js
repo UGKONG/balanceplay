@@ -62,6 +62,8 @@ const adminPages = [
   '/schedule',
   '/voucher',
   '/account',
+  '/account/new',
+  '/accountModify/:id',
   '/history',
   '/teacher',
   '/teacher/:id',
@@ -125,6 +127,8 @@ const {
   putUserDefaultMemo,
   getAccount,
   deleteAccount,
+  getAccountDetail,
+  putAccount,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -177,7 +181,9 @@ app.get('/api/teacher', getTeacher);
 app.get('/api/teacher/:id', getTeacherDetail);
 app.put('/api/userDefaultMemo/:id', putUserDefaultMemo);
 app.get('/api/account', getAccount);
+app.get('/api/account/:id', getAccountDetail);
 app.delete('/api/account', deleteAccount);
+app.put('/api/account', putAccount);
 
 app.get('/api/:table', getOtherList);
 app.get('/api/:table/:id', getOtherData);

@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Styled from 'styled-components';
 import { AiOutlineSearch } from "react-icons/ai";
 import useAlert from '%/useAlert';
 import useAxios from '%/useAxios';
 import useStore from '%/useStore';
+import useNumber from '%/useNumber';
 import Filter from './Filter';
 import { useNavigate } from 'react-router-dom';
 
@@ -33,6 +34,18 @@ export default function 입출금내역해더 ({ list, getList, setList, checkLi
     });
   }
 
+  const totalInMoney = useMemo(() => {
+    let total = 0;
+    list?.forEach(x => total += x?.MONEY_TYPE === 1 ? x?.MONEY : 0);
+    return total;
+  }, [list]);
+
+  const totalOutMoney = useMemo(() => {
+    let total = 0;
+    list?.forEach(x => total += x?.MONEY_TYPE === 2 ? x?.MONEY : 0);
+    return total;
+  }, [list]);
+
   return (
     <Wrap>
       <Left>
@@ -51,6 +64,9 @@ export default function 입출금내역해더 ({ list, getList, setList, checkLi
       </Left>
       <Right>
         <Count>
+          <span>총 입금 {useNumber(totalInMoney ?? 0)}원</span>
+          <span>총 출금 {useNumber(totalOutMoney ?? 0)}원</span>
+          <span />
           <span>전체 {list?.length ?? 0}개</span>
           <span>선택 {checkList?.length ?? 0}개</span>
         </Count>

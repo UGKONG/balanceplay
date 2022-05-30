@@ -1590,13 +1590,14 @@ module.exports.getAccount = (req, res) => {
   dbConnect(db => {
     db.query(`
       SELECT
-      ID, IS_AUTO, CATEGORY, DESCRIPTION, MONEY_TYPE, MONEY,
-      DATE_FORMAT(CREATE_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
-      FROM tn_account
-      WHERE CENTER_ID = '${centerId}' AND 
-      IS_DELETE = 0 AND
-      DESCRIPTION LIKE '%${searchText}%'
-      ORDER BY CREATE_DT DESC;
+      a.ID, a.IS_AUTO, a.CATEGORY, b.NAME AS CATEGORY_NAME, a.DESCRIPTION, a.MONEY_TYPE, a.MONEY,
+      DATE_FORMAT(a.CREATE_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+      FROM tn_account a
+      LEFT JOIN tn_common b ON b.CODE = a.CATEGORY AND b.BASE_ID = 2
+      WHERE a.CENTER_ID = '${centerId}' AND 
+      a.IS_DELETE = 0 AND
+      a.DESCRIPTION LIKE '%${searchText}%'
+      ORDER BY a.CREATE_DT DESC;
     `, (err, result) => {
       db.end();
       if (err) {
@@ -1607,8 +1608,35 @@ module.exports.getAccount = (req, res) => {
     })
   })
 }
+// 입출금 내역 정보 조회
+module.exports.getAccountDetail = (req, res) => {
+  log(req);
+  let accountId = req?.params?.id;
+  if (!accountId) return res.send(fail('입출금 내역 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT CODE AS ID, NAME FROM tn_common WHERE BASE_ID = 2;
+
+      SELECT
+      ID, CATEGORY, DESCRIPTION, MONEY_TYPE, MONEY,
+      DATE_FORMAT(CREATE_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
+      FROM tn_account
+      WHERE ID = '${accountId}' AND 
+      IS_DELETE = 0 AND IS_AUTO = 0;
+    `, (err, result) => {
+      db.end();
+      if (err || !result[1][0]) {
+        err && console.log(err);
+        return res.send(fail('입출금 내역 정보 조회에 실패하였습니다.'));
+      }
+      res.send(success({ type: result[0], info: result[1][0] }));
+    })
+  })
+}
 // 입출금내역 삭제
 module.exports.deleteAccount = (req, res) => {
+  log(req);
   let idArr = req?.body?.idArr ?? [];
   if (idArr?.length === 0) return res.send(fail('삭제할 항목이 없습니다.'));
   let query = idArr.map(x => 'ID = ' + x);
@@ -1626,4 +1654,12 @@ module.exports.deleteAccount = (req, res) => {
       res.send(success(null));
     })
   })
+}
+// 입출금내역 수정
+module.exports.putAccount = (req, res) => {
+  log(req);
+  let data = req?.body?.data;
+  if (!data) return res.send(fail('입출금내역 수정에 실패하였습니다.'));
+
+  res.send(success(data));
 }

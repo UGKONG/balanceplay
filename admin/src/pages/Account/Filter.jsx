@@ -7,28 +7,23 @@ import useStore from '%/useStore';
 export default function 리스트필터 ({ getList, setList, isReset }) {
   const dispatch = useStore(x => x.setState);
   const [isOpen, setIsOpen] = useState(false);
-  const [newMember, setNewMember] = useState(false);
-  const [isVoucher, setIsVoucher] = useState(false);
-  const [isMale, setIsMale] = useState(false);
-  const [isFemale, setIsFemale] = useState(false);
-  const [isTestImpossible, setIsTestImpossible] = useState(false);
-  const [isFiveUnderDate, setIsFiveUnderDate] = useState(false);
-  const [isThreeUnderCount, setIsThreeUnderCount] = useState(false);
-
+  const [isSalary, setIsSalary] = useState(false);
+  const [isUtility, setIsUtility] = useState(false);
+  const [isVoucherSell, setIsVoucherSell] = useState(false);
+  const [isClass, setIsClass] = useState(false);
+  const [isOther, setIsOther] = useState(false);
 
   const reset = () => {
     dispatch('temp', null);
     setIsOpen(false);
-    setNewMember(false);
-    setIsVoucher(false);
-    setIsMale(false);
-    setIsFemale(false);
-    setIsTestImpossible(false);
-    setIsFiveUnderDate(false);
-    setIsThreeUnderCount(false);
+    setIsSalary(false);
+    setIsUtility(false);
+    setIsVoucherSell(false);
+    setIsClass(false);
+    setIsOther(false);
   }
   const onChange = () => {
-    let filtering = newMember || isVoucher || isMale || isFemale || isTestImpossible || isFiveUnderDate || isThreeUnderCount;
+    let filtering = isSalary || isOther || isUtility || isVoucherSell || isClass;
     dispatch('temp', filtering);
     
     getList(null, (list) => {
@@ -37,50 +32,64 @@ export default function 리스트필터 ({ getList, setList, isReset }) {
           fiveDate.setDate(fiveDate.getDate() + 5);
       let fiveTime = fiveDate.getTime();
       let arr = list;
-      if (newMember) arr = arr?.filter(x => {
-        let date = new Date(x?.DATE?.split(' ')[0]);
-        let now = new Date();
-            now.setDate(now.getDate() - 30);
-            now = new Date(useDate(now, 'date'));
-        return date.getTime() >= now.getTime();
-      });
-      if (isMale) arr = arr?.filter(x => x?.GENDER === 'M');
-      if (isFemale) arr = arr?.filter(x => x?.GENDER === 'F');
-      if (isTestImpossible) arr = arr?.filter(x => x?.TEST_FLAG === 0);
-      if (isVoucher) arr = arr?.filter(x => x?.VOUCHER?.length > 0);
-      if (isFiveUnderDate) arr = arr?.filter(user => {
-        let isTrue = false;
-        user?.VOUCHER?.forEach(x => {
-          let targetDate = new Date(x?.REMAIN_DATE);
-          let targetTime = targetDate.getTime();
-          let calc = fiveTime - targetTime;
-          if (nowTime <= targetTime && calc >= 0) return isTrue = true;
-        });
-        return isTrue;
-      });
-      if (isThreeUnderCount) arr = arr?.filter(user => {
-        let isTrue = false;
-        user?.VOUCHER?.forEach(x => {
-          let remainCount = x?.REMAIN_COUNT;
-          let targetDate = new Date(x?.REMAIN_DATE);
-          let targetTime = targetDate.getTime();
-          if (
-            nowTime <= targetTime && 
-            remainCount > 0 && remainCount <= 3
-          ) return isTrue = true;
-        });
-        return isTrue;
-      });
+      if (isSalary) arr = arr?.filter(x => x?.CATEGORY === 1);
+      if (isUtility) arr = arr?.filter(x => x?.CATEGORY === 2);
+      if (isVoucherSell) arr = arr?.filter(x => x?.CATEGORY === 3);
+      if (isClass) arr = arr?.filter(x => x?.CATEGORY === 4);
+      if (isOther) arr = arr?.filter(x => x?.CATEGORY === 0);
 
       setList(arr);
     })
   };
-  const maleChange = () => isMale && setIsFemale(false);
-  const femaleChange = () => isFemale && setIsMale(false);
 
-  useEffect(onChange, [newMember, isVoucher, isMale, isFemale, isTestImpossible, isFiveUnderDate, isThreeUnderCount]);
-  useEffect(maleChange, [isMale]);
-  useEffect(femaleChange, [isFemale]);
+  const salaryChange = () => {
+    if (isSalary) {
+      setIsUtility(false);
+      setIsVoucherSell(false);
+      setIsClass(false);
+      setIsOther(false);
+    }
+  }
+  const utilityChange = () => {
+    if (isUtility) {
+      setIsSalary(false);
+      setIsVoucherSell(false);
+      setIsClass(false);
+      setIsOther(false);
+    }
+  }
+  const voucherChange = () => {
+    if (isVoucherSell) {
+      setIsSalary(false);
+      setIsUtility(false);
+      setIsClass(false);
+      setIsOther(false);
+    }
+  }
+  const classChange = () => {
+    if (isClass) {
+      setIsSalary(false);
+      setIsUtility(false);
+      setIsVoucherSell(false);
+      setIsOther(false);
+    }
+  }
+  const otherChange = () => {
+    if (isOther) {
+      setIsSalary(false);
+      setIsUtility(false);
+      setIsVoucherSell(false);
+      setIsClass(false);
+    }
+  }
+
+
+  useEffect(onChange, [isSalary, isUtility, isVoucherSell, isClass, isOther]);
+  useEffect(salaryChange, [isSalary]);
+  useEffect(utilityChange, [isUtility]);
+  useEffect(voucherChange, [isVoucherSell]);
+  useEffect(classChange, [isClass]);
+  useEffect(otherChange, [isOther]);
   useEffect(reset, [isReset]);
 
 
@@ -92,32 +101,24 @@ export default function 리스트필터 ({ getList, setList, isReset }) {
       {isOpen && (
         <FilterWrap>
           <Row>
-            <RowTitle checked={newMember}>신규회원 (1달)</RowTitle>
-            <Checkbox checked={newMember} onChange={e => setNewMember(e)} />
+            <RowTitle checked={isSalary}>급여</RowTitle>
+            <Checkbox checked={isSalary} onChange={e => setIsSalary(e)} />
           </Row>
           <Row>
-            <RowTitle checked={isMale}>남성 회원</RowTitle>
-            <Checkbox checked={isMale} onChange={e => setIsMale(e)} />
+            <RowTitle checked={isUtility}>공과금</RowTitle>
+            <Checkbox checked={isUtility} onChange={e => setIsUtility(e)} />
           </Row>
           <Row>
-            <RowTitle checked={isFemale}>여성 회원</RowTitle>
-            <Checkbox checked={isFemale} onChange={e => setIsFemale(e)} />
+            <RowTitle checked={isVoucherSell}>이용권 판매</RowTitle>
+            <Checkbox checked={isVoucherSell} onChange={e => setIsVoucherSell(e)} />
           </Row>
           <Row>
-            <RowTitle checked={isTestImpossible}>테스트 비허가</RowTitle>
-            <Checkbox checked={isTestImpossible} onChange={e => setIsTestImpossible(e)} />
+            <RowTitle checked={isClass}>수업</RowTitle>
+            <Checkbox checked={isClass} onChange={e => setIsClass(e)} />
           </Row>
           <Row>
-            <RowTitle checked={isVoucher}>이용권 보유</RowTitle>
-            <Checkbox checked={isVoucher} onChange={e => setIsVoucher(e)} />
-          </Row>
-          <Row>
-            <RowTitle checked={isFiveUnderDate}>이용권 5일 이하</RowTitle>
-            <Checkbox checked={isFiveUnderDate} onChange={e => setIsFiveUnderDate(e)} />
-          </Row>
-          <Row>
-            <RowTitle checked={isThreeUnderCount}>이용권 3회 이하</RowTitle>
-            <Checkbox checked={isThreeUnderCount} onChange={e => setIsThreeUnderCount(e)} />
+            <RowTitle checked={isOther}>기타</RowTitle>
+            <Checkbox checked={isOther} onChange={e => setIsOther(e)} />
           </Row>
         </FilterWrap>
       )}
