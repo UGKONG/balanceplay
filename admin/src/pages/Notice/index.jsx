@@ -10,18 +10,19 @@ import TableCheckbox from '../Common/TableCheckbox';
 export default function 공지사항 () {
   const head = useRef([
     { name: 'No', width: 60 }, 
+    { name: '구분', width: 100 }, 
     { name: '제목', width: '35%' }, 
     { name: '내용', width: '65%' }, 
-    { name: '선생님 전용', width: 100 }, 
     { name: '작성자', width: 100 }, 
     { name: '작성일', width: 150 }
   ]);
   const [list, setList] = useState([]);
   const [checkList, setCheckList] = useState([]);
   const [searchText, setSearchText] = useState('');
-  const [activeType, setActiveType] = useState(2);
+  const [activeType, setActiveType] = useState(3);
 
-  const getList = (text) => {
+  const getList = (text, callback = null) => {
+    console.log('dd');
     let temp = text ?? searchText;
     setCheckList([]);
     useAxios.get('/notice?q=' + temp).then(({ data }) => {
@@ -31,8 +32,7 @@ export default function 공지사항 () {
         useAlert.info('검색결과', '검색결과가 없습니다.');
         return;
       }
-      
-      setList(activeType === 2 ? data?.data : data?.data?.filter(x => x?.IS_ADMIN_NOTICE === activeType));
+      (callback ? callback : setList)(data?.data);
     });
   }
 
@@ -43,6 +43,7 @@ export default function 공지사항 () {
       <Header 
         count={list?.length ?? 0} 
         getList={getList} 
+        setList={setList} 
         checkList={checkList} 
         searchText={searchText} 
         setSearchText={setSearchText}

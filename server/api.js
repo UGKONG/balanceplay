@@ -747,7 +747,7 @@ module.exports.postNotice = (req, res) => {
   dbConnect(db => {
     db.query(`
       INSERT INTO tn_notice 
-      (CENTER_ID, NTC_TTL, NTC_CTNT, IS_ADMIN_NOTICE, CRT_USER_SN)
+      (CENTER_ID, NTC_TTL, NTC_CTNT, TYPE, CRT_USER_SN)
       VALUES
       ('${centerId}', '${title}', '${contents}', '${isAdminNotice ? 1 : 0}', '${userId}');
     `, (err, result) => {
@@ -773,12 +773,13 @@ module.exports.getNotice = (req, res) => {
       a.NTC_SN AS ID,
       a.NTC_TTL AS TITLE,
       a.NTC_CTNT AS CONTENTS,
-      a.IS_ADMIN_NOTICE,
+      a.TYPE, c.NAME AS TYPE_NAME,
       a.CRT_USER_SN AS WRITER_ID,
       b.NAME AS WRITER_NAME,
       DATE_FORMAT(a.CRT_DT, '%Y-%m-%d %H:%i:%s') AS DATE
       FROM tn_notice a
       LEFT JOIN tn_admin b ON a.CRT_USER_SN = b.ID
+      LEFT JOIN tn_common c ON a.TYPE = c.CODE AND c.BASE_ID = 6
       WHERE a.CENTER_ID = '${centerId}' AND (a.NTC_TTL LIKE '%${searchText}%' OR a.NTC_CTNT LIKE '%${searchText}%')
       ORDER BY a.CRT_DT DESC;
     `, (err, result) => {
@@ -805,11 +806,12 @@ module.exports.getNoticeDetail = (req, res) => {
       a.NTC_TTL AS TITLE,
       a.NTC_CTNT AS CONTENT,
       b.USER_NM AS USER,
-      IS_ADMIN_NOTICE,
+      a.TYPE, c.NAME AS TYPE_NAME,
       DATE_FORMAT(a.CRT_DT, '%Y-%m-%d') AS DATE
       FROM
       tn_notice a
       LEFT JOIN tn_user b ON b.USER_SN = a.CRT_USER_SN
+      LEFT JOIN tn_common c ON a.TYPE = c.CODE AND c.BASE_ID = 6
       WHERE a.CENTER_ID = '${centerId}' AND a.NTC_SN = '${id}'
     `, (err, result) => {
       db.end();
@@ -1085,7 +1087,7 @@ module.exports.putNotice = (req, res) => {
       UPDATE tn_notice SET 
       NTC_TTL = '${data?.title}',
       NTC_CTNT = '${data?.contents}',
-      IS_ADMIN_NOTICE = ${data?.isAdminNotice}
+      TYPE = ${data?.isAdminNotice}
       WHERE NTC_SN = ${data?.id}
     `, (err, result) => {
       db.end();

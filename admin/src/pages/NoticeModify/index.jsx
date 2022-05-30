@@ -21,7 +21,7 @@ export default function 공지수정 () {
         navigate('/notice');
         return;
       }
-      setIsAdminNotice(data?.data?.IS_ADMIN_NOTICE);
+      setIsAdminNotice(data?.data?.TYPE);
       setTitle(data?.data?.TITLE);
       setContents(data?.data?.CONTENT);
     })
@@ -53,9 +53,9 @@ export default function 공지수정 () {
       </Header>
       <Contents>
         <Row>
-          <RowTitle>선생님 전용</RowTitle>
+          <RowTitle>직원공지</RowTitle>
           <RowContents>
-            <Checkbox checked={isAdminNotice} onChange={e => setIsAdminNotice(e)} />
+            <Checkbox checked={isAdminNotice === 1} onChange={e => setIsAdminNotice(e ? 1 : 2)} />
           </RowContents>
         </Row>
         <Row>

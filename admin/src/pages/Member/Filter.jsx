@@ -141,7 +141,6 @@ const FilterWrap = Styled.div`
   width: 20vw;
   min-width: 200px;
   max-width: 250px;
-  min-height: 150px;
   top: calc(100% + 5px);
   left: 10px;
   z-index: 3;

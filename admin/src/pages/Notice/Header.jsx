@@ -1,22 +1,21 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Styled from 'styled-components';
 import { AiOutlineSearch } from "react-icons/ai";
 import { useNavigate } from 'react-router-dom';
 import useAlert from '%/useAlert';
 import useAxios from '%/useAxios';
+import useStore from '%/useStore';
+import Filter from './Filter';
 
-export default function 공지해더 ({ activeType, setActiveType, count, getList, checkList, searchText, setSearchText }) {
+export default function 공지해더 ({ list, getList, setList, checkList, searchText, setSearchText }) {
+  const filtering = useStore(x => x?.temp);
   const navigate = useNavigate();
-  const typeList = useRef([
-    { id: 2, text: '전체' },
-    { id: 0, text: '회원용' },
-    { id: 1, text: '선생님용' },
-  ]);
+  const [isReset, setIsReset] = useState(false);
 
-  const typeClick = id => setActiveType(id);
   const searchReset = () => {
     setSearchText('');
     getList('');
+    setIsReset(prev => !prev);
   }
   const noticeDelete = () => {
     let ask = confirm('선택된 ' + checkList?.length + '개의 항목을 삭제하시겠습니까?');
@@ -33,8 +32,6 @@ export default function 공지해더 ({ activeType, setActiveType, count, getLis
     });
   }
 
-  useEffect(getList, [activeType]);
-
   return (
     <Wrap>
       <Left>
@@ -46,21 +43,14 @@ export default function 공지해더 ({ activeType, setActiveType, count, getLis
           />
           <SearchBtn onClick={() => getList()} />
         </Search>
-        {searchText !== '' && (
-          <SearchResetBtn onClick={searchReset}>검색 초기화</SearchResetBtn>
+        <Filter getList={getList} setList={setList} isReset={isReset} />
+        {(searchText !== '' || filtering) && (
+          <SearchResetBtn onClick={searchReset}>초기화</SearchResetBtn>
         )}
-        <Category>
-          {typeList?.current?.map(item => (
-            <span key={item?.id} 
-              className={activeType === item?.id ? 'active' : ''}
-              onClick={() => typeClick(item?.id)}
-            >{item?.text}</span>
-          ))}
-        </Category>
       </Left>
       <Right>
         <Count>
-          <span>전체 {count}개</span>
+          <span>전체 {list?.length ?? 0}개</span>
           <span>선택 {checkList?.length ?? 0}개</span>
         </Count>
         <CreateBtn onClick={() => navigate('new')}>공지 작성</CreateBtn>
@@ -70,7 +60,9 @@ export default function 공지해더 ({ activeType, setActiveType, count, getLis
   )
 }
 
-const Wrap = Styled.section``;
+const Wrap = Styled.section`
+  position: relative;
+`;
 const Left = Styled.div``;
 const Right = Styled.div``;
 const Search = Styled.div`

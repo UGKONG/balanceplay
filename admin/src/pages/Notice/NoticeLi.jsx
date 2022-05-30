@@ -27,9 +27,9 @@ export default function 공지사항리스트 ({ item, idx, checkList, setCheckL
         <TableCheckbox checked={checked} onChange={onChange} />
       </Td>
       <Td onClick={onClick}>{idx + 1}</Td>
+      <Td onClick={onClick}>{item?.TYPE_NAME}</Td>
       <Td onClick={onClick}>{item?.TITLE}</Td>
       <Td onClick={onClick} dangerouslySetInnerHTML={{ __html: item?.CONTENTS?.replaceAll('<br />', ' ') }} />
-      <Td onClick={onClick}>{item?.IS_ADMIN_NOTICE ? '예' : '아니오'}</Td>
       <Td onClick={onClick}>{item?.WRITER_NAME}</Td>
       <Td onClick={onClick}>{item?.DATE}</Td>
     </Tr>
