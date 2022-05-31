@@ -22,7 +22,6 @@ export default function 공지사항 () {
   const [activeType, setActiveType] = useState(3);
 
   const getList = (text, callback = null) => {
-    console.log('dd');
     let temp = text ?? searchText;
     setCheckList([]);
     useAxios.get('/notice?q=' + temp).then(({ data }) => {

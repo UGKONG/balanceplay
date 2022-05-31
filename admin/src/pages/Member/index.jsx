@@ -29,8 +29,8 @@ export default function 회원페이지 () {
     useAxios.get('/member?q=' + temp).then(({ data }) => {
       if (!data?.result || !data?.data) return setList([]);
       if (data?.data?.length === 0) {
-        setSearchText('');
         searchText !== '' && useAlert.info('검색결과', '검색결과가 없습니다.');
+        setSearchText('');
         return;
       }
       

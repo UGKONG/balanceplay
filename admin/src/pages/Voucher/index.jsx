@@ -2,33 +2,64 @@ import React, { useState, useEffect } from 'react';
 import Styled from 'styled-components';
 import PageAnimate from '%/PageAnimate';
 import useAxios from '%/useAxios';
+import Header from './Header';
+import CategoryCreate from './CategoryCreate';
+import CategoryLi from './CategoryLi';
 
 export default function 이용권 () {
-  const [categoryList, setCategoryList] = useState([]);
-  const [activeCategory, setActiveCategory] = useState(null);
+  const [list, setList] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  const [isCreate, setIsCreate] = useState(false);
 
-  const getList = () => {
-    useAxios.get('/voucher').then(({ data }) => {
-      if (!data?.result) {
-        setCategoryList([]);
-        setActiveCategory(null);
+  const getList = (text, callback = null) => {
+    let temp = text ?? searchText;
+    useAxios.get('/voucher?q=' + temp).then(({ data }) => {
+      if (!data?.result || !data?.data) {
+        setList([]);
         return;
       }
-      setCategoryList(data?.data);
-      setActiveCategory(data?.data[0]);
+      if (data?.data?.length === 0) {
+        searchText !== '' && useAlert.info('검색결과', '검색결과가 없습니다.');
+        setSearchText('');
+        return;
+      }
+      
+      (callback ?? setList)(data?.data);
     })
   }
 
-  useEffect(getList, []);
-
   return (
     <PageAnimate name='slide-up'>
-      {JSON.stringify(categoryList)}
-      <br />
-      <br />
-      <br />
-      {JSON.stringify(activeCategory)}
+      <Header 
+        list={list} 
+        getList={getList} 
+        setList={setList} 
+        searchText={searchText} 
+        setSearchText={setSearchText} 
+        isCreate={isCreate}
+        setIsCreate={setIsCreate}
+      />
+      <Contents>
+        <CategoryList>
+          {list?.map(item => (
+            <CategoryLi key={item?.ID} data={item} getList={getList} />
+          ))}
+          {isCreate && <CategoryCreate getList={getList} setIsCreate={setIsCreate} />}
+        </CategoryList>
+      </Contents>
     </PageAnimate>
   )
 }
 
+const Contents = Styled.section`
+  width: 100%;
+  height: calc(100% - 60px);
+  overflow: auto;
+`;
+const CategoryList = Styled.ul`
+  display: flex;
+  flex-wrap: wrap;
+  padding-right: 5px;
+  width: 100%;
+  height: 100%;
+`;

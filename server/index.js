@@ -129,6 +129,11 @@ const {
   deleteAccount,
   getAccountDetail,
   putAccount,
+  getCommonCode,
+  postVoucher,
+  deleteVoucher,
+  deleteVoucherCategory,
+  postVoucherCategory,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -184,6 +189,11 @@ app.get('/api/account', getAccount);
 app.get('/api/account/:id', getAccountDetail);
 app.delete('/api/account', deleteAccount);
 app.put('/api/account', putAccount);
+app.get('/api/common/:id', getCommonCode);
+app.post('/api/voucher', postVoucher);
+app.delete('/api/voucher/:id', deleteVoucher);
+app.delete('/api/voucherCategory/:id', deleteVoucherCategory);
+app.post('/api/voucherCategory', postVoucherCategory);
 
 app.get('/api/:table', getOtherList);
 app.get('/api/:table/:id', getOtherData);

@@ -8,7 +8,7 @@ import useAxios from '%/useAxios';
 
 export default function 공지작성 () {
   const navigate = useNavigate();
-  const [isAdminNotice, setIsAdminNotice] = useState(false);
+  const [isAdminNotice, setIsAdminNotice] = useState(2);
   const [title, setTitle] = useState('');
   const [contents, setContents] = useState('');
 
@@ -36,9 +36,9 @@ export default function 공지작성 () {
       </Header>
       <Contents>
         <Row>
-          <RowTitle>선생님 전용</RowTitle>
+          <RowTitle>직원공지</RowTitle>
           <RowContents>
-            <Checkbox checked={isAdminNotice} onChange={e => setIsAdminNotice(e)} />
+            <Checkbox checked={isAdminNotice === 1} onChange={e => setIsAdminNotice(e ? 1 : 2)} />
           </RowContents>
         </Row>
         <Row>

@@ -1206,11 +1206,20 @@ module.exports.deleteMember = (req, res) => {
 // 이용권, 이용권 카테고리 리스트 조회
 module.exports.getVoucher = (req, res) => {
   log(req);
+  let searchText = req?.query?.q ?? '';
+
   dbConnect(db => {
     db.query(`
-      SELECT ID, NAME, 'ORDER' FROM tn_voucher_category ORDER BY 'ORDER' ASC;
-      SELECT ID, CATEGORY_ID, NAME, PLACE, USE_TYPE, USE_COUNT, USE_DAY
-      FROM tn_voucher;
+      SELECT ID, NAME, 'ORDER' 
+      FROM tn_voucher_category 
+      ORDER BY 'ORDER' ASC, ID ASC;
+
+      SELECT
+      a.ID, a.CATEGORY_ID, a.NAME, a.PLACE, 
+      a.USE_TYPE, b.NAME AS USER_TYPE_NAME, a.USE_COUNT, a.USE_DAY
+      FROM tn_voucher a
+      LEFT JOIN tn_common b ON b.CODE = a.USE_TYPE AND b.BASE_ID = 4
+      WHERE a.NAME LIKE '%${searchText}%';
     `, (err, result) => {
       db.end();
       if (err) {
@@ -1662,4 +1671,114 @@ module.exports.putAccount = (req, res) => {
   if (!data) return res.send(fail('입출금내역 수정에 실패하였습니다.'));
 
   res.send(success(data));
+}
+// Common Code
+module.exports.getCommonCode = (req, res) => {
+  let BASE_ID = req?.params?.id;
+  dbConnect(db => {
+    db.query(`
+      SELECT
+      CODE AS ID, NAME, DESCRIPTION
+      FROM tn_common
+      WHERE BASE_ID = '${BASE_ID}'
+      ORDER BY CODE ASC;
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('공통코드가 없습니다.'));
+        return;
+      }
+      res.send(success(result));
+    })
+  })
+}
+// 이용권 추가
+module.exports.postVoucher = (req, res) => {
+  log(req);
+  let data = req?.body?.data;
+  let centerId = req?.session?.isLogin?.CENTER_ID;
+  if (!data || !centerId) return res.send(fail('이용권 저장에 실패하였습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      INSERT INTO tn_voucher
+      (CENTER_ID, CATEGORY_ID, NAME, PLACE, USE_TYPE, USE_COUNT, USE_DAY)
+      VALUES
+      (
+        '${centerId}', '${data?.CATEGORY_ID}', '${data?.NAME}', 
+        '${data?.PLACE}', '${data?.USE_TYPE}', 
+        ${data?.USE_TYPE === 1 ? data?.USE_COUNT : null}, 
+        ${data?.USE_DAY}
+      );
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('이용권 저장에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    })
+  })
+}
+// 이용권 삭제
+module.exports.deleteVoucher = (req, res) => {
+  log(req);
+  let id = req?.params?.id;
+  if (!id) return res.send(fail('이용권 삭제에 실패하였습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      DELETE FROM tn_voucher WHERE ID = '${id}';
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('이용권 삭제에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    })
+  })
+}
+// 이용권 카테고리 삭제
+module.exports.deleteVoucherCategory = (req, res) => {
+  log(req);
+  let id = req?.params?.id;
+  if (!id) return res.send(fail('이용권 카테고리 삭제에 실패하였습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      DELETE FROM tn_voucher_category WHERE ID = '${id}';
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('이용권 카테고리 삭제에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    })
+  })
+}
+// 이용권 카테고리 추가
+module.exports.postVoucherCategory = (req, res) => {
+  log(req);
+  let data = req?.body?.data;
+  let centerId = req?.session?.isLogin?.CENTER_ID;
+  if (!data || !centerId) return res.send(fail('카테고리 추가에 실패하였습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      INSERT INTO tn_voucher_category
+      (CENTER_ID, NAME)
+      VALUES
+      ('${centerId}', '${data?.NAME}');
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('카테고리 추가에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    })
+  })
 }
