@@ -58,7 +58,9 @@ export default function 보유이용권리스트 ({ data, getList }) {
             {data?.REMAIN_DATE && <Row>이용권 만료일: {data?.REMAIN_DATE}</Row>}
           </Body>
           <ButtonWrap>
-            {!isFinishVoucher && (
+            {isFinishVoucher ? (
+              <Button>이용권 재구매</Button>
+            ) : (
               <Button onClick={() => changeVoucherStatus(data?.STATUS === 1 ? 2 : 1)}>
                 이용권 {data?.STATUS === 1 ? '정지' : '재개'}
               </Button>

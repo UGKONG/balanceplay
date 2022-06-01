@@ -2,12 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Styled from 'styled-components';
 import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
-import useDate from '%/useDate';
 import useNumber from '%/useNumber';
+import VoucherModify from './VoucherModify';
 
 export default function 이용권리스트 ({ data, getList }) {
   const [isEdit, setIsEdit] = useState(false);
-  const [editData, setEditData] = useState({...data});
 
   const deleteVoucher = () => {
     let ask = confirm('해당 이용권을 삭제하시겠습니까?');
@@ -20,18 +19,12 @@ export default function 이용권리스트 ({ data, getList }) {
     });
   }
 
-  const validate = () => {
-    submit();
-  }
-
-  const submit = () => {
-
-  }
-
-  return (
+  return isEdit ? (
+    <VoucherModify _data={data} getList={getList} setIsEdit={setIsEdit} />
+  ) : (
     <Wrap>
       <Head>
-        <Row color='#777'>{data?.USER_TYPE_NAME} 이용권</Row>
+        <Row color='#777'>{data?.USE_TYPE_NAME} 이용권</Row>
         <Name>{data?.NAME}</Name>
       </Head>
       <Body>
@@ -40,17 +33,8 @@ export default function 이용권리스트 ({ data, getList }) {
         <Pay>{useNumber(data?.PLACE)}원</Pay>
       </Body>
       <ButtonWrap className='buttonWrap'>
-        {!isEdit ? (
-          <>
-            <Button className='col' onClick={() => useAlert.info('알림', '준비중입니다.')}>수정</Button>
-            <Button className='red col' onClick={deleteVoucher}>삭제</Button>
-          </>
-        ) : (
-          <>
-            <Button className='col' onClick={validate}>저장</Button>
-            <Button className='red col' onClick={() => setIsEdit(false)}>취소</Button>
-          </>
-        )}
+        <Button className='col' onClick={() => setIsEdit(true)}>수정</Button>
+        <Button className='red col' onClick={deleteVoucher}>삭제</Button>
       </ButtonWrap>
     </Wrap>
   )

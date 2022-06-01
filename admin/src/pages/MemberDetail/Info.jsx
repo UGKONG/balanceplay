@@ -303,7 +303,7 @@ const Row = Styled.div`
 `;
 const RowTitle = Styled.span`
   white-space: nowrap;
-  width: 38%;
+  width: 35%;
   min-width: 80px;
   font-weight: 500;
 `;
@@ -313,6 +313,7 @@ const RowContent = Styled.span`
   align-items: center;
   justify-content: flex-start;
   word-break: break-all;
+  font-size: 13px;
 `;
 const Input = Styled.input`
   width: 100%;

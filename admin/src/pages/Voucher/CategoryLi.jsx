@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Styled from 'styled-components';
 import { BsFillPlusSquareFill, BsFillXSquareFill } from "react-icons/bs";
 import useAlert from '%/useAlert';
@@ -8,8 +8,10 @@ import VoucherCreate from './VoucherCreate';
 
 export default function 카테고리리스트 ({ data, getList }) {
 
+  const categoryNameRef = useRef(null);
   const [isCreate, setIsCreate] = useState(false);
-
+  const [isEdit, setIsEdit] = useState(false);
+  const [categoryName, setCategoryName] = useState(data?.NAME);
 
   const categoryDelete = () => {
     if (data?.VOUCHER?.length > 0) return useAlert.warn('알림', '해당 카테고리에 이용권이 존재합니다.');
@@ -22,16 +24,51 @@ export default function 카테고리리스트 ({ data, getList }) {
       getList();
     });
   }
+  const categoryNameValidate = () => {
+    if (!categoryName) {
+      categoryNameRef?.current?.focus();
+      useAlert.warn('알림', '카테고리 이름을 입력해주세요.');
+      return;
+    }
+    if (data?.NAME === categoryName) {
+      setIsEdit(false);
+      return;
+    }
+    categoryNameSubmit();
+  }
+  const categoryNameSubmit = () => {
+    useAxios.put('/voucherCategory/' + data?.ID, { name: categoryName }).then(({ data }) => {
+      if (!data?.result) return useAlert.error('알림', data?.msg);
+      useAlert.success('알림', '카테고리 이름이 수정되었습니다.');
+      setIsEdit(false);
+      getList();
+    })
+  }
+
+  useEffect(() => isEdit && categoryNameRef?.current?.focus(), [isEdit]);
 
   return (
     <Wrap>
       <Header>
-        <Title>{data?.NAME}</Title>
-        {!isCreate && (
-          <span>
+        {isEdit ? (
+          <CategoryNameInput 
+            ref={categoryNameRef} 
+            value={categoryName} 
+            onChange={e => setCategoryName(e.target.value)}
+            onBlur={categoryNameValidate}
+            onKeyUp={e => e.keyCode === 13 && categoryNameValidate()}
+            placeholder='카테고리 이름을 입력해주세요.'
+          />
+        ) : (
+          <Title title='카테고리 이름 수정' onClick={() => setIsEdit(true)}>
+            {data?.NAME}
+          </Title>
+        )}
+        {!isCreate && !isEdit && (
+          <HeaderBtnWrap>
             <VoucherCreateBtn onClick={() => setIsCreate(true)} title='이용권 추가' />
-            <CategoryDeleteBtn onClick={categoryDelete} title='카테고리 삭제' />
-          </span>
+            {data?.VOUCHER?.length === 0 && <CategoryDeleteBtn onClick={categoryDelete} title='카테고리 삭제' />}
+          </HeaderBtnWrap>
         )}
       </Header>
       <List>
@@ -60,9 +97,50 @@ const Header = Styled.p`
   border-top: 2px solid #00a8a4;
   padding: 10px 0;
 `;
+const HeaderBtnWrap = Styled.span`
+  display: flex;
+  align-items: center;
+`;
 const Title = Styled.span`
   font-weight: 500;
   color: #008a87;
+  cursor: text;
+  border: 1px solid #dddddd00;
+  border-radius: 3px;
+  height: 30px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  &::after {
+    content: '이름 수정';
+    font-size: 12px;
+    color: #999;
+    position: absolute;
+    top: 50%;
+    left: calc(100% + 5px);
+    transform: translateY(-50%);
+    white-space: nowrap;
+    display: none;
+  }
+  &:hover {
+    border: 1px solid #ddd;
+    background-color: #fff;
+    font-size: 13px;
+    &::after {
+      display: block;
+    }
+  }
+`;
+const CategoryNameInput = Styled.input`
+  font-weight: 500;
+  color: #008a87;
+  border: 1px solid #ddd;
+  flex: 1;
 `;
 const List = Styled.ul`
   display: flex;
@@ -85,6 +163,7 @@ const VoucherCreateBtn = Styled(BsFillPlusSquareFill)`
   height: 26px;
   color: #00ada9;
   cursor: pointer;
+  margin-left: 5px;
   &:hover {
     color: #00a8a4;
   }

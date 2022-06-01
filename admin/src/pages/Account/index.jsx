@@ -21,7 +21,6 @@ export default function 입출금내역 () {
   const [searchText, setSearchText] = useState('');
 
   const getList = (text, callback = null) => {
-    console.log('getList 호출');
     let temp = text ?? searchText;
     setCheckList([]);
     useAxios.get('/account?q=' + temp).then(({ data }) => {

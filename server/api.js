@@ -15,17 +15,18 @@ const fail = msg => ({ result: false, msg });
 // 로그
 const log = req => {
   let user = req?.session?.isLogin;
-  let temp = req?.route;
-  let path = temp?.path;
-  let method = temp?.stack[0]?.method?.toUpperCase();
+  let path = req?.url;
+  let method = req?.method;
+  let body = JSON.stringify(req?.body);
   let ip = getClientIp(req);
   if (ip?.indexOf('::ffff:') > -1) ip = ip?.split('::ffff:')[1];
   if (ip === '::1') ip = '127.0.0.1';
-  console.log(`${user?.NAME}(${user?.ID}): ${method} ${path}`);
+  console.log(`${user?.NAME}(${user?.ID}): ${method} ${path}\nbody ${body}`);
+
   dbConnect(db => {
     db.query(`
-      INSERT INTO tn_log (PATH, METHOD, IP) 
-      VALUE ('${path}', '${method}', '${ip}');
+      INSERT INTO tn_log (PATH, BODY, METHOD, IP) 
+      VALUE ('${path}', '${body}', '${method}', '${ip}');
     `, () => db.end());
   });
 }
@@ -1216,7 +1217,7 @@ module.exports.getVoucher = (req, res) => {
 
       SELECT
       a.ID, a.CATEGORY_ID, a.NAME, a.PLACE, 
-      a.USE_TYPE, b.NAME AS USER_TYPE_NAME, a.USE_COUNT, a.USE_DAY
+      a.USE_TYPE, b.NAME AS USE_TYPE_NAME, a.USE_COUNT, a.USE_DAY
       FROM tn_voucher a
       LEFT JOIN tn_common b ON b.CODE = a.USE_TYPE AND b.BASE_ID = 4
       WHERE a.NAME LIKE '%${searchText}%';
@@ -1455,7 +1456,7 @@ module.exports.getUserHistory = (req, res) => {
       DATE_FORMAT(CREATE_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DT
       FROM tn_user_history 
       WHERE USER_ID = '${userId}'
-      ORDER BY CREATE_DT DESC;
+      ORDER BY CREATE_DT ASC;
     `, (err, result) => {
       db.end();
       if (err) {
@@ -1777,6 +1778,51 @@ module.exports.postVoucherCategory = (req, res) => {
       if (err) {
         console.log(err);
         return res.send(fail('카테고리 추가에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    })
+  })
+}
+// 이용권 정보 수정
+module.exports.putVoucher = (req, res) => {
+  log(req);
+  let id = req?.params?.id;
+  let data = req?.body?.data;
+  if (!id || !data) return res.send(fail('이용권 수정에 실패하였습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      UPDATE tn_voucher SET
+      NAME = '${data?.NAME}', PLACE = '${data?.PLACE}', USE_TYPE = '${data?.USE_TYPE}',
+      USE_DAY = '${data?.USE_DAY}', USE_COUNT = '${data?.USE_COUNT}'
+      WHERE ID = '${id}';
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('이용권 수정에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    })
+  })
+}
+// 이용권 카테고리 이름 변경
+module.exports.putVoucherCategory = (req, res) => {
+  log(req);
+  let id = req?.params?.id;
+  let name = req?.body?.name;
+  if (!id || !name) return res.send(fail('카테고리 이름 변경에 실패하였습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      UPDATE tn_voucher_category SET
+      NAME = '${name}'
+      WHERE ID = '${id}';
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('이용권 수정에 실패하였습니다.'));
       }
       res.send(success(null));
     })

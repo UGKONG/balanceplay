@@ -68,8 +68,8 @@ export default function 앱 () {
     browser = browser?.length > 0 ? browser[browser?.length - 1]?.brand : null;
     let result = `
       <span>· ${isMobile ? 'Mobile' : 'PC'}</span>
-      <span>· ${platform}</span>
-      <span>· ${browser}</span>
+      <span>· ${platform ?? ''}</span>
+      <span>· ${browser ?? ''}</span>
     `;
     return result;
   }, []);

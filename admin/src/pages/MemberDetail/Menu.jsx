@@ -7,9 +7,8 @@ export default function 메뉴 ({ activeMenu, setActiveMenu }) {
     { id: 1, name: '검사', test: false },
     { id: 2, name: '보유 이용권', test: false },
     { id: 3, name: '스케줄', test: false },
-    { id: 4, name: '메 모', test: false },
-    { id: 5, name: '히스토리', test: false },
-    // { id: 6, name: '건강 데이터', test: true },
+    { id: 4, name: '메모 · 히스토리', test: false },
+    // { id: 5, name: '건강 데이터', test: true },
   ]);
 
   const onClick = (id, isTest) => {
@@ -24,7 +23,7 @@ export default function 메뉴 ({ activeMenu, setActiveMenu }) {
           className={activeMenu === item?.id ? 'active' : ''}
           onClick={() => onClick(item?.id, item?.test)}
         >
-          {item?.name} {item?.test && '(점검중)'}
+          {item?.name} {item?.test && '(준비중)'}
         </MenuLi>
       ))}
     </Wrap>

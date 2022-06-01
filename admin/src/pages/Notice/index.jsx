@@ -40,7 +40,7 @@ export default function 공지사항 () {
   return (
     <PageAnimate name='slide-up'>
       <Header 
-        count={list?.length ?? 0} 
+        list={list} 
         getList={getList} 
         setList={setList} 
         checkList={checkList} 

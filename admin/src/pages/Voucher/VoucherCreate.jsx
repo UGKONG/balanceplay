@@ -117,6 +117,9 @@ const Row = Styled.div`
   margin-bottom: 5px;
   width: 100%;
   white-space: nowrap;
+  &:last-of-type {
+    margin-bottom: 0;
+  }
 `;
 const ButtonWrap = Styled.div`
   width: 100%;
@@ -135,7 +138,7 @@ const Button = Styled.button`
   }
 `;
 const NameInput = Styled.input.attrs(() => ({ type: 'text', placeholder: '이용권 이름' }))`
-  transition: .2s;
+  transition: background-color .2s;
   width: 100%;
   height: 36px !important;
   border-color: #dddddd00 !important;
@@ -144,6 +147,9 @@ const NameInput = Styled.input.attrs(() => ({ type: 'text', placeholder: '이용
   &:focus, &:hover {
     border: 1px solid #ddd !important;
     background-color: #ffffff !important;
+  }
+  &:focus {
+    border: 2px solid #00ada9 !important;
   }
 `;
 const Label = Styled.label.attrs(x => ({ htmlFor: 'useType' + x.val }))`

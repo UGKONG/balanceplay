@@ -22,6 +22,9 @@ export default function 보유이용권 () {
 
   return (
     <PageAnimate name='slide-up' style={{ overflow: 'auto' }}>
+      <Header>
+        <VoucherBuyBtn>이용권 구매</VoucherBuyBtn>
+      </Header>
       <VoucherList>
         {list?.length === 0 && <NotLi>보유중인 이용권이 없습니다.</NotLi>}
         {list?.map(item => (
@@ -32,12 +35,19 @@ export default function 보유이용권 () {
   )
 }
 
+const Header = Styled.div`
+  height: 44px;
+  padding: 10px 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+`;
 const VoucherList = Styled.ul`
   display: flex;
   flex-wrap: wrap;
   padding: 5px;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 44px);
 `;
 const NotLi = Styled.li`
   color: #888;
@@ -47,4 +57,7 @@ const NotLi = Styled.li`
   align-items: center;
   justify-content: center;
   width: 100%;
+`;
+const VoucherBuyBtn = Styled.button`
+
 `;

@@ -10,15 +10,15 @@ import Test from './pages/Test';
 import Voucher from './pages/Voucher';
 import Schedule from './pages/Schedule';
 import Memo from './pages/Memo';
-import History from './pages/History';
-import Body from './pages/Body';
+// import History from './pages/History';
+// import Body from './pages/Body';
 
 export default function 회원상세페이지 () {
   const navigate = useNavigate();
   const params = useParams();
   const id = params?.id;
   const [data, setData] = useState(null);
-  const [activeMenu, setActiveMenu] = useState(1);
+  const [activeMenu, setActiveMenu] = useState(2);
 
   const getData = () => {
     useAxios.get('/member/' + id).then(({ data }) => {
@@ -66,8 +66,8 @@ export default function 회원상세페이지 () {
           {activeMenu === 2 && <Voucher />}
           {activeMenu === 3 && <Schedule />}
           {activeMenu === 4 && <Memo memo={data?.MEMO} />}
-          {activeMenu === 5 && <History />}
-          {activeMenu === 6 && <Body />}
+          {/* {activeMenu === 5 && <History />} */}
+          {/* {activeMenu === 6 && <Body />} */}
         </Right>
       </Contents>
     </PageAnimate>
@@ -95,7 +95,7 @@ const Contents = Styled.section`
 `;
 const Left = Styled.section`
   width: 20vw;
-  min-width: 300px;
+  min-width: 280px;
   max-width: 350px;
   margin-right: 20px;
   display: flex;
