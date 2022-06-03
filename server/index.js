@@ -136,6 +136,9 @@ const {
   postVoucherCategory,
   putVoucher,
   putVoucherCategory,
+  getSchedule,
+  getCalendar,
+  getRoom
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -198,6 +201,9 @@ app.put('/api/voucher/:id', putVoucher);
 app.delete('/api/voucherCategory/:id', deleteVoucherCategory);
 app.post('/api/voucherCategory', postVoucherCategory);
 app.put('/api/voucherCategory/:id', putVoucherCategory);
+app.get('/api/schedule', getSchedule);
+app.get('/api/calendar', getCalendar);
+app.get('/api/room', getRoom);
 
 app.get('/api/:table', getOtherList);
 app.get('/api/:table/:id', getOtherData);

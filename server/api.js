@@ -1,7 +1,6 @@
 const mysql = require('mysql');
 const conf = require('./config.json');
 const { getClientIp } = require('request-ip');
-const ExcelJS = require('exceljs');
 
 // DB 연결 함수
 const dbConnect = callback => {
@@ -9,19 +8,20 @@ const dbConnect = callback => {
   callback(db);
 }
 // 성공
-const success = data => ({ result: true, data });
+const success = data => ({ result: true, msg: '성공', data });
 // 실패
-const fail = msg => ({ result: false, msg });
+const fail = msg => ({ result: false, msg, data: null });
 // 로그
 const log = req => {
   let user = req?.session?.isLogin;
   let path = req?.url;
   let method = req?.method;
   let body = JSON.stringify(req?.body);
+  let query = JSON.stringify(req?.query);
   let ip = getClientIp(req);
   if (ip?.indexOf('::ffff:') > -1) ip = ip?.split('::ffff:')[1];
   if (ip === '::1') ip = '127.0.0.1';
-  console.log(`${user?.NAME}(${user?.ID}): ${method} ${path}\nbody ${body}`);
+  console.log(`${user?.NAME}(${user?.ID}): ${method} ${path}\nBody: ${body}\nQuery: ${query}`);
 
   dbConnect(db => {
     db.query(`
@@ -1825,6 +1825,93 @@ module.exports.putVoucherCategory = (req, res) => {
         return res.send(fail('이용권 수정에 실패하였습니다.'));
       }
       res.send(success(null));
+    })
+  })
+}
+// 캘린더 & 스케줄 조회
+module.exports.getSchedule = (req, res) => {
+  log(req);
+  let centerId = req?.session?.isLogin?.CENTER_ID;
+  let start = req?.query?.start;
+  let end = req?.query?.end;
+
+  if (!centerId) return res.send(fail('캘린더 조회에 실패하였습니다.'));
+  if (!start) return res.send(fail('캘린더 조회 시작날짜가 없습니다.'));
+  if (!end) return res.send(fail('캘린더 조회 종료날짜가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT CODE AS ID, NAME FROM tn_common WHERE BASE_ID = 9;
+
+      SELECT a.ID, a.NAME, a.ORDER, a.IS_FIXED 
+      FROM tn_calendar a
+      WHERE CENTER_ID = '${centerId}'
+      ORDER BY a.ORDER ASC, a.ID ASC;
+
+      SELECT
+      a.ID, a.CALENDAR_ID, a.TITLE, a.CONTENTS,
+      a.START, a.END,
+      DATE_FORMAT(a.CREATE_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE,
+      DATE_FORMAT(a.MODIFY_DT, '%Y-%m-%d %H:%i:%s') AS MODIFY_DATE
+      FROM tn_schedule a 
+      WHERE CALENDAR_ID IN (
+        SELECT ID FROM tn_calendar WHERE CENTER_ID = '${centerId}'
+      ) AND
+      CONVERT('${start}', DATE) <= CONVERT(a.START, DATE) AND
+      CONVERT(a.START, DATE) <= CONVERT('${end}', DATE);
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('캘린더 조회에 실패하였습니다.'));
+      }
+      if (result[0]?.length === 0 || result[1]?.length === 0) return res.send(success(null));
+
+      res.send(success({
+        type: result[0],
+        calendar: result[1],
+        schedule: result[2]
+      }));
+    })
+  })
+}
+// 캘린더 리스트 조회
+module.exports.getCalendar = (req, res) => {
+  log(req);
+  let centerId = req?.session?.isLogin?.CENTER_ID;
+  if (!centerId) return res.send(fail('캘린더 리스트 조회에 실패하였습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT
+      ID, NAME, 'ORDER', IS_FIXED
+      FROM tn_calendar WHERE CENTER_ID = '${centerId}';
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('캘린더 리스트 조회에 실패하였습니다.'));
+      }
+      res.send(success(result));
+    })
+  })
+}
+// 방 리스트 조회
+module.exports.getRoom = (req, res) => {
+  log(req);
+  let centerId = req?.session?.isLogin?.CENTER_ID;
+  if (!centerId) return res.send(fail('방 리스트 조회에 실패하였습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT * FROM tn_room WHERE CENTER_ID = '${centerId}';
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('방 리스트 조회에 실패하였습니다.'));
+      }
+      res.send(success(result));
     })
   })
 }
