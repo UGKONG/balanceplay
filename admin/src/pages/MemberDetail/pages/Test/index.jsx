@@ -30,7 +30,7 @@ export default function 검사데이터 () {
   const fastTest = e => {
     let val = e?.target?.value;
     if (val === '') return;
-    navigate('/test/' + val + '/new');
+    navigate('/test/' + userId + '/new/', { state: { testTypeId: val } });
   }
 
   const activeMethod = useMemo(() => (
@@ -57,7 +57,7 @@ export default function 검사데이터 () {
           {activeTest > 0 && <TestMethodText>{activeMethod?.METHOD_TEXT ?? ''}</TestMethodText>}
         </Left>
         {activeMethod?.METHOD_ID === 2 ? (
-          <NewTestBtn>신규 검사</NewTestBtn>
+          <NewTestBtn onClick={() => navigate('/test/' + userId + '/new/', { state: { testTypeId: activeTest } })}>신규 검사</NewTestBtn>
         ) : (
           <FastTestBtn onChange={fastTest}>
             <option value=''>빠른 신규 검사</option>

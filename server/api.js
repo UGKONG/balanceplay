@@ -2021,7 +2021,6 @@ module.exports.getMemberTestResult = (req, res) => {
       DATE_FORMAT(a.CRT_DT, '%Y-%d-%s %H:%i:%s') AS CREATE_DATE,
       b.TEST_TP_NM AS TEST_TYPE_NAME,
       b.TEST_TP_DESC AS TEST_TYPE_DESCRIPTION,
-      b.TEST_TP_METHOD AS TEST_TYPE_METHOD,
       b.TEST_TP_METHOD_TEXT AS TEST_TYPE_METHOD_TEXT,
       b.MONTH_LOW AS MONTH_MIN, 
       b.MONTH_UPPER AS MONTH_MAX
@@ -2032,8 +2031,7 @@ module.exports.getMemberTestResult = (req, res) => {
       SELECT 
       b.DCSN_SN AS ID,
       b.DCSN_NM AS NAME,
-      b.DCSN_DSCRT AS DESCRIPTION,
-      b.MAX_PNT AS MAX_POINT
+      b.DCSN_DSCRT AS DESCRIPTION
       FROM tn_test a
       LEFT JOIN tn_test_dcsn b ON a.TEST_TP_SN = b.TEST_TP_SN
       WHERE a.TEST_SN = '${testId}'
@@ -2041,9 +2039,10 @@ module.exports.getMemberTestResult = (req, res) => {
 
       SELECT 
       a.RST_SN AS ID,
-      d.DCSN_NM AS CATEGORY_NAME,
+      d.DCSN_NM AS NAME,
       b.DCSN_DTL_NM AS GRADE, 
-      a.CAT_PNT AS POINT
+      a.CAT_PNT AS POINT,
+      d.MAX_PNT AS MAX_POINT
       FROM tn_test_rslt a	
       LEFT JOIN tn_test_dcsn_dtl b ON a.DCSN_DTL_SN = b.DCSN_DTL_SN
       LEFT JOIN tn_test c ON a.TEST_SN = c.TEST_SN
@@ -2071,8 +2070,7 @@ module.exports.getMemberTestResult = (req, res) => {
         testTypeData: { 
           ID: infoData?.TEST_TYPE_ID, 
           NAME: infoData?.TEST_TYPE_NAME, 
-          DESCRIPTION: infoData?.TEST_TYPE_DESCRIPTION, 
-          METHOD_ID: infoData?.TEST_TYPE_METHOD, 
+          DESCRIPTION: infoData?.TEST_TYPE_DESCRIPTION,
           METHOD_NAME: infoData?.TEST_TYPE_METHOD_TEXT, 
           MONTH_MIN: infoData?.MONTH_MIN, 
           MONTH_MAX: infoData?.MONTH_MAX ,
