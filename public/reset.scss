@@ -124,12 +124,12 @@ textarea {
 }
 
 ::-webkit-scrollbar {
-  @include size(5px, 5px);
+  @include size(5px, 0);
   border-radius: 0;
   background-color: #eee;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: #aaa;
+  background-color: #b9e1dc;
   border-radius: 10px;
 }
 
@@ -283,18 +283,11 @@ main.admin {
       box-shadow: 0 4px 10px #00000010;
     }
   }
-  & > section::-webkit-scrollbar {
-    width: 6px !important;
-    height: 6px !important;
-  }
-  & > section::-webkit-scrollbar-thumb {
-    background-color: #ccc;
-  }
 }
-::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
+// ::-webkit-scrollbar {
+//   width: 0;
+//   height: 0;
+// }
 
 [bg], .bg {
   position: fixed;

@@ -30,7 +30,7 @@ export default function 검사데이터 () {
   const fastTest = e => {
     let val = e?.target?.value;
     if (val === '') return;
-    navigate('/test/' + userId + '/new/', { state: { testTypeId: val } });
+    navigate('/test/' + userId + '/new/', { state: { testTypeId: val, testTypeName: testList?.find(x => x?.ID == val)?.NAME } });
   }
 
   const activeMethod = useMemo(() => (
@@ -38,8 +38,10 @@ export default function 검사데이터 () {
   ), [testList, activeTest]);
 
   const testFilterList = useMemo(() => {
-    if (!activeTest) return list;
-    return list?.filter(x => x?.TEST_TYPE_ID === activeTest);
+    let _list = [...list];
+    _list.sort((a, b) => b?.ID - a?.ID);
+    if (!activeTest) return _list;
+    return _list?.filter(x => x?.TEST_TYPE_ID === activeTest);
   }, [list, activeTest]);
 
   useEffect(getList, []);
@@ -54,10 +56,10 @@ export default function 검사데이터 () {
               <option key={item?.ID} value={item?.ID}>{item?.NAME}{item?.METHOD_ID === 2 && ' (선생님)'}</option>
             ))}
           </TestTypeList>
-          {activeTest > 0 && <TestMethodText>{activeMethod?.METHOD_TEXT ?? ''}</TestMethodText>}
+          {<TestMethodText>{activeMethod?.METHOD_TEXT ?? '최근순'}</TestMethodText>}
         </Left>
         {activeMethod?.METHOD_ID === 2 ? (
-          <NewTestBtn onClick={() => navigate('/test/' + userId + '/new/', { state: { testTypeId: activeTest } })}>신규 검사</NewTestBtn>
+          <NewTestBtn onClick={() => navigate('/test/' + userId + '/new/', { state: { testTypeId: activeTest, testTypeName: testList?.find(x => x?.ID == activeTest)?.NAME } })}>신규 검사</NewTestBtn>
         ) : (
           <FastTestBtn onChange={fastTest}>
             <option value=''>빠른 신규 검사</option>

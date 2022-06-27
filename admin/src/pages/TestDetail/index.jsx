@@ -36,7 +36,7 @@ export default function 검사상세페이지 () {
   return (
     <PageAnimate name='slide-up'>
       <Header>
-        <Title>검사정보 상세보기 <s>{data?.testData?.CREATE_DATE}</s></Title>
+        <Title>검사정보 상세보기 <s>측정일: {data?.testData?.CREATE_DATE}</s></Title>
         <span>
           {<DeleteBtn onClick={deleteTest}>검사정보 삭제</DeleteBtn>}
           <BackBtn onClick={() => navigate(-1)}>뒤로가기</BackBtn>
@@ -73,7 +73,7 @@ export default function 검사상세페이지 () {
 const Header = Styled.section``;
 const Title = Styled.h2`
   s {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 500;
     letter-spacing: 1px;
     margin-left: 6px;
@@ -120,7 +120,7 @@ const DescriptionContainer = Styled.div`
     height: 40px;
     font-size: 13px;
     text-align: center;
-    color: #69afbd;
+    color: #fff;
     cursor: pointer;
     position: absolute;
     bottom: 0;
@@ -144,13 +144,6 @@ const DescriptionRight = Styled.section`
   padding-right: 4px;
   width: calc(100% - 200px);
   overflow: auto;
-  &::-webkit-scrollbar {
-    width: 5px;
-    background-color: #dbf1ef;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: #a8e2db;
-  }
 `;
 const DescriptionName = Styled.p`
   font-size: 18px;
@@ -163,6 +156,9 @@ const DescriptionSubInfo = Styled.p`
 `;
 const CategoryLi = Styled.article`
   margin-bottom: 16px;
+  &:last-of-type {
+    margin-bottom: 0;
+  }
   & > b {
     display: block;
     margin-bottom: 4px;

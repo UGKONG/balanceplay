@@ -127,12 +127,6 @@ const Right = Styled.div`
   width: 50%;
   padding-left: 5px;
   overflow: auto;
-  ::-webkit-scrollbar {
-    width: 5px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: #b8d0cd;
-  }
 `;
 const DefaultMemoTitle = Styled.p`
   font-size: 14px;
@@ -178,12 +172,6 @@ const MemoList = Styled.ul`
   align-self: stretch;
   overflow-x: hidden;
   overflow-y: auto;
-  ::-webkit-scrollbar {
-    width: 5px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: #b8d0cd;
-  }
 `;
 const InputWrap = Styled.div`
   padding: 10px;

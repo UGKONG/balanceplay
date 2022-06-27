@@ -682,6 +682,8 @@ module.exports.postDoSurvey = (req, res) => {
   let userId = req?.session?.isLogin?.ID;
   let testTypeId = req?.body?.testTypeId;
   let testName = req?.body?.testName;
+  let adminId = req?.body?.adminId;
+  let adminName = req?.body?.adminName;
   let data = req?.body?.data;
   if (data?.length === 0 || !userId || !testTypeId || !testName) {
     res.send(fail('데이터가 없습니다.'));
@@ -693,13 +695,19 @@ module.exports.postDoSurvey = (req, res) => {
     return result;
   });
 
+  let keys = `(TEST_NM, TEST_TP_SN, USER_SN)`;
+  let values = `('${testName}', '${testTypeId}', '${userId}')`;
+  if (adminId && adminName) {
+    keys = `(TEST_NM, TEST_TP_SN, USER_SN, CRT_MNGR, MNGR_NM)`;
+    values = `('${testName}', '${testTypeId}', '${userId}', '${adminId}', '${adminName}')`;
+  }
   dbConnect(db => {
     db.query(`
       INSERT INTO tn_test
-      (TEST_NM, TEST_TP_SN, USER_SN)
+      ${keys}
       VALUES
-      ('${testName}', '${testTypeId}', '${userId}');
-
+      ${values};
+    
       SET @TEST_ID = LAST_INSERT_ID();
 
       INSERT INTO tn_test_rspns
@@ -1992,7 +2000,7 @@ module.exports.getMemberTest = (req, res) => {
       TEST_TP_SN AS TEST_TYPE_ID,
       CRT_MNGR AS CREATE_ADMIN,
       MNGR_NM AS CREATE_ADMIN_NAME,
-      DATE_FORMAT(CRT_DT, '%Y-%d-%s %H:%i:%s') AS CREATE_DATE
+      DATE_FORMAT(CRT_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
       FROM tn_test 
       WHERE USER_SN = '${userId}';
     `, (err, result) => {
@@ -2018,7 +2026,7 @@ module.exports.getMemberTestResult = (req, res) => {
       a.TEST_SN AS ID,
       a.TEST_TP_SN AS TEST_TYPE_ID,
       a.MNGR_NM AS CREATE_ADMIN_NAME,
-      DATE_FORMAT(a.CRT_DT, '%Y-%d-%s %H:%i:%s') AS CREATE_DATE,
+      DATE_FORMAT(a.CRT_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE,
       b.TEST_TP_NM AS TEST_TYPE_NAME,
       b.TEST_TP_DESC AS TEST_TYPE_DESCRIPTION,
       b.TEST_TP_METHOD_TEXT AS TEST_TYPE_METHOD_TEXT,

@@ -285,16 +285,6 @@ const RowWrap = Styled.article`
   flex: 1;
   overflow: auto;
   padding: 5px 10px;
-  ::-webkit-scrollbar {
-    width: 5px;
-    background-color: #dbf1ef;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: #c9ebe7;
-    &:hover {
-      background-color: #a8d4cf;
-    }
-  }
 `;
 const Row = Styled.div`
   padding: 5px 0;
