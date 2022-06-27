@@ -12,7 +12,7 @@ export default function 입출금내역 () {
     { name: 'No', width: 60 }, 
     { name: '일시', width: '20%' }, 
     { name: '구분', width: '15%' }, 
-    { name: '세부내용', width: '35%' }, 
+    { name: '내용', width: '35%' }, 
     { name: '입금액', width: '15%' }, 
     { name: '출금액', width: '15%' },
   ];

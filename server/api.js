@@ -528,6 +528,8 @@ module.exports.getTotalResult = (req, res) => {
 module.exports.getDetailResult = (req, res) => {
   log(req);
   let id = req.params?.id;
+  let userId = req?.body;
+  console.log(userId);
   let sendData = {};
 
   dbConnect(db => {
@@ -571,7 +573,7 @@ module.exports.getDetailResult = (req, res) => {
           INNER JOIN tn_test_tp b ON a.TEST_TP_SN = b.TEST_TP_SN
           INNER JOIN tn_test_dcsn c ON a.DCSN_SN = c.DCSN_SN
           INNER JOIN tn_test_dcsn_dtl d ON a.DCSN_DTL_SN = d.DCSN_DTL_SN
-          INNER JOIN tn_test e on a.TEST_SN = e.TEST_SN AND e.USER_SN = '${req?.session?.isLogin?.ID}'
+          INNER JOIN tn_test e on a.TEST_SN = e.TEST_SN AND e.USER_SN = '${userId ?? req?.session?.isLogin?.ID}'
           WHERE a.TEST_TP_SN = '${id}'
           ORDER BY e.CRT_DT DESC, a.DCSN_SN ASC;
         `, (err, result) => {
@@ -587,7 +589,7 @@ module.exports.getDetailResult = (req, res) => {
             FROM tn_test_cmnt_rslt a
             INNER JOIN tn_test_tp b ON a.TEST_TP_SN = b.TEST_TP_SN
             INNER JOIN tn_test_cmnt c ON a.CMNT_DTL_SN = c.CMNT_DTL_SN
-            INNER JOIN tn_test d on a.TEST_SN = d.TEST_SN AND d.USER_SN = '${req?.session?.isLogin?.ID}'
+            INNER JOIN tn_test d on a.TEST_SN = d.TEST_SN AND d.USER_SN = '${userId ?? req?.session?.isLogin?.ID}'
             WHERE a.TEST_TP_SN = '${id}'
             ORDER BY d.CRT_DT DESC, a.CMNT_SN ASC;
           `, (err, result) => {
@@ -1640,7 +1642,7 @@ module.exports.getAccountDetail = (req, res) => {
         err && console.log(err);
         return res.send(fail('입출금 내역 정보 조회에 실패하였습니다.'));
       }
-      res.send(success({ type: result[0], info: result[1][0] }));
+      res.send(success({ category: result[0], info: result[1][0] }));
     })
   })
 }
@@ -1658,8 +1660,7 @@ module.exports.deleteAccount = (req, res) => {
       db.end();
       if (err) {
         console.log(err);
-        res.send(fail('입출금내역 삭제를 실패하였습니다.'));
-        return;
+        return res.send(fail('입출금내역 삭제를 실패하였습니다.'));
       }
       res.send(success(null));
     })
@@ -1671,7 +1672,63 @@ module.exports.putAccount = (req, res) => {
   let data = req?.body?.data;
   if (!data) return res.send(fail('입출금내역 수정에 실패하였습니다.'));
 
-  res.send(success(data));
+  dbConnect(db => {
+    db.query(`
+      UPDATE tn_account SET 
+      CATEGORY = ${data?.CATEGORY} ,
+      DESCRIPTION = '${data?.DESCRIPTION}',
+      MONEY_TYPE = '${data?.MONEY_TYPE}',
+      MONEY = '${data?.MONEY}'
+      WHERE ID = ${data?.ID};
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('입출금내역 수정에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    })
+  });
+}
+// 입출금내역 추가
+module.exports.postAccount = (req, res) => {
+  log(req);
+  let { CENTER_ID } = req?.session?.isLogin;
+  let isAuto = 0;
+  let data = req?.body?.data;
+  if (!data) return res.send(fail('입출금내역 추가에 실패하였습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      INSERT INTO tn_account
+      (CENTER_ID, IS_AUTO, CATEGORY, DESCRIPTION, MONEY_TYPE, MONEY)
+      VALUES
+      ('${CENTER_ID}', '${isAuto}', '${data?.CATEGORY}', '${data?.DESCRIPTION}', '${data?.MONEY_TYPE}', '${data?.MONEY}')
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('입출금내역 추가에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    })
+  });
+}
+// 입출금 내역 구분 (카테고리) 리스트 조회
+module.exports.getAccountCategory = (req, res) => {
+  log(req);
+  dbConnect(db => {
+    db.query(`
+      SELECT CODE AS ID, NAME FROM tn_common WHERE BASE_ID = 2;
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('공통코드가 없습니다.'));
+      }
+      res.send(success(result));
+    })
+  })
 }
 // Common Code
 module.exports.getCommonCode = (req, res) => {
@@ -1912,6 +1969,119 @@ module.exports.getRoom = (req, res) => {
         return res.send(fail('방 리스트 조회에 실패하였습니다.'));
       }
       res.send(success(result));
+    })
+  })
+}
+// 회원 검사 리스트 조회
+module.exports.getMemberTest = (req, res) => {
+  log(req);
+  const userId = req?.params?.id;
+
+  dbConnect(db => {
+    db.query(`
+      SELECT
+      TEST_TP_SN AS ID,
+      TEST_TP_NM AS NAME,
+      TEST_TP_METHOD AS METHOD_ID,
+      TEST_TP_METHOD_TEXT AS METHOD_TEXT
+      FROM tn_test_tp;
+
+      SELECT
+      TEST_SN AS ID,
+      TEST_NM AS NAME,
+      TEST_TP_SN AS TEST_TYPE_ID,
+      CRT_MNGR AS CREATE_ADMIN,
+      MNGR_NM AS CREATE_ADMIN_NAME,
+      DATE_FORMAT(CRT_DT, '%Y-%d-%s %H:%i:%s') AS CREATE_DATE
+      FROM tn_test 
+      WHERE USER_SN = '${userId}';
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('회원의 검사 리스트 조회에 실패하였습니다.'));
+      }
+      const test = result[0] ?? [];
+      const list = result[1] ?? [];
+      res.send(success({ test, list }));
+    })
+  })
+}
+// 회원 검사 결과 조회
+module.exports.getMemberTestResult = (req, res) => {
+  log(req);
+  const { testId } = req?.params;
+
+  dbConnect(db => {
+    db.query(`
+      SELECT
+      a.TEST_SN AS ID,
+      a.TEST_TP_SN AS TEST_TYPE_ID,
+      a.MNGR_NM AS CREATE_ADMIN_NAME,
+      DATE_FORMAT(a.CRT_DT, '%Y-%d-%s %H:%i:%s') AS CREATE_DATE,
+      b.TEST_TP_NM AS TEST_TYPE_NAME,
+      b.TEST_TP_DESC AS TEST_TYPE_DESCRIPTION,
+      b.TEST_TP_METHOD AS TEST_TYPE_METHOD,
+      b.TEST_TP_METHOD_TEXT AS TEST_TYPE_METHOD_TEXT,
+      b.MONTH_LOW AS MONTH_MIN, 
+      b.MONTH_UPPER AS MONTH_MAX
+      FROM tn_test a
+      LEFT JOIN tn_test_tp b ON a.TEST_TP_SN = b.TEST_TP_SN
+      WHERE TEST_SN = '${testId}';
+
+      SELECT 
+      b.DCSN_SN AS ID,
+      b.DCSN_NM AS NAME,
+      b.DCSN_DSCRT AS DESCRIPTION,
+      b.MAX_PNT AS MAX_POINT
+      FROM tn_test a
+      LEFT JOIN tn_test_dcsn b ON a.TEST_TP_SN = b.TEST_TP_SN
+      WHERE a.TEST_SN = '${testId}'
+      ORDER BY DCSN_SN ASC;
+
+      SELECT 
+      a.RST_SN AS ID,
+      d.DCSN_NM AS CATEGORY_NAME,
+      b.DCSN_DTL_NM AS GRADE, 
+      a.CAT_PNT AS POINT
+      FROM tn_test_rslt a	
+      LEFT JOIN tn_test_dcsn_dtl b ON a.DCSN_DTL_SN = b.DCSN_DTL_SN
+      LEFT JOIN tn_test c ON a.TEST_SN = c.TEST_SN
+      LEFT JOIN tn_test_dcsn d ON a.DCSN_SN = d.DCSN_SN
+      WHERE a.TEST_SN = '${testId}'
+      ORDER BY a.RST_SN ASC;
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('회원의 검사 정보 조회에 실패하였습니다.'));
+      }
+      let [infoData, descData, pointData] = result;
+          [infoData] = infoData;
+      if (!infoData || descData?.length === 0 || pointData?.length === 0) {
+        return res.send(fail('회원의 검사 정보 조회에 실패하였습니다.'));
+      }
+      
+      let send = {
+        testData: { 
+          ID: infoData?.ID, 
+          CREATE_ADMIN_NAME: infoData?.CREATE_ADMIN_NAME, 
+          CREATE_DATE: infoData?.CREATE_DATE 
+        },
+        testTypeData: { 
+          ID: infoData?.TEST_TYPE_ID, 
+          NAME: infoData?.TEST_TYPE_NAME, 
+          DESCRIPTION: infoData?.TEST_TYPE_DESCRIPTION, 
+          METHOD_ID: infoData?.TEST_TYPE_METHOD, 
+          METHOD_NAME: infoData?.TEST_TYPE_METHOD_TEXT, 
+          MONTH_MIN: infoData?.MONTH_MIN, 
+          MONTH_MAX: infoData?.MONTH_MAX ,
+          DESCRIPTION: descData,
+        },
+        testPointData: pointData
+      }
+      
+      res.send(success(send));
     })
   })
 }

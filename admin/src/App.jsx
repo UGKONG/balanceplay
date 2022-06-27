@@ -13,6 +13,8 @@ import Login from '@/pages/Login';
 import Home from '@/pages/Home';
 import Member from '@/pages/Member';
 import MemberDetail from '@/pages/MemberDetail';
+import TestCreate from '@/pages/TestCreate';
+import TestDetail from '@/pages/TestDetail';
 import Notice from '@/pages/Notice';
 import NoticeDetail from '@/pages/NoticeDetail';
 import NoticeCreate from '@/pages/NoticeCreate';
@@ -96,6 +98,8 @@ export default function 앱 () {
             {isLogin && isSession && <Route path='/' element={<Home />} />}
             {isLogin && isSession && <Route path='/member' element={<Member />} />}
             {isLogin && isSession && <Route path='/member/:id' element={<MemberDetail />} />}
+            {isLogin && isSession && <Route path='/test/:id/new' element={<TestCreate />} />}
+            {isLogin && isSession && <Route path='/test/:id' element={<TestDetail />} />}
             {isLogin && isSession && <Route path='/notice' element={<Notice />} />}
             {isLogin && isSession && <Route path='/notice/new' element={<NoticeCreate />} />}
             {isLogin && isSession && <Route path='/notice/:id' element={<NoticeDetail />} />}

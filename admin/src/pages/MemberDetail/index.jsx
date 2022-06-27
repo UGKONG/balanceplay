@@ -10,15 +10,13 @@ import Test from './pages/Test';
 import Voucher from './pages/Voucher';
 import Schedule from './pages/Schedule';
 import Memo from './pages/Memo';
-// import History from './pages/History';
-// import Body from './pages/Body';
 
 export default function 회원상세페이지 () {
   const navigate = useNavigate();
   const params = useParams();
   const id = params?.id;
   const [data, setData] = useState(null);
-  const [activeMenu, setActiveMenu] = useState(2);
+  const [activeMenu, setActiveMenu] = useState(1);
 
   const getData = () => {
     useAxios.get('/member/' + id).then(({ data }) => {
@@ -30,6 +28,7 @@ export default function 회원상세페이지 () {
     })
   }
   const deleteMember = () => {
+    if (Number(id) === 1) return useAlert.warn('알림', '게스트 회원은 삭제할 수 없습니다.');
     let ask = confirm('회원을 삭제하시겠습니까?');
     if (!ask) return;
 
@@ -52,7 +51,7 @@ export default function 회원상세페이지 () {
       <Header>
         <Title>회원정보 상세보기</Title>
         <span>
-          <DeleteBtn onClick={deleteMember}>삭제</DeleteBtn>
+          {Number(id) !== 1 && <DeleteBtn onClick={deleteMember}>삭제</DeleteBtn>}
           <BackBtn onClick={() => navigate('/member')}>뒤로가기</BackBtn>
         </span>
       </Header>
@@ -66,8 +65,6 @@ export default function 회원상세페이지 () {
           {activeMenu === 2 && <Voucher />}
           {activeMenu === 3 && <Schedule />}
           {activeMenu === 4 && <Memo memo={data?.MEMO} />}
-          {/* {activeMenu === 5 && <History />} */}
-          {/* {activeMenu === 6 && <Body />} */}
         </Right>
       </Contents>
     </PageAnimate>

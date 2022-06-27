@@ -7,6 +7,7 @@ const MySQLStore = require('express-mysql-session')(session);
 const conf = require('./config.json');
 const app = express();
 const basePath = __dirname + '/../build';
+const PORT = 8080;
 
 // 엔진 셋팅
 app.use(cors());
@@ -55,6 +56,8 @@ const adminPages = [
   '/member',
   '/member/new',
   '/member/:id',
+  '/test/:id',
+  '/test/:id/new',
   '/notice',
   '/notice/new',
   '/notice/:id',
@@ -128,6 +131,7 @@ const {
   getAccount,
   deleteAccount,
   getAccountDetail,
+  postAccount,
   putAccount,
   getCommonCode,
   postVoucher,
@@ -138,7 +142,10 @@ const {
   putVoucherCategory,
   getSchedule,
   getCalendar,
-  getRoom
+  getRoom,
+  getAccountCategory,
+  getMemberTest,
+  getMemberTestResult,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -190,10 +197,12 @@ app.get('/api/memberListDownload', memberListDownload);
 app.get('/api/teacher', getTeacher);
 app.get('/api/teacher/:id', getTeacherDetail);
 app.put('/api/userDefaultMemo/:id', putUserDefaultMemo);
+app.get('/api/accountCategory', getAccountCategory);
 app.get('/api/account', getAccount);
 app.get('/api/account/:id', getAccountDetail);
 app.delete('/api/account', deleteAccount);
 app.put('/api/account', putAccount);
+app.post('/api/account', postAccount);
 app.get('/api/common/:id', getCommonCode);
 app.post('/api/voucher', postVoucher);
 app.delete('/api/voucher/:id', deleteVoucher);
@@ -204,9 +213,11 @@ app.put('/api/voucherCategory/:id', putVoucherCategory);
 app.get('/api/schedule', getSchedule);
 app.get('/api/calendar', getCalendar);
 app.get('/api/room', getRoom);
+app.get('/api/memberTest/:id', getMemberTest);
+app.get('/api/memberTestResult/:testId', getMemberTestResult);
 
 app.get('/api/:table', getOtherList);
 app.get('/api/:table/:id', getOtherData);
 
 // 서버 시작
-app.listen(8080, () => console.log('Server Start!!'));
+app.listen(PORT, () => console.log('Server Start!!'));

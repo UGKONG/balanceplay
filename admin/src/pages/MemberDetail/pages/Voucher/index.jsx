@@ -37,7 +37,7 @@ export default function 보유이용권 () {
 
 const Header = Styled.div`
   height: 44px;
-  padding: 10px 10px 0;
+  padding: 10px 10px 5px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -45,9 +45,11 @@ const Header = Styled.div`
 const VoucherList = Styled.ul`
   display: flex;
   flex-wrap: wrap;
-  padding: 5px;
+  padding: 0 5px 5px;
   width: 100%;
   height: calc(100% - 44px);
+  overflow: auto;
+  align-content: flex-start;
 `;
 const NotLi = Styled.li`
   color: #888;

@@ -5,50 +5,93 @@ import PageAnimate from '%/PageAnimate';
 import Checkbox from '%/Checkbox';
 import useAlert from '%/useAlert';
 import useAxios from '%/useAxios';
+import useNumber from '%/useNumber';
 
-export default function 입출금내역작성 () {
+export default function 입출금내역수정 () {
   const navigate = useNavigate();
-  // const [isAdminNotice, setIsAdminNotice] = useState(false);
-  // const [title, setTitle] = useState('');
-  // const [contents, setContents] = useState('');
+  const [data, setData] = useState({
+    CATEGORY: '',
+    MONEY_TYPE: 1,
+    MONEY: '',
+    DESCRIPTION: '',
+  });
+  const [categoryList, setCategoryList] = useState([]);
+
+  const getCategoryList = () => {
+    useAxios.get('/accountCategory').then(({ data }) => {
+      if (!data?.result || !data?.data) {
+        useAlert.error('알림', data?.msg);
+        return navigate('/account');
+      }
+      setCategoryList(data?.data);
+    })
+  }
 
   const validate = () => {
-    // if (!title) return useAlert.warn('공지작성', '제목을 입력해주세요.');
-    // if (!contents) return useAlert.warn('공지작성', '내용을 입력해주세요.');
+    if (!data?.CATEGORY) return useAlert.warn('알림', '구분을 선택해주세요.');
+    if (!data?.MONEY) return useAlert.warn('알림', '금액을 입력해주세요.');
+    if (!data?.DESCRIPTION) return useAlert.warn('알림', '내용을 입력해주세요.');
     
     submit();
   }
 
   const submit = () => {
-    // let data = { isAdminNotice, title, contents };
-    // useAxios.post('/notice', data).then(({ data }) => {
-    //   if (!data?.result) return useAlert.error('공지등록', data?.msg);
-    //   useAlert.success('공지등록', '공지가 등록되었습니다.');
-    //   navigate('/notice');
-    // })
-    // console.log({ title, contents });
+    useAxios.post('/account', { data }).then(({ data }) => {
+      if (!data?.result) return useAlert.error('알림', data?.msg);
+      useAlert.success('알림', '내역이 추가되었습니다.');
+      navigate('/account');
+    });
   }
+
+  useEffect(getCategoryList, []);
 
   return (
     <PageAnimate>
       <Header>
-        <Title>입출금 내역 작성</Title>
+        <Title>입출금 내역 추가</Title>
       </Header>
       <Contents>
         <Row>
-          <RowTitle>카테고리</RowTitle>
+          <RowTitle>구분</RowTitle>
           <RowContents>
-            {/* <Checkbox checked={isAdminNotice} onChange={e => setIsAdminNotice(e)} /> */}
+            <Select value={data?.CATEGORY ?? ''} onChange={e => setData(prev => ({...prev, CATEGORY: Number(e.target.value)}))}>
+              <option value={''}>선택</option>
+              {categoryList?.length > 0 && categoryList?.map(item => <option key={item?.ID} value={item?.ID}>{item?.NAME}</option>)}
+            </Select>
           </RowContents>
         </Row>
         <Row>
-          <RowTitle>제목</RowTitle>
+          <RowTitle>입금</RowTitle>
           <RowContents>
-            {/* <Input value={title} onChange={e => setTitle(e.target.value)} placeholder='제목을 입력하세요.' /> */}
+            <Checkbox style={checkStyle} checked={data?.MONEY_TYPE === 1} onChange={e => setData(prev => ({...prev, MONEY_TYPE: e ? 1 : 2}))} />
+            {data?.MONEY_TYPE === 1 && (
+              <>
+                <MoneyInput value={data?.MONEY ? useNumber(data?.MONEY) : ''} onChange={e => setData(prev => ({...prev, MONEY: Number(e.target.value?.replaceAll(',', ''))}))} />
+                <MoneyDescription>원</MoneyDescription>
+              </>
+            )}
+          </RowContents>
+        </Row>
+        <Row>
+          <RowTitle>출금</RowTitle>
+          <RowContents>
+            <Checkbox style={checkStyle} checked={data?.MONEY_TYPE === 2} onChange={e => setData(prev => ({...prev, MONEY_TYPE: e ? 2 : 1}))} />
+            {data?.MONEY_TYPE === 2 && (
+              <>
+                <MoneyInput value={data?.MONEY ? useNumber(data?.MONEY) : ''} onChange={e => setData(prev => ({...prev, MONEY: Number(e.target.value?.replaceAll(',', ''))}))} />
+                <MoneyDescription>원</MoneyDescription>
+              </>
+            )}
+          </RowContents>
+        </Row>
+        <Row>
+          <RowTitle>내용</RowTitle>
+          <RowContents>
+            <Input value={data?.DESCRIPTION ?? ''} onChange={e => setData(prev => ({...prev, DESCRIPTION: e.target.value}))} placeholder='내용을 입력하세요.' />
           </RowContents>
         </Row>
         <Row style={{ justifyContent: 'flex-start' }}>
-          <SubmitBtn onClick={validate}>저 장</SubmitBtn>
+          <SubmitBtn onClick={validate}>추 가</SubmitBtn>
           <CancelBtn onClick={() => navigate('/account')}>취 소</CancelBtn>
         </Row>
       </Contents>
@@ -84,6 +127,21 @@ const RowContents = Styled.div`
 const Input = Styled.input`
   flex: 1;
 `;
+const checkStyle = { marginLeft: 0, marginRight: 10 };
+const MoneyInput = Styled(Input).attrs(
+  () => ({ placeholder: '금액을 입력해주세요' })
+)`
+  flex: unset;
+  width: 150px;
+  text-align: right;
+  padding: 0 10px;
+`
+const MoneyDescription = Styled.span`
+  margin-left: 5px;
+`
+const Select = Styled.select`
+  width: 200px;
+`
 const Textarea = Styled.textarea`
   flex: 1;
   height: 200px;

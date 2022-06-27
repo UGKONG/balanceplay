@@ -28,8 +28,8 @@ export default function 공지수정 () {
   }
 
   const validate = () => {
-    if (!title) return useAlert.warn('공지수정', '제목을 입력해주세요.');
-    if (!contents) return useAlert.warn('공지수정', '내용을 입력해주세요.');
+    if (!title) return useAlert.warn('알림', '제목을 입력해주세요.');
+    if (!contents) return useAlert.warn('알림', '내용을 입력해주세요.');
     
     submit();
   }
@@ -37,8 +37,8 @@ export default function 공지수정 () {
   const submit = () => {
     let data = { id, isAdminNotice, title, contents };
     useAxios.put('/notice', data).then(({ data }) => {
-      if (!data?.result) return useAlert.error('공지수정', data?.msg);
-      useAlert.success('공지수정', '공지가 수정되었습니다.');
+      if (!data?.result) return useAlert.error('알림', data?.msg);
+      useAlert.success('알림', '공지가 수정되었습니다.');
       navigate('/notice/' + data?.data);
     })
     console.log({ title, contents });
