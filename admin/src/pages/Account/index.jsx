@@ -6,6 +6,7 @@ import useAlert from '%/useAlert';
 import AccountLi from './AccountLi';
 import Header from './Header';
 import TableCheckbox from '../Common/TableCheckbox';
+import Loading from '@/pages/Common/Loading';
 
 export default function 입출금내역 () {
   const head = [
@@ -16,6 +17,7 @@ export default function 입출금내역 () {
     { name: '입금액', width: '15%' }, 
     { name: '출금액', width: '15%' },
   ];
+  const [isLoad, setIsLoad] = useState(true);
   const [list, setList] = useState([]);
   const [checkList, setCheckList] = useState([]);
   const [searchText, setSearchText] = useState('');
@@ -24,6 +26,7 @@ export default function 입출금내역 () {
     let temp = text ?? searchText;
     setCheckList([]);
     useAxios.get('/account?q=' + temp).then(({ data }) => {
+      setIsLoad(false);
       if (!data?.result || !data?.data) return setList([]);
       if (data?.data?.length === 0) {
         setSearchText('');
@@ -48,23 +51,25 @@ export default function 입출금내역 () {
         setSearchText={setSearchText} 
       />
       <Contents>
-        <Table>
-          <Thead>
-            <Tr>
-              <Th style={{ width: 42 }}>
-                <TableCheckbox checked={
-                  list?.filter(x => x?.IS_AUTO === 0)?.length > 0 && 
-                  checkList?.length === list?.filter(x => x?.IS_AUTO === 0)?.length
-                } onChange={allCheck} />
-              </Th>
-              {head?.map((item, i) => <Th key={i} style={{ width: item?.width }}>{item?.name}</Th>)}
-              <Th style={{ width: 70 }} />
-            </Tr>
-          </Thead>
-          <Tbody>
-            {list?.map((item, i) => <AccountLi key={i} idx={i} item={item} checkList={checkList} setCheckList={setCheckList} />)}
-          </Tbody>
-        </Table>
+        {isLoad ? <Loading /> : (
+          <Table>
+            <Thead>
+              <Tr>
+                <Th style={{ width: 42 }}>
+                  <TableCheckbox checked={
+                    list?.filter(x => x?.IS_AUTO === 0)?.length > 0 && 
+                    checkList?.length === list?.filter(x => x?.IS_AUTO === 0)?.length
+                  } onChange={allCheck} />
+                </Th>
+                {head?.map((item, i) => <Th key={i} style={{ width: item?.width }}>{item?.name}</Th>)}
+                <Th style={{ width: 70 }} />
+              </Tr>
+            </Thead>
+            <Tbody>
+              {list?.map((item, i) => <AccountLi key={i} idx={i} item={item} checkList={checkList} setCheckList={setCheckList} />)}
+            </Tbody>
+          </Table>
+        )}
       </Contents>
     </PageAnimate>
   )

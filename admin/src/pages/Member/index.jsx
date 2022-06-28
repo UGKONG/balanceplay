@@ -6,6 +6,7 @@ import useAlert from '%/useAlert';
 import MemberLi from './MemberLi';
 import Header from './Header';
 import TableCheckbox from '../Common/TableCheckbox';
+import Loading from '@/pages/Common/Loading';
 
 export default function 회원페이지 () {
   const head = [
@@ -19,6 +20,7 @@ export default function 회원페이지 () {
     { name: '가입 플랫폼', width: '15%' }, 
     { name: '가입일', width: '15%' },
   ];
+  const [isLoad, setIsLoad] = useState(true);
   const [list, setList] = useState([]);
   const [checkList, setCheckList] = useState([]);
   const [searchText, setSearchText] = useState('');
@@ -27,6 +29,7 @@ export default function 회원페이지 () {
     let temp = text ?? searchText;
     setCheckList([]);
     useAxios.get('/member?q=' + temp).then(({ data }) => {
+      setIsLoad(false);
       if (!data?.result || !data?.data) return setList([]);
       if (data?.data?.length === 0) {
         searchText !== '' && useAlert.info('검색결과', '검색결과가 없습니다.');
@@ -53,19 +56,21 @@ export default function 회원페이지 () {
         setSearchText={setSearchText} 
       />
       <Contents>
-        <Table>
-          <Thead>
-            <Tr>
-              <Th style={{ width: 42 }}>
-                <TableCheckbox checked={list?.length > 0 && checkList?.length === list?.length} onChange={allCheck} />
-              </Th>
-              {head?.map((item, i) => <Th key={i} style={{ width: item?.width }}>{item?.name}</Th>)}
-            </Tr>
-          </Thead>
-          <Tbody>
-            {list?.map((item, i) => <MemberLi key={i} idx={i} item={item} checkList={checkList} setCheckList={setCheckList} />)}
-          </Tbody>
-        </Table>
+        {isLoad ? <Loading /> : (
+          <Table>
+            <Thead>
+              <Tr>
+                <Th style={{ width: 42 }}>
+                  <TableCheckbox checked={list?.length > 0 && checkList?.length === list?.length} onChange={allCheck} />
+                </Th>
+                {head?.map((item, i) => <Th key={i} style={{ width: item?.width }}>{item?.name}</Th>)}
+              </Tr>
+            </Thead>
+            <Tbody>
+              {list?.map((item, i) => <MemberLi key={i} idx={i} item={item} checkList={checkList} setCheckList={setCheckList} />)}
+            </Tbody>
+          </Table>
+        )}
       </Contents>
     </PageAnimate>
   )

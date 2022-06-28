@@ -4,6 +4,7 @@ import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 import Checkbox from '%/Checkbox';
 import { FiCheck, FiEdit, FiX } from "react-icons/fi";
+import Loading from '@/pages/Common/Loading';
 
 export default function 회원정보박스 ({ data, setData }) {
   const [isEdit, setIsEdit] = useState(false);

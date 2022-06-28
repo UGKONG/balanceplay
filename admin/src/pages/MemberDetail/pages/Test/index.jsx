@@ -5,6 +5,7 @@ import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 import PageAnimate from '%/PageAnimate';
 import TestLi from './TestLi';
+import Loading from '@/pages/Common/Loading';
 
 export default function 검사데이터 () {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ export default function 검사데이터 () {
     navigate('/member');
     return null;
   }
+  const [isLoad, setIsLoad] = useState(true);
   const [testList, setTestList] = useState([]);
   const [list, setList] = useState([]);
   const [activeTest, setActiveTest] = useState(null);
@@ -24,13 +26,19 @@ export default function 검사데이터 () {
       const { test, list } = data?.data;
       setTestList(test);
       setList(list);
+      setIsLoad(false);
     })
   }
   
   const fastTest = e => {
     let val = e?.target?.value;
     if (val === '') return;
-    navigate('/test/' + userId + '/new/', { state: { testTypeId: val, testTypeName: testList?.find(x => x?.ID == val)?.NAME } });
+    let state = { testTypeId: val, testTypeName: testList?.find(x => x?.ID == val)?.NAME };
+    navigate('/test/' + userId + '/new/', { state });
+  }
+  const doTest = () => {
+    let state = { testTypeId: activeTest, testTypeName: testList?.find(x => x?.ID == activeTest)?.NAME };
+    navigate('/test/' + userId + '/new/', { state });
   }
 
   const activeMethod = useMemo(() => (
@@ -59,7 +67,7 @@ export default function 검사데이터 () {
           {<TestMethodText>{activeMethod?.METHOD_TEXT ?? '최근순'}</TestMethodText>}
         </Left>
         {activeMethod?.METHOD_ID === 2 ? (
-          <NewTestBtn onClick={() => navigate('/test/' + userId + '/new/', { state: { testTypeId: activeTest, testTypeName: testList?.find(x => x?.ID == activeTest)?.NAME } })}>신규 검사</NewTestBtn>
+          <NewTestBtn onClick={doTest}>신규 검사</NewTestBtn>
         ) : (
           <FastTestBtn onChange={fastTest}>
             <option value=''>빠른 신규 검사</option>
@@ -70,8 +78,12 @@ export default function 검사데이터 () {
         )}
       </Header>
       <TestList>
-        {testFilterList?.length === 0 && <NotLi>검사 리스트가 없습니다.</NotLi>}
-        {testFilterList?.map(item => <TestLi key={item?.ID} data={item} />)}
+        {isLoad ? <Loading /> : (
+          <>
+          {testFilterList?.length === 0 && <NotLi>검사 리스트가 없습니다.</NotLi>}
+          {testFilterList?.map(item => <TestLi key={item?.ID} data={item} />)}
+          </>
+        )}
       </TestList>
     </PageAnimate>
   )

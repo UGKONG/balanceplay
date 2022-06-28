@@ -6,11 +6,14 @@ import useAlert from '%/useAlert';
 import PageAnimate from '%/PageAnimate';
 import MemoLi from './MemoLi';
 import HistoryLi from './HistoryLi';
+import Loading from '@/pages/Common/Loading';
 
 export default function 메모 ({ memo }) {
   const params = useParams();
   const userId = params?.id;
   const [list, setList] = useState([]);
+  const [isHistoryLoad, setIsHistoryLoad] = useState(true);
+  const [isMemoLoad, setIsMemoLoad] = useState(true);
   const [historyList, setHistoryList] = useState([]);
   const [value, setValue] = useState('');
   const [memoEdit, setMemoEdit] = useState(false);
@@ -22,6 +25,7 @@ export default function 메모 ({ memo }) {
 
   const getHistoryList = () => {
     useAxios.get('/userHistory/' + userId).then(({ data }) => {
+      setIsHistoryLoad(false);
       if (!data?.result) return setHistoryList([]);
       setHistoryList(data?.data);
       historyListRef.current.scrollTop = historyListRef.current.scrollHeight;
@@ -29,6 +33,7 @@ export default function 메모 ({ memo }) {
   }
   const getList = () => {
     useAxios.get('/userMemo/' + userId).then(({ data }) => {
+      setIsMemoLoad(false);
       inputRef?.current?.focus();
       if (!data?.result) return setList([]);
       setList(data?.data);
@@ -84,17 +89,21 @@ export default function 메모 ({ memo }) {
           </Memo>
         </Left>
         <Right ref={historyListRef}>
-          {historyList?.length === 0 && <NotLi>히스토리가 없습니다.</NotLi>}
-          {historyList?.map(item => (
-            <HistoryLi key={item?.ID} data={item} />
-          ))}
+          {isHistoryLoad ? <Loading /> : (
+            <>
+            {historyList?.length === 0 && <NotLi>히스토리가 없습니다.</NotLi>}
+            {historyList?.map(item => <HistoryLi key={item?.ID} data={item} />)}
+            </>
+          )}
         </Right>
       </DefaultMemo>
       <MemoList ref={listRef}>
-        {list?.length === 0 && <NotLi>리스트가 없습니다.</NotLi>}
-        {list?.map(item => (
-          <MemoLi key={item?.ID} data={item} getList={getList} />
-        ))}
+        {isMemoLoad ? <Loading /> : (
+          <>
+          {list?.length === 0 && <NotLi>리스트가 없습니다.</NotLi>}
+          {list?.map(item => <MemoLi key={item?.ID} data={item} getList={getList} />)}
+          </>
+        )}
       </MemoList>
       <InputWrap>
         <Input ref={inputRef} value={value} 

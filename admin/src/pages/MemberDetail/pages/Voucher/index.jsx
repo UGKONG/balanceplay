@@ -5,16 +5,19 @@ import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 import PageAnimate from '%/PageAnimate';
 import VoucherLi from './VoucherLi';
+import Loading from '@/pages/Common/Loading';
 
 export default function 보유이용권 () {
   const params = useParams();
   const userId = params?.id;
+  const [isLoad, setIsLoad] = useState(true);
   const [list, setList] = useState([]);
 
   const getList = () => {
     useAxios.get('/userVoucher/' + userId).then(({ data }) => {
       if (!data?.result) return setList([]);
       setList(data?.data);
+      setIsLoad(false);
     })
   }
 
@@ -26,10 +29,12 @@ export default function 보유이용권 () {
         <VoucherBuyBtn>이용권 구매</VoucherBuyBtn>
       </Header>
       <VoucherList>
-        {list?.length === 0 && <NotLi>보유중인 이용권이 없습니다.</NotLi>}
-        {list?.map(item => (
-          <VoucherLi key={item?.ID} data={item} getList={getList} />
-        ))}
+        {isLoad ? <Loading /> : (
+          <>
+          {list?.length === 0 && <NotLi>보유중인 이용권이 없습니다.</NotLi>}
+          {list?.map(item => <VoucherLi key={item?.ID} data={item} getList={getList} />)}
+          </>
+        )}
       </VoucherList>
     </PageAnimate>
   )

@@ -6,6 +6,7 @@ import useAlert from '%/useAlert';
 import NoticeLi from './NoticeLi';
 import Header from './Header';
 import TableCheckbox from '../Common/TableCheckbox';
+import Loading from '@/pages/Common/Loading';
 
 export default function 공지사항 () {
   const head = useRef([
@@ -16,6 +17,7 @@ export default function 공지사항 () {
     { name: '작성자', width: 100 }, 
     { name: '작성일', width: 150 }
   ]);
+  const [isLoad, setIsLoad] = useState(true);
   const [list, setList] = useState([]);
   const [checkList, setCheckList] = useState([]);
   const [searchText, setSearchText] = useState('');
@@ -25,6 +27,7 @@ export default function 공지사항 () {
     let temp = text ?? searchText;
     setCheckList([]);
     useAxios.get('/notice?q=' + temp).then(({ data }) => {
+      setIsLoad(false);
       if (!data?.result || !data?.data) return setList([]);
       if (data?.data?.length === 0) {
         setSearchText('');
@@ -50,22 +53,24 @@ export default function 공지사항 () {
         setActiveType={setActiveType}
       />
       <Contents>
-        <Table>
-          <Thead>
-            <Tr>
-              <Th style={{ width: 42 }}>
-                <TableCheckbox 
-                  checked={checkList?.length > 0 && (checkList?.length === list?.length)} 
-                  onChange={allCheck}
-                />
-              </Th>
-              {head.current?.map((item, i) => <Th key={i} style={{ width: item?.width }}>{item?.name}</Th>)}
-            </Tr>
-          </Thead>
-          <Tbody>
-            {list?.map((item, i) => <NoticeLi key={i} idx={i} item={item} checkList={checkList} setCheckList={setCheckList} />)}
-          </Tbody>
-        </Table>
+        {isLoad ? <Loading /> : (
+          <Table>
+            <Thead>
+              <Tr>
+                <Th style={{ width: 42 }}>
+                  <TableCheckbox 
+                    checked={checkList?.length > 0 && (checkList?.length === list?.length)} 
+                    onChange={allCheck}
+                  />
+                </Th>
+                {head.current?.map((item, i) => <Th key={i} style={{ width: item?.width }}>{item?.name}</Th>)}
+              </Tr>
+            </Thead>
+            <Tbody>
+              {list?.map((item, i) => <NoticeLi key={i} idx={i} item={item} checkList={checkList} setCheckList={setCheckList} />)}
+            </Tbody>
+          </Table>
+        )}
       </Contents>
     </PageAnimate>
   )

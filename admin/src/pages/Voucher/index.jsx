@@ -5,8 +5,10 @@ import useAxios from '%/useAxios';
 import Header from './Header';
 import CategoryCreate from './CategoryCreate';
 import CategoryLi from './CategoryLi';
+import Loading from '@/pages/Common/Loading';
 
 export default function 이용권 () {
+  const [isLoad, setIsLoad] = useState(true);
   const [list, setList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [isCreate, setIsCreate] = useState(false);
@@ -14,10 +16,8 @@ export default function 이용권 () {
   const getList = (text, callback = null) => {
     let temp = text ?? searchText;
     useAxios.get('/voucher?q=' + temp).then(({ data }) => {
-      if (!data?.result || !data?.data) {
-        setList([]);
-        return;
-      }
+      setIsLoad(false);
+      if (!data?.result || !data?.data) return setList([]);
       if (data?.data?.length === 0) {
         searchText !== '' && useAlert.info('검색결과', '검색결과가 없습니다.');
         setSearchText('');
@@ -40,12 +40,12 @@ export default function 이용권 () {
         setIsCreate={setIsCreate}
       />
       <Contents>
-        <CategoryList>
-          {list?.map(item => (
-            <CategoryLi key={item?.ID} data={item} getList={getList} />
-          ))}
-          {isCreate && <CategoryCreate getList={getList} setIsCreate={setIsCreate} />}
-        </CategoryList>
+        {isLoad ? <Loading /> : (
+          <CategoryList>
+            {list?.map(item => <CategoryLi key={item?.ID} data={item} getList={getList} />)}
+            {isCreate && <CategoryCreate getList={getList} setIsCreate={setIsCreate} />}
+          </CategoryList>
+        )}
       </Contents>
     </PageAnimate>
   )
