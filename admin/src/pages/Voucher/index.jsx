@@ -19,9 +19,7 @@ export default function 이용권 () {
       setIsLoad(false);
       if (!data?.result || !data?.data) return setList([]);
       if (data?.data?.length === 0) {
-        searchText !== '' && useAlert.info('검색결과', '검색결과가 없습니다.');
-        setSearchText('');
-        return;
+        return useAlert.info('검색결과', '검색결과가 없습니다.');
       }
       
       (callback ?? setList)(data?.data);

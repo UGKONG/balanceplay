@@ -30,9 +30,7 @@ export default function 공지사항 () {
       setIsLoad(false);
       if (!data?.result || !data?.data) return setList([]);
       if (data?.data?.length === 0) {
-        setSearchText('');
-        useAlert.info('검색결과', '검색결과가 없습니다.');
-        return;
+        return useAlert.info('검색결과', '검색결과가 없습니다.');
       }
       (callback ? callback : setList)(data?.data);
     });

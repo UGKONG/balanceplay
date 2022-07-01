@@ -220,4 +220,15 @@ app.get('/api/:table', getOtherList);
 app.get('/api/:table/:id', getOtherData);
 
 // 서버 시작
-app.listen(PORT, () => console.log('Server Start!!'));
+app.listen(PORT, 
+  () => console.log(`
+
+      ┌────── Server Start!! ──────┐
+      │ PROTOCOL: http             │
+      │ HOST: localhost            │
+      │ PORT: ${PORT}                 │
+      │ http://localhost:${PORT}      │
+      └────────────────────────────┘
+
+  `)
+);

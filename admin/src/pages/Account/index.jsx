@@ -29,9 +29,7 @@ export default function 입출금내역 () {
       setIsLoad(false);
       if (!data?.result || !data?.data) return setList([]);
       if (data?.data?.length === 0) {
-        setSearchText('');
-        searchText !== '' && useAlert.info('검색결과', '검색결과가 없습니다.');
-        return;
+        return useAlert.info('검색결과', '검색결과가 없습니다.');
       }
       
       (callback ? callback : setList)(data?.data);

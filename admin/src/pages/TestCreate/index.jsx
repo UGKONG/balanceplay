@@ -122,8 +122,6 @@ export default function 신규검사 () {
         <BackBtn onClick={backBtnClick}>뒤로가기</BackBtn>
       </Header>
       <Contents>
-        {/* testTypeId: {testTypeId}<br />
-        userId: {userId} */}
         <ProgressContainer 
           now={sendData?.length} 
           all={Math.round(surveyData?.ask?.length / surveyData?.category?.length * pageList?.length)} 

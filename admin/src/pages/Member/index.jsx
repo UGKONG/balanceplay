@@ -32,9 +32,7 @@ export default function 회원페이지 () {
       setIsLoad(false);
       if (!data?.result || !data?.data) return setList([]);
       if (data?.data?.length === 0) {
-        searchText !== '' && useAlert.info('검색결과', '검색결과가 없습니다.');
-        setSearchText('');
-        return;
+        return useAlert.info('검색결과', '검색결과가 없습니다.');
       }
       
       (callback ? callback : setList)(data?.data);

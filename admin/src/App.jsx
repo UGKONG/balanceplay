@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, useHref } from 'react-router-dom';
 import Styled from 'styled-components';
 import conf from '../../server/config.json';
 import useTitle from '%/useTitle';
@@ -36,11 +36,9 @@ export default function 앱 () {
   const navigate = useNavigate();
   const [isSession, setIsSession] = useState(false);
   useTitle(conf.programName);
-
+  
   // 세션 필요없음
-  const notSession = useMemo(() => [
-    'login', 'join',
-  ], []);
+  const notSession = useMemo(() => [ 'login', 'join' ], []);
 
   // 세션 체크
   const sessionChk = useCallback(() => {
@@ -123,7 +121,9 @@ export default function 앱 () {
     </>
   );
 }
-
+// top: 0;
+//     position: fixed;
+//     left: 0;
 const Name = Styled.h1`
   display: none;
 `;
