@@ -4,6 +4,7 @@ const store = create(set => ({
   temp: null,
   isLogin: null,
   surveySendData: [],
+  isFullPage: false,
   setState: (type, payload) => set(state => {
     if (!type) return console.warn('type is not found!!');
     if (typeof(type) !== 'string') return console.warn('type is not string!!');

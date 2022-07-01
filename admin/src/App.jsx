@@ -32,6 +32,7 @@ import Setting from '@/pages/Setting';
 export default function 앱 () {
   const dispatch = useStore(x => x.setState);
   const isLogin = useStore(x => x.isLogin);
+  const isFullPage = useStore(x => x.isFullPage);
   const location = useLocation();
   const navigate = useNavigate();
   const [isSession, setIsSession] = useState(false);
@@ -89,7 +90,7 @@ export default function 앱 () {
     <>
       <Name>{conf.programName}</Name>
       {isLogin && isSession && <Header />}
-      <Container1>
+      <Container1 style={isFullPage ? fullPageStyle : null}>
         <Container2>
           <Routes>
             <Route path='/login' element={<Login />} />
@@ -121,9 +122,14 @@ export default function 앱 () {
     </>
   );
 }
-// top: 0;
-//     position: fixed;
-//     left: 0;
+const fullPageStyle = { 
+  width: '100%', 
+  height: '100%', 
+  position: 'fixed', 
+  top: 0, 
+  left: 0, 
+  zIndex: 1 
+}
 const Name = Styled.h1`
   display: none;
 `;

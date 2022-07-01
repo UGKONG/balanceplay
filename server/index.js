@@ -223,12 +223,12 @@ app.get('/api/:table/:id', getOtherData);
 app.listen(PORT, 
   () => console.log(`
 
-      ┌────── Server Start!! ──────┐
-      │ PROTOCOL: http             │
-      │ HOST: localhost            │
-      │ PORT: ${PORT}                 │
-      │ http://localhost:${PORT}      │
-      └────────────────────────────┘
+┌────── Server Start!! ────┐
+│ PROTOCOL: http           │
+│ HOST: localhost          │
+│ PORT: ${PORT}               │
+│ http://localhost:${PORT}    │
+└──────────────────────────┘
 
   `)
 );

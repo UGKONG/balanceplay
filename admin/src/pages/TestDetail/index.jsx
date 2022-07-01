@@ -4,16 +4,20 @@ import Styled from 'styled-components';
 import PageAnimate from '%/PageAnimate';
 import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
+import TestInfoContainer from './TestInfoContainer';
+import Loading from '@/pages/Common/Loading';
+import ResultContainer from './ResultContainer';
 
 export default function 검사상세페이지 () {
   const navigate = useNavigate();
   const params = useParams();
   const { id } = params;
   const [data, setData] = useState({});
-  const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
+  const [isLoad, setIsLoad] = useState(true);
 
   const getData = () => {
     useAxios.get('/memberTestResult/' + id).then(({ data }) => {
+      setIsLoad(false);
       if (!data?.result || !data?.data) return useAlert?.error('알림', data?.msg);
       console.log(data?.data);
       setData(data?.data);
@@ -35,37 +39,19 @@ export default function 검사상세페이지 () {
 
   return (
     <PageAnimate name='slide-up'>
-      <Header>
-        <Title>검사정보 상세보기 <s>측정일: {data?.testData?.CREATE_DATE}</s></Title>
-        <span>
-          {<DeleteBtn onClick={deleteTest}>검사정보 삭제</DeleteBtn>}
-          <BackBtn onClick={() => navigate(-1)}>뒤로가기</BackBtn>
-        </span>
-      </Header>
-      <Contents>
-        <DescriptionContainer>
-          {isDescriptionOpen && (
-            <>
-              <DescriptionLeft>
-                <DescriptionName>{data?.testTypeData?.NAME ?? '-'}</DescriptionName>
-                <DescriptionSubInfo>{data?.testTypeData?.METHOD_NAME}</DescriptionSubInfo>
-              </DescriptionLeft>
-              <DescriptionRight>
-                {data?.testTypeData?.DESCRIPTION?.map(item => (
-                  <CategoryLi key={item?.ID}>
-                    <b>{item?.NAME}</b>
-                    <span dangerouslySetInnerHTML={{ __html: item?.DESCRIPTION }} />
-                  </CategoryLi>
-                ))}
-              </DescriptionRight>
-            </>
-          )}
-          <p onClick={() => setIsDescriptionOpen(!isDescriptionOpen)}>검사정보 {isDescriptionOpen ? '닫기' : '열기'}</p>
-        </DescriptionContainer>
-        <ResultContainer>
-          {JSON.stringify(data?.testPointData)}
-        </ResultContainer>
-      </Contents>
+      {isLoad ? <Loading /> : (<>
+        <Header>
+          <Title>검사정보 상세보기 <s>측정일: {data?.testData?.CREATE_DATE}</s></Title>
+          <span>
+            {<DeleteBtn onClick={deleteTest}>검사정보 삭제</DeleteBtn>}
+            <BackBtn onClick={() => navigate(-1)}>뒤로가기</BackBtn>
+          </span>
+        </Header>
+        <Contents>
+          <TestInfoContainer data={data?.testTypeData} />
+          <ResultContainer data={data?.testPointData} />
+        </Contents>
+      </>)}
     </PageAnimate>
   )
 }
@@ -93,87 +79,4 @@ const BackBtn = Styled.button``;
 const Contents = Styled.section`
   display: flex;
   flex-direction: column;
-`;
-const DescriptionContainer = Styled.div`
-  border-radius: 8px;
-  width: 100%;
-  min-height: 40px;
-  max-height: 200px;
-  padding: 16px 16px 10px;
-  margin-bottom: 10px;
-  background-color: #b9e1dcaa;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start !important;
-  position: relative;
-  overflow: hidden;
-
-  & > section {
-    min-width: 200px;
-    height: calc(100% - 40px);
-  }
-  & > p {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 40px;
-    font-size: 13px;
-    text-align: center;
-    color: #fff;
-    cursor: pointer;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    background-color: #a8d7d2;
-    &:hover {
-      background-color: #92c7c2;
-      color: #fff;
-    }
-  }
-`;
-const DescriptionLeft = Styled.section`
-  padding-right: 5px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 200px;
-`;
-const DescriptionRight = Styled.section`
-  padding-left: 5px;
-  padding-right: 4px;
-  width: calc(100% - 200px);
-  overflow: auto;
-`;
-const DescriptionName = Styled.p`
-  font-size: 18px;
-  font-weight: 700;
-  color: #209b98;
-`;
-const DescriptionSubInfo = Styled.p`
-  font-size: 14px;
-  color: #555;
-`;
-const CategoryLi = Styled.article`
-  margin-bottom: 16px;
-  &:last-of-type {
-    margin-bottom: 0;
-  }
-  & > b {
-    display: block;
-    margin-bottom: 4px;
-    font-weight: 500;
-    color: #888;
-  }
-  & > span {
-    font-size: 13px;
-    color: #999;
-  }
-`;
-const ResultContainer = Styled.div`
-  flex: 1;
-  display: flex;
-  align-items: center !important;
-  justify-content: center !important;
-  text-align: center;
 `;

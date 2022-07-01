@@ -8,20 +8,22 @@ import useStore from '%/useStore';
 import useCleanArray from '%/useCleanArray';
 import ProgressContainer from './ProgressContainer';
 import Page from './Page';
+import Loading from '@/pages/Common/Loading';
 
 export default function 신규검사 () {
   const navigate = useNavigate();
   const params = useParams();
   const location = useLocation();
+  const dispatch = useStore(x => x.setState);
+  const isLogin = useStore(x => x.isLogin);
+  const sendData = useStore(x => x.surveySendData);
   const userId = Number(params?.id ?? null);
   const testTypeId = Number(location?.state?.testTypeId ?? null);
   const testTypeName = location?.state?.testTypeName ?? '';
   const [surveyData, setSurveyData] = useState({ category: [], ask: [], answer: [] });
   const [pageList, setPageList] = useState([]);
   const [activePageId, setActivePageId] = useState(1);
-  const dispatch = useStore(x => x.setState);
-  const isLogin = useStore(x => x.isLogin);
-  const sendData = useStore(x => x.surveySendData);
+  const [isLoad, setIsLoad] = useState(true);
 
   if (!testTypeId || !testTypeName || !userId) {
     navigate(userId ? ('/member/' + userId) : -1);
@@ -45,6 +47,7 @@ export default function 신규검사 () {
   const getCategoryList = () => {
     if (!testTypeId) return;
     useAxios.get('/doSurvey/' + testTypeId).then(({ data }) => {
+      setIsLoad(false);
       if (!data?.result) {
         useAlert.warn('알림', '해당 검사지는 점검중입니다.');
         navigate(userId ? ('/member/' + userId) : -1);
@@ -112,27 +115,33 @@ export default function 신규검사 () {
     });
   }
 
+  useEffect(() => {
+    dispatch('isFullPage', true);
+    return () => dispatch('isFullPage', false);
+  }, []);
   useEffect(init, []);
   useEffect(pageInit, [surveyData]);
 
   return (
     <PageAnimate name='slide-up'>
-      <Header>
-        <Title>신규검사</Title>
-        <BackBtn onClick={backBtnClick}>뒤로가기</BackBtn>
-      </Header>
-      <Contents>
-        <ProgressContainer 
-          now={sendData?.length} 
-          all={Math.round(surveyData?.ask?.length / surveyData?.category?.length * pageList?.length)} 
-        />
-        <Page 
-          categoryList={filterCategory(pageList[activePageId - 1])} 
-          askList={surveyData?.ask} answerList={surveyData?.answer}
-          pageStatusAction={pageStatusAction} activePageId={activePageId}
-          nextBtnClick={nextBtnClick()}
-        />
-      </Contents>
+      {isLoad ? <Loading /> : (<>
+        <Header>
+          <Title>신규검사</Title>
+          <BackBtn onClick={backBtnClick}>뒤로가기</BackBtn>
+        </Header>
+        <Contents>
+          <ProgressContainer 
+            now={sendData?.length} 
+            all={Math.round(surveyData?.ask?.length / surveyData?.category?.length * pageList?.length)} 
+          />
+          <Page 
+            categoryList={filterCategory(pageList[activePageId - 1])} 
+            askList={surveyData?.ask} answerList={surveyData?.answer}
+            pageStatusAction={pageStatusAction} activePageId={activePageId}
+            nextBtnClick={nextBtnClick()}
+          />
+        </Contents>
+      </>)}
     </PageAnimate>
   )
 }

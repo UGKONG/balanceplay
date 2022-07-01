@@ -4,15 +4,18 @@ import Styled from 'styled-components';
 import PageAnimate from '%/PageAnimate';
 import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
+import Loading from '@/pages/Common/Loading';
 
 export default function 공지상세페이지 () {
   const navigate = useNavigate();
   const params = useParams();
   const id = params?.id;
   const [data, setData] = useState(null);
+  const [isLoad, setIsLoad] = useState(true);
 
   const getData = () => {
     useAxios.get('/notice/' + id).then(({ data }) => {
+      setIsLoad(false);
       if (!data?.result || !data?.data) {
         useAlert.error('공지 데이터', '게시글이 존재하지 않습니다.');
         return navigate('/notice');
@@ -42,52 +45,50 @@ export default function 공지상세페이지 () {
 
   return (
     <PageAnimate name='slide-up'>
-      <Header>
-        <Title>공지사항 상세보기</Title>
-        <OptionBtnWrap>
-          <EditBtn onClick={edit}>수정</EditBtn>
-          <DeleteBtn className='red' onClick={del}>삭제</DeleteBtn>
-          <BackBtn onClick={() => navigate('/notice')}>뒤로가기</BackBtn>
-        </OptionBtnWrap>
-      </Header>
-      <Contents>
-        <Row>
-          <RowTitle>제목</RowTitle>
-          <RowContents>{data?.TITLE}</RowContents>
-        </Row>
-        <Row>
-          <RowTitle>작성일</RowTitle>
-          <RowContents>{data?.DATE}</RowContents>
-        </Row>
-        <Row>
-          <RowTitle>작성자</RowTitle>
-          <RowContents>{data?.USER}</RowContents>
-        </Row>
-        <Row style={{ marginTop: 50 }}>
-          <RowTitle style={{ minWidth: '100%' }}>내용</RowTitle>
-          <RowContentsText 
-            dangerouslySetInnerHTML={{ __html: data?.CONTENT }} 
-            style={{ 
-              width: '100%', marginTop: 10, paddingLeft: 10
-            }} 
-          />
-        </Row>
-      </Contents>
+      {isLoad ? <Loading /> : (<>
+        <Header>
+          <Title>공지사항 상세보기</Title>
+          <OptionBtnWrap>
+            <EditBtn onClick={edit}>수정</EditBtn>
+            <DeleteBtn className='red' onClick={del}>삭제</DeleteBtn>
+            <BackBtn onClick={() => navigate('/notice')}>뒤로가기</BackBtn>
+          </OptionBtnWrap>
+        </Header>
+        <Contents>
+          <Row>
+            <RowTitle>제목</RowTitle>
+            <RowContents>{data?.TITLE}</RowContents>
+          </Row>
+          <Row>
+            <RowTitle>작성일</RowTitle>
+            <RowContents>{data?.DATE}</RowContents>
+          </Row>
+          <Row>
+            <RowTitle>작성자</RowTitle>
+            <RowContents>{data?.USER}</RowContents>
+          </Row>
+          <Row style={{ marginTop: 50 }}>
+            <RowTitle style={{ minWidth: '100%' }}>내용</RowTitle>
+            <RowContentsText 
+              dangerouslySetInnerHTML={{ __html: data?.CONTENT }} 
+              style={{ 
+                width: '100%', marginTop: 10, paddingLeft: 10
+              }} 
+            />
+          </Row>
+        </Contents>
+      </>)}
     </PageAnimate>
   )
 }
 
 const Header = Styled.section``;
-const Title = Styled.h2`
-  
-`;
+const Title = Styled.h2``;
 const Contents = Styled.section``;
 const OptionBtnWrap = Styled.span``;
 const EditBtn = Styled.button``;
 const DeleteBtn = Styled.button``;
-const BackBtn = Styled.button`
-  
-`;
+const BackBtn = Styled.button``;
 const Row = Styled.div`
   display: flex;
   align-items: center;
