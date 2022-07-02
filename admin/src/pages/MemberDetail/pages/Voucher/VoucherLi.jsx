@@ -1,20 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Styled from 'styled-components';
 import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 import useDate from '%/useDate';
 import useNumber from '%/useNumber';
 
-export default function 보유이용권리스트 ({ data, getList }) {
+export default function 보유이용권리스트 ({ data, getList, userId }) {
+  const navigate = useNavigate();
   const [isInfoView, setIsInfoView] = useState(false);
   const [info, setInfo] = useState({});
-
-  const isFinishVoucher = useMemo(() => {
-    let now = new Date(useDate(new Date(), 'date'));
-    let target = new Date(data?.REMAIN_DATE);
-    let result = target - now >= 0;
-    return !result;
-  }, [data]);
 
   const changeVoucherStatus = status => {
     let ask = confirm('이용권을 ' + (status === 1 ? '재개' : '정지') + '처리하시겠습니까?')
@@ -27,7 +22,7 @@ export default function 보유이용권리스트 ({ data, getList }) {
     })
   }
   const deleteVoucher = () => {
-
+    useAlert?.info('알림', '준비중인 서비스입니다.');
   }
   const changeInfoView = () => {
     if (!isInfoView) return;
@@ -36,6 +31,20 @@ export default function 보유이용권리스트 ({ data, getList }) {
       setInfo(data?.data);
     })
   }
+  const rePayment = () => {
+    let ask = confirm('해당 이용권을 재구매 하시겠습니까?');
+    if (!ask) return;
+    navigate('/payment', {
+      state: { userId: Number(userId), voucherId: Number(data?.VOUCHER_ID) }
+    });
+  }
+
+  const isFinishVoucher = useMemo(() => {
+    let now = new Date(useDate(new Date(), 'date'));
+    let target = new Date(data?.REMAIN_DATE);
+    let result = target - now >= 0;
+    return !result;
+  }, [data]);
 
   useEffect(changeInfoView, [isInfoView]);
 
@@ -59,7 +68,7 @@ export default function 보유이용권리스트 ({ data, getList }) {
           </Body>
           <ButtonWrap>
             {isFinishVoucher ? (
-              <Button>이용권 재구매</Button>
+              <Button onClick={rePayment}>이용권 재구매</Button>
             ) : (
               <Button onClick={() => changeVoucherStatus(data?.STATUS === 1 ? 2 : 1)}>
                 이용권 {data?.STATUS === 1 ? '정지' : '재개'}

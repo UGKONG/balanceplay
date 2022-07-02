@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Styled from 'styled-components';
 import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
@@ -9,9 +9,16 @@ import Loading from '@/pages/Common/Loading';
 
 export default function 보유이용권 () {
   const params = useParams();
+  const navigate = useNavigate();
   const userId = params?.id;
   const [isLoad, setIsLoad] = useState(true);
   const [list, setList] = useState([]);
+
+  const payment = () => {
+    navigate('/payment', {
+      state: { userId: Number(userId), voucherId: null }
+    });
+  }
 
   const getList = () => {
     useAxios.get('/userVoucher/' + userId).then(({ data }) => {
@@ -26,13 +33,13 @@ export default function 보유이용권 () {
   return (
     <PageAnimate name='slide-up' style={{ overflow: 'auto' }}>
       <Header>
-        <VoucherBuyBtn>이용권 구매</VoucherBuyBtn>
+        <VoucherBuyBtn onClick={payment}>이용권 구매</VoucherBuyBtn>
       </Header>
       <VoucherList>
         {isLoad ? <Loading /> : (
           <>
           {list?.length === 0 && <NotLi>보유중인 이용권이 없습니다.</NotLi>}
-          {list?.map(item => <VoucherLi key={item?.ID} data={item} getList={getList} />)}
+          {list?.map(item => <VoucherLi key={item?.ID} userId={userId} data={item} getList={getList} />)}
           </>
         )}
       </VoucherList>

@@ -71,6 +71,7 @@ const adminPages = [
   '/teacher',
   '/teacher/:id',
   '/setting',
+  '/payment',
 ];
 adminPages.forEach(page => app.use('/admin' + page, express.static(basePath + '/admin')));
 
@@ -146,6 +147,8 @@ const {
   getAccountCategory,
   getMemberTest,
   getMemberTestResult,
+  getPayment,
+  postPayment,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -215,6 +218,8 @@ app.get('/api/calendar', getCalendar);
 app.get('/api/room', getRoom);
 app.get('/api/memberTest/:id', getMemberTest);
 app.get('/api/memberTestResult/:testId', getMemberTestResult);
+app.get('/api/payment/:userId/:voucherId', getPayment);
+app.post('/api/payment', postPayment);
 
 app.get('/api/:table', getOtherList);
 app.get('/api/:table/:id', getOtherData);

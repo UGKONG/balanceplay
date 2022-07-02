@@ -28,6 +28,7 @@ import History from '@/pages/History';
 import Teacher from '@/pages/Teacher';
 import TeacherDetail from '@/pages/TeacherDetail';
 import Setting from '@/pages/Setting';
+import Payment from '@/pages/Payment';
 
 export default function 앱 () {
   const dispatch = useStore(x => x.setState);
@@ -112,6 +113,7 @@ export default function 앱 () {
             {isLogin && isSession && <Route path='/teacher' element={<Teacher />} />}
             {isLogin && isSession && <Route path='/teacher/:id' element={<TeacherDetail />} />}
             {isLogin && isSession && <Route path='/setting' element={<Setting />} />}
+            {isLogin && isSession && <Route path='/payment' element={<Payment />} />}
           </Routes>
         </Container2>
         <Footer>

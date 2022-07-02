@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Styled from 'styled-components';
 import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
@@ -6,6 +7,7 @@ import useNumber from '%/useNumber';
 import VoucherModify from './VoucherModify';
 
 export default function 이용권리스트 ({ data, getList }) {
+  const navigate = useNavigate();
   const [isEdit, setIsEdit] = useState(false);
 
   const deleteVoucher = () => {
@@ -16,6 +18,12 @@ export default function 이용권리스트 ({ data, getList }) {
       if (!data?.result) return useAlert.error('알림', data?.msg);
       useAlert.success('알림', '해당 이용권이 삭제되었습니다.');
       getList();
+    });
+  }
+
+  const payment = () => {
+    navigate('/payment', {
+      state: { userId: null, voucherId: data?.ID }
     });
   }
 
@@ -33,6 +41,7 @@ export default function 이용권리스트 ({ data, getList }) {
         <Pay>{useNumber(data?.PLACE)}원</Pay>
       </Body>
       <ButtonWrap className='buttonWrap'>
+        <Button className='col' onClick={payment}>결제</Button>
         <Button className='col' onClick={() => setIsEdit(true)}>수정</Button>
         <Button className='red col' onClick={deleteVoucher}>삭제</Button>
       </ButtonWrap>
@@ -86,7 +95,8 @@ const Row = Styled.div`
 `;
 const ButtonWrap = Styled.div`
   display: none !important;
-  width: 100%;
+  width: 100%;import { useNavigate } from 'react-router-dom';
+
   padding-top: 10px;
   justify-content: space-between;
 `;
@@ -98,6 +108,6 @@ const Button = Styled.button`
   font-size: 12px;
   &.col {
     margin-bottom: 0;
-    width: calc(50% - 5px);
+    width: calc(33% - 5px);
   }
 `;

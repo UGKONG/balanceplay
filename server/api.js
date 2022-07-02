@@ -573,7 +573,9 @@ module.exports.getDetailResult = (req, res) => {
           INNER JOIN tn_test_tp b ON a.TEST_TP_SN = b.TEST_TP_SN
           INNER JOIN tn_test_dcsn c ON a.DCSN_SN = c.DCSN_SN
           INNER JOIN tn_test_dcsn_dtl d ON a.DCSN_DTL_SN = d.DCSN_DTL_SN
-          INNER JOIN tn_test e on a.TEST_SN = e.TEST_SN AND e.USER_SN = '${userId ?? req?.session?.isLogin?.ID}'
+          INNER JOIN tn_test e on 
+            a.TEST_SN = e.TEST_SN AND 
+            e.USER_SN = '${typeof(userId) === 'object' ? req?.session?.isLogin?.ID : userId}'
           WHERE a.TEST_TP_SN = '${id}'
           ORDER BY e.CRT_DT DESC, a.DCSN_SN ASC;
         `, (err, result) => {
@@ -2090,4 +2092,41 @@ module.exports.getMemberTestResult = (req, res) => {
       res.send(success(send));
     })
   })
+}
+// 이용권 구매 전 정보 조회
+module.exports.getPayment = (req, res) => {
+  let params = req?.params;
+  let userId = params?.userId;
+  let voucherId = params?.voucherId;
+  if (!userId) return res.send(fail('회원이 선택되지 않았습니다.'));
+  if (!voucherId) return res.send(fail('이용권이 선택되지 않았습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT ${userSelectQuery} 
+      FROM tn_user WHERE USER_SN = '${userId}';
+
+      SELECT 
+      a.ID, a.NAME, a.PLACE, a.USE_TYPE, 
+      a.USE_COUNT, a.USE_DAY, b.NAME AS CATEGORY_NAME
+      FROM tn_voucher a
+      LEFT JOIN tn_voucher_category b ON a.CATEGORY_ID = b.ID
+      WHERE a.ID = '${voucherId}';
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('정보 조회에 실패하였습니다.'));
+      }
+      let [user, voucher] = result;
+      user = user[0];
+      voucher = voucher[0];
+      if (!user || !voucher) return res.send(fail('정보 조회에 실패하였습니다.'));
+      res.send(success({ user, voucher }));
+    })
+  })
+}
+// 이용권 구매 정보 저장
+module.exports.postPayment = (req, res) => {
+  // 정보는 body로..
 }

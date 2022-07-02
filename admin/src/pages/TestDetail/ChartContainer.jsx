@@ -1,12 +1,29 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Styled from 'styled-components';
+import Chart from './Chart';
 
-export default function 결과차트 ({ width, data }) {
+export default function 결과차트 ({ data }) {
 
-
+  const chartData = useMemo(() => ({
+    labels: data?.map(x => x?.NAME),
+    datasets: [{
+      data: data?.map(x => x?.POINT),
+      backgroundColor: '#00ada950',
+      borderColor: '#00ada990',
+      borderWidth: 1,
+    }]
+  }), [data]);
+  const lastMaxPoint = useMemo(() => {
+    let tempArr = [...data];
+    tempArr?.sort((a, b) => b?.POINT - a?.POINT);
+    let result = tempArr[0]?.POINT;
+    console.log(result);
+    return result;
+  }, [data]);
+  
   return (
-    <Container style={{ width }}>
-      차트 영역
+    <Container>
+      <Chart data={chartData} max={lastMaxPoint} />
     </Container>
   )
 }
@@ -15,8 +32,5 @@ const Container = Styled.section`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  color: #666;
-  border: 1px solid #aaa;
-  border-radius: 10px;
+  width: 100%;
 `

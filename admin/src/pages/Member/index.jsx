@@ -41,8 +41,6 @@ export default function 회원페이지 () {
 
   const allCheck = bool => setCheckList(bool ? [...list] : []);
 
-  useEffect(getList, []);
-
   return (
     <PageAnimate name='slide-up'>
       <Header 

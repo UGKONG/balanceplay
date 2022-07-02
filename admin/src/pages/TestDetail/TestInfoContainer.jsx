@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Styled from 'styled-components';
 
 export default function 검사정보박스({ data }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   return (
     <Container isOpen={isOpen}>

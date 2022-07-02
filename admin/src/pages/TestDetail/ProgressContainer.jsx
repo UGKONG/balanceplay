@@ -1,19 +1,21 @@
 import React, { useEffect } from 'react';
 import Styled from 'styled-components';
 
-export default function 결과프로그래스 ({ width, data }) {
+export default function 결과프로그래스 ({ data }) {
+
+  const percent = (now, all) => now / all * 100;
 
   useEffect(() => console.log(data), []);
 
   return (
-    <Container style={{ width }}>
+    <Container>
       {data?.map(item => (
         <ProgressItem key={item?.ID}>
           <Name>{item?.NAME ?? '-'}</Name>
           <Point>{item?.POINT ?? 0}점/{item?.MAX_POINT ?? 0}점</Point>
           <ProgressBar>
-            <Bar>
-              <Grade>{item?.GRADE ?? '-'}</Grade>
+            <Bar width={percent(item?.POINT, item?.MAX_POINT)}>
+              {item?.POINT > 0 && <Grade>{item?.GRADE ?? '-'}</Grade>}
             </Bar>
           </ProgressBar>
         </ProgressItem>
@@ -25,18 +27,18 @@ export default function 결과프로그래스 ({ width, data }) {
 const Container = Styled.section`
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  padding-right: 50px;
-  overflow: auto;
+  justify-content: flex-start;
+  width: 100%;
 `
 const ProgressItem = Styled.div`
   min-height: 60px;
   padding-bottom: 14px;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
 `
 const Name = Styled.p`
-  width: 170px;
+  min-width: 130px;
   white-space: nowrap;
   text-align: left;
   color: #00ac99;
@@ -44,13 +46,13 @@ const Name = Styled.p`
   padding: 0 4px;
 `
 const Point = Styled.p`
-  width: 120px;
-  text-align: center;
+  min-width: 80px;
+  text-align: left;
   white-space: nowrap;
-  color: #008a87;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 2px;
-  font-size: 14px;
+  color: #008a87;
 `
 const ProgressBar = Styled.div`
   width: 100%;
@@ -59,10 +61,11 @@ const ProgressBar = Styled.div`
   border: 1px solid #ddddddaa;
 `
 const Bar = Styled.div`
-  width: ${x => x?.width ?? 20}%;
+  width: ${x => x?.width ?? 0}%;
   height: 10px;
   border-radius: 10px;
   background-color: #00ada9dd;
+  background-image: linear-gradient(45deg, #00ada9dd, #48bd79dd);
   position: relative;
 `
 const Grade = Styled.p`

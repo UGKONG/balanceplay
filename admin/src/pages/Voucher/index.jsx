@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Styled from 'styled-components';
 import PageAnimate from '%/PageAnimate';
 import useAxios from '%/useAxios';
+import useAlert from '%/useAlert';
 import Header from './Header';
 import CategoryCreate from './CategoryCreate';
 import CategoryLi from './CategoryLi';

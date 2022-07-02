@@ -13,8 +13,8 @@ export default function 검사결과 ({ data }) {
     <Container>
       {isLoad ? <Loading /> : (
         <>
-          <ProgressContainer width='60%' data={data} />
-          <ChartContainer width='40%' data={data} />
+          <ChartContainer data={data} />
+          <ProgressContainer data={data} />
         </>
       )}
     </Container>
@@ -27,6 +27,7 @@ const Container = Styled.div`
   align-items: center !important;
   justify-content: center !important;
   text-align: center;
+  flex-direction: column;
 
   & > section {
     height: 100%;
