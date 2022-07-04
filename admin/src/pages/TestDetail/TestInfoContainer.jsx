@@ -33,7 +33,6 @@ const Container = Styled.div`
   border-radius: 8px;
   width: 100%;
   min-height: ${x => x?.isOpen ? 200 : 40}px;
-  max-height: 200px;
   padding: 16px 16px 10px;
   margin-bottom: 10px;
   background-color: #b9e1dcaa;
@@ -67,8 +66,8 @@ const Name = Styled.p`
   color: #209b98;
 `;
 const Method = Styled.p`
-  font-size: 14px;
-  color: #e34949;
+  font-size: 12px;
+  color: #df5959;
 `;
 const CategoryItem = Styled.article`
   margin-bottom: 16px;

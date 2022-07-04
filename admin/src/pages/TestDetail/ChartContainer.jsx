@@ -13,11 +13,11 @@ export default function 결과차트 ({ data }) {
       borderWidth: 1,
     }]
   }), [data]);
+
   const lastMaxPoint = useMemo(() => {
     let tempArr = [...data];
     tempArr?.sort((a, b) => b?.POINT - a?.POINT);
     let result = tempArr[0]?.POINT;
-    console.log(result);
     return result;
   }, [data]);
   

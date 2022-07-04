@@ -19,7 +19,6 @@ export default function 검사상세페이지 () {
     useAxios.get('/memberTestResult/' + id).then(({ data }) => {
       setIsLoad(false);
       if (!data?.result || !data?.data) return useAlert?.error('알림', data?.msg);
-      console.log(data?.data);
       setData(data?.data);
     });
   }

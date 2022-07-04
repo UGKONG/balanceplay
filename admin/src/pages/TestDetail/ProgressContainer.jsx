@@ -5,8 +5,6 @@ export default function 결과프로그래스 ({ data }) {
 
   const percent = (now, all) => now / all * 100;
 
-  useEffect(() => console.log(data), []);
-
   return (
     <Container>
       {data?.map(item => (
