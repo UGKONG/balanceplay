@@ -4,91 +4,96 @@ import PageAnimate from '%/PageAnimate';
 import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 import useDate from '%/useDate';
-import TypeList from './TypeList';
-import TypeContents from './TypeContents';
+import useStore from '%/useStore';
+import TabList from './TabList';
+import Scheduler from './Scheduler';
 
-export default function 스케줄 () {
-  const [data, setData] = useState(null);
-  const [date, setDate] = useState(null);
-  const dateDeps = useRef([
-    {id: 1, name: '년' },
-    {id: 2, name: '월' },
-    {id: 3, name: '주' },
-    {id: 4, name: '일' },
-  ]);
-  const [activeType, setActiveType] = useState(1);
-  const [activeDetailType, setActiveDetailType] = useState(1);
-  const [activeDateDeps, setActiveDateDeps] = useState(2);
+export default function 스케줄() {
+  const setting = useStore(x => x?.setting);
+  const [initData, setInitData] = useState({});
+  const viewType = setting?.ACTIVE_VIEW_TYPE_ID ?? 4;
 
-  const dateInit = () => {
-    if (date) return;
-    setDate(useDate(new Date(), 'date'));
+  const [activeTab, setActiveTab] = useState(setting?.ACTIVE_TAB_ID ?? 1);
+  const [activeCalendar, setActiveCalendar] = useState(setting?.ACTIVE_CALENDAR_ID ?? 0);
+  const [activeRoom, setActiveRoom] = useState(setting?.ACTIVE_ROOM_ID ?? 0);
+  const [activeTeacher, setActiveTeacher] = useState(setting?.ACTIVE_TEACHER_ID ?? 0);
+  const [activeViewType, setActiveViewType] = useState(viewType);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+
+  const dateInit = data => {
+    let start = new Date();
+    let end = new Date();
+
+    // 년
+    if (activeViewType === 1) {
+
+      return;
+    }
+
+    // 월
+    if (activeViewType === 2) {
+
+      return;
+    }
+
+    // 주
+    if (activeViewType === 3) {
+
+      return;
+    }
+
+    let now = useDate(undefined, 'date');
+    setStartDate(now);
+    setEndDate(now);
+    setActiveViewType(4);
   }
-  const getCalendar = () => {
-    dateInit();
-    if (!date || !calcDate?.start || !calcDate?.end) return setData(null);
-    useAxios.get('/schedule?start=' + calcDate?.start + '&end=' + calcDate?.end).then(({ data }) => {
-      if (!data?.result || !data?.data) return setData(null);
-      setData(data?.data);
+
+  const getCalendarInit = () => {
+    useAxios.get('/scheduleInit').then(({ data }) => {
+      if (!data?.result || !data?.data) return setInitData(null);
+      setInitData(data?.data);
       console.log(data?.data);
     })
   }
-  const calcDate = useMemo(() => {
-    let id = activeDateDeps;
-    let start = '2000-01-01';
-    let end = '3000-01-01';
-    if (dateDeps.current?.find(x => x?.id === id) === -1 || !date) return { start, end };
-    let _date = new Date(date);
-    switch (id) {
-      case 1:
-        _date = new Date(date);
-        _date.setMonth(0);
-        _date.setDate(1);
-        start = useDate(_date, 'date');
-        _date.setMonth(11);
-        _date.setDate(31);
-        break;
-      case 2: 
-        _date = new Date(date);
-        _date.setDate(1);
-        start = useDate(_date, 'date');
-        _date.setMonth(_date.getMonth() + 1);
-        _date.setDate(1);
-        _date.setDate(_date.getDate() - 1);
-        break;
-      case 3: 
-        _date = new Date(date);
-        let day = _date.getDay();
-        _date.setDate(_date.getDate() - day);
-        start = useDate(_date, 'date');
-        _date.setDate(_date.getDate() + 6);
-        break;
-      case 4: 
-        _date = new Date(date);
-        start = useDate(_date, 'date');
-        break;
-    }
-    end = useDate(_date, 'date');
-    return { start, end };
-  }, [date, activeDateDeps]);
 
-  useEffect(getCalendar, [date]);
+  useEffect(getCalendarInit, [activeTab]);
+  useEffect(() => dateInit(initData), [activeViewType]);
+
+  if (!initData) return null;
 
   return (
     <PageAnimate name='slide-up' style={{ display: 'flex' }}>
-      <TypeList 
-        activeType={activeType} 
-        activeDetailType={activeDetailType} 
-        setActiveDetailType={setActiveDetailType} 
-        setActiveType={setActiveType} 
-        typeList={data?.type ?? []} 
-        calendarList={data?.calendar}
+      <TabList
+        initData={initData}
+        active={{
+          tab: activeTab,
+          calendar: activeCalendar,
+          room: activeRoom,
+          teacher: activeTeacher,
+          view: activeViewType,
+        }}
+        setActive={{
+          tab: setActiveTab,
+          calendar: setActiveCalendar,
+          room: setActiveRoom,
+          teacher: setActiveTeacher,
+          view: setActiveViewType,
+        }}
       />
-      <TypeContents 
-        activeType={activeType} 
-        activeDetailType={activeDetailType} 
-        activeDateDeps={activeDateDeps} 
-        scheduleList={data?.schedule}
+      <Scheduler
+        initData={initData}
+        settingData={{
+          calendar: activeCalendar,
+          room: activeRoom,
+          teacher: activeTeacher,
+          view: activeViewType,
+          start: startDate,
+          end: endDate,
+        }}
+        setActive={{
+          view: setActiveViewType,
+        }}
       />
     </PageAnimate>
   )

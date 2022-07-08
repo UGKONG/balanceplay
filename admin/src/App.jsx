@@ -30,7 +30,7 @@ import TeacherDetail from '@/pages/TeacherDetail';
 import Setting from '@/pages/Setting';
 import Payment from '@/pages/Payment';
 
-export default function 앱 () {
+export default function 앱() {
   const dispatch = useStore(x => x.setState);
   const isLogin = useStore(x => x.isLogin);
   const isFullPage = useStore(x => x.isFullPage);
@@ -38,9 +38,9 @@ export default function 앱 () {
   const navigate = useNavigate();
   const [isSession, setIsSession] = useState(false);
   useTitle(conf.programName);
-  
+
   // 세션 필요없음
-  const notSession = useMemo(() => [ 'login', 'join' ], []);
+  const notSession = useMemo(() => ['login', 'join'], []);
 
   // 세션 체크
   const sessionChk = useCallback(() => {
@@ -61,6 +61,13 @@ export default function 앱 () {
       !isLogin && dispatch('isLogin', data?.data);
     });
   }, [location, notSession, isLogin, dispatch, isSession, setIsSession]);
+
+  const getSetting = useCallback(() => {
+    useAxios.get('/setting').then(({ data }) => {
+      if (!data?.result || !data?.data) return dispatch('setting', null);
+      dispatch('setting', data?.data);
+    })
+  }, []);
 
   // 프로그램 정보
   const programInfo = useMemo(() => {
@@ -86,6 +93,7 @@ export default function 앱 () {
   }
 
   useEffect(sessionChk, [location]);
+  useEffect(getSetting, [location]);
 
   return (
     <>
@@ -124,13 +132,13 @@ export default function 앱 () {
     </>
   );
 }
-const fullPageStyle = { 
-  width: '100%', 
-  height: '100%', 
-  position: 'fixed', 
-  top: 0, 
-  left: 0, 
-  zIndex: 1 
+const fullPageStyle = {
+  width: '100%',
+  height: '100%',
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  zIndex: 1
 }
 const Name = Styled.h1`
   display: none;

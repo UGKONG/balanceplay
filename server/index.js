@@ -22,21 +22,21 @@ app.use(session({
     secure: false,
     maxAge: 60 * 60 * 1000,  // 1시간 세션유지
   },
-  rolling : true,
+  rolling: true,
   store: new MySQLStore(conf.db),
 }));
 
 // 회원용 라우터
 const memberPages = [
-  '/', 
+  '/',
   '/dev',
-  '/login', 
+  '/login',
   '/join',
-  '/totalresult/:id', 
-  '/survey/:id', 
-  '/survey/:id/new', 
-  '/survey/:id/readOnly', 
-  '/notice', 
+  '/totalresult/:id',
+  '/survey/:id',
+  '/survey/:id/new',
+  '/survey/:id/readOnly',
+  '/notice',
   '/notice/:id',
   '/duplicate',
   '/terms',
@@ -86,9 +86,9 @@ const {
   guestLogin,
   join,
   snsLogin,
-  login, 
-  logout, 
-  isSession, 
+  login,
+  logout,
+  isSession,
   getCenter,
   getCenterDetail,
   getTotalResult,
@@ -141,7 +141,7 @@ const {
   postVoucherCategory,
   putVoucher,
   putVoucherCategory,
-  getSchedule,
+  getScheduleInit,
   getCalendar,
   getRoom,
   getAccountCategory,
@@ -149,6 +149,7 @@ const {
   getMemberTestResult,
   getPayment,
   postPayment,
+  getSetting,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -213,7 +214,8 @@ app.put('/api/voucher/:id', putVoucher);
 app.delete('/api/voucherCategory/:id', deleteVoucherCategory);
 app.post('/api/voucherCategory', postVoucherCategory);
 app.put('/api/voucherCategory/:id', putVoucherCategory);
-app.get('/api/schedule', getSchedule);
+app.get('/api/scheduleInit', getScheduleInit);
+app.get('/api/setting', getSetting);
 app.get('/api/calendar', getCalendar);
 app.get('/api/room', getRoom);
 app.get('/api/memberTest/:id', getMemberTest);
@@ -225,7 +227,7 @@ app.get('/api/:table', getOtherList);
 app.get('/api/:table/:id', getOtherData);
 
 // 서버 시작
-app.listen(PORT, 
+app.listen(PORT,
   () => console.log(`
 
 ┌────── Server Start!! ────┐

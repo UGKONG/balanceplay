@@ -201,7 +201,7 @@ module.exports.snsLogin = (req, res) => {
         });
         return;
       }
-      
+
       res.send(success(result[0]));
     });
   });
@@ -233,7 +233,7 @@ module.exports.login = (req, res) => {
         return;
       }
 
-      let userData = {...result[0], IS_ADMIN: false};
+      let userData = { ...result[0], IS_ADMIN: false };
 
       if (userData?.IS_DELETE === 1) {
         console.log('탈퇴된 회원 로그인 요청 (SN: ' + userData?.ID + ')');
@@ -241,7 +241,7 @@ module.exports.login = (req, res) => {
         res.send(fail('회원탈퇴된 회원입니다.'));
         return;
       }
-      
+
       console.log('로그인 유저:', userData);
       req.session.isLogin = userData;
       res.send(success(userData));
@@ -303,9 +303,9 @@ module.exports.join = (req, res) => {
         '${now[3]?.value}', '${now[4]?.value}', '${other?.isOther ? 1 : 2}', '${other?.contents}'
       );
 
-      ` + 
-      (familyInsertSQL.length > 0 ?       
-      `
+      ` +
+      (familyInsertSQL.length > 0 ?
+        `
       INSERT INTO tn_user_fmly
       (
         USER_SN, FMLY_NM, FMLY_TP, BRTHDAY,
@@ -346,7 +346,7 @@ module.exports.join = (req, res) => {
 module.exports.getMenu = (req, res) => {
   let type = req.params.id;
   if (!type) return res.send(fail('메뉴의 타입이 없습니다. (회원용: 1 / 관리자용: 2)'));
-  
+
   dbConnect(db => {
     db.query(`
       SELECT
@@ -413,7 +413,7 @@ module.exports.getMyTestList = (req, res) => {
   log(req);
   let userId = req.session?.isLogin?.ID;
   if (!userId) return res.send(fail('검사 리스트를 불러올 회원의 일련번호가 없습니다.'));
-  
+
   dbConnect(db => {
     db.query(`
       SELECT
@@ -441,7 +441,7 @@ module.exports.getTotalResult = (req, res) => {
   log(req);
   let date = req?.params?.id;
   if (!date) return res.send(fail('종합결과의 기준 날짜가 없습니다.'));
-  
+
   dbConnect(db => {
     db.query(`
     SELECT 
@@ -575,13 +575,13 @@ module.exports.getDetailResult = (req, res) => {
           INNER JOIN tn_test_dcsn_dtl d ON a.DCSN_DTL_SN = d.DCSN_DTL_SN
           INNER JOIN tn_test e on 
             a.TEST_SN = e.TEST_SN AND 
-            e.USER_SN = '${typeof(userId) === 'object' ? req?.session?.isLogin?.ID : userId}'
+            e.USER_SN = '${typeof (userId) === 'object' ? req?.session?.isLogin?.ID : userId}'
           WHERE a.TEST_TP_SN = '${id}'
           ORDER BY e.CRT_DT DESC, a.DCSN_SN ASC;
         `, (err, result) => {
           err && console.log(err);
           sendData.pointResult = err ? [] : result;
-          
+
           db.query(`
             SELECT 
             a.TEST_SN AS ID, a.TEST_TP_SN AS TEST_ID, b.TEST_TP_NM AS TEST_NAME,
@@ -676,7 +676,7 @@ module.exports.getDoSurvey = (req, res) => {
       })
     });
   });
-  
+
 }
 // 신규 검사 저장
 module.exports.postDoSurvey = (req, res) => {
@@ -691,7 +691,7 @@ module.exports.postDoSurvey = (req, res) => {
     res.send(fail('데이터가 없습니다.'));
     return;
   }
-  
+
   let insertSQL = data?.map(item => {
     let result = `(@TEST_ID, ${item?.ASK}, ${item?.ANSWER})`;
     return result;
@@ -773,7 +773,7 @@ module.exports.postNotice = (req, res) => {
       res.send(success(null));
     });
   });
-  
+
 }
 // 공지사항 리스트 조회
 module.exports.getNotice = (req, res) => {
@@ -861,7 +861,7 @@ module.exports.getSurveyResult = (req, res) => {
         res.send(fail('작성 검사 결과를 조회하는데 실패하였습니다.'));
         return;
       }
-      
+
       res.send(success(result));
     });
   });
@@ -1001,7 +1001,7 @@ module.exports.postMyFamilyInfo = (req, res) => {
         res.send(fail('정보 등록을 하지 못했습니다.'));
         return;
       }
-      
+
       res.send(success(null));
     })
   })
@@ -1012,7 +1012,7 @@ module.exports.putMyFamilyInfo = (req, res) => {
   let data = req?.body;
   let familyId = data?.ID;
   if (!familyId) return res.send(fail('수정 정보가 없습니다.'));
-  
+
   dbConnect(db => {
     db.query(`
       UPDATE tn_user_fmly SET 
@@ -1063,7 +1063,7 @@ module.exports.deleteMyFamilyInfo = (req, res) => {
 module.exports.adminLogin = (req, res) => {
   log(req);
   let { id, pw } = req?.body;
-  
+
   if (!id) return res.send(fail('아이디를 입력해주세요.'));
   if (!pw) return res.send(fail('비밀번호를 입력해주세요.'));
 
@@ -1084,7 +1084,7 @@ module.exports.adminLogin = (req, res) => {
         res.send(fail('일치하는 관리자가 없습니다.'));
         return;
       }
-      req.session.isLogin = {...result[0], IS_ADMIN: true};
+      req.session.isLogin = { ...result[0], IS_ADMIN: true };
       res.send(success(req.session.isLogin));
     });
   })
@@ -1139,7 +1139,7 @@ module.exports.getMember = (req, res) => {
   log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   let searchText = req?.query?.q ?? '';
-  
+
   dbConnect(db => {
     db.query(`
       SELECT ${userSelectQuery}
@@ -1164,8 +1164,8 @@ module.exports.getMember = (req, res) => {
 
       let userList = result[0];
       let voucherList = result[1];
-      let send = userList?.map(item => ({ 
-        ...item, 
+      let send = userList?.map(item => ({
+        ...item,
         VOUCHER: voucherList?.filter(x => x?.USER_ID === item?.ID)
       }));
 
@@ -1178,7 +1178,7 @@ module.exports.getMemberDetail = (req, res) => {
   log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   let id = req?.params?.id;
-  
+
   dbConnect(db => {
     db.query(`
       SELECT ${userSelectQuery}
@@ -1246,7 +1246,7 @@ module.exports.getVoucher = (req, res) => {
       let send = categoryList.map(item => ({
         ...item, VOUCHER: voucherList.filter(x => x?.CATEGORY_ID === item?.ID)
       }));
-      
+
       res.send(success(send));
     });
   })
@@ -1272,7 +1272,7 @@ module.exports.getVoucherDetail = (req, res) => {
         res.send(fail('이용권 정보 조회를 실패하였습니다.'));
         return;
       }
-      
+
       res.send(success(result[0]));
     });
   })
@@ -1314,7 +1314,7 @@ module.exports.putMemberModify = (req, res) => {
 
   if (!userId) return res.send(fail('유저 아이디가 없습니다.'));
   if (!name || !email || !height || !weight || !schoolName) return res.send(fail('수정 데이터가 없습니다.'));
-  
+
   dbConnect(db => {
     db.query(`
       UPDATE tn_user SET
@@ -1460,7 +1460,7 @@ module.exports.getUserHistory = (req, res) => {
   log(req);
   let userId = req?.params?.id;
   if (!userId) return res.send(fail('회원 아이디가 없습니다.'));
-  
+
   dbConnect(db => {
     db.query(`
       SELECT
@@ -1895,50 +1895,70 @@ module.exports.putVoucherCategory = (req, res) => {
     })
   })
 }
-// 캘린더 & 스케줄 조회
-module.exports.getSchedule = (req, res) => {
+// 스케줄 초기 정보 조회
+module.exports.getScheduleInit = (req, res) => {
   log(req);
-  let centerId = req?.session?.isLogin?.CENTER_ID;
-  let start = req?.query?.start;
-  let end = req?.query?.end;
+  let centerId = req?.query?.center || req?.session?.isLogin?.CENTER_ID;
 
-  if (!centerId) return res.send(fail('캘린더 조회에 실패하였습니다.'));
-  if (!start) return res.send(fail('캘린더 조회 시작날짜가 없습니다.'));
-  if (!end) return res.send(fail('캘린더 조회 종료날짜가 없습니다.'));
+  if (!centerId) return res.send(fail('조회에 실패하였습니다.'));
 
   dbConnect(db => {
     db.query(`
       SELECT CODE AS ID, NAME FROM tn_common WHERE BASE_ID = 9;
 
-      SELECT a.ID, a.NAME, a.ORDER, a.IS_FIXED 
+      SELECT a.ID, a.NAME, a.ORDER, a.IS_TOP 
       FROM tn_calendar a
-      WHERE CENTER_ID = '${centerId}'
+      WHERE a.CENTER_ID = ${centerId}
       ORDER BY a.ORDER ASC, a.ID ASC;
 
-      SELECT
-      a.ID, a.CALENDAR_ID, a.TITLE, a.CONTENTS,
-      a.START, a.END,
-      DATE_FORMAT(a.CREATE_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE,
-      DATE_FORMAT(a.MODIFY_DT, '%Y-%m-%d %H:%i:%s') AS MODIFY_DATE
-      FROM tn_schedule a 
-      WHERE CALENDAR_ID IN (
-        SELECT ID FROM tn_calendar WHERE CENTER_ID = '${centerId}'
-      ) AND
-      CONVERT('${start}', DATE) <= CONVERT(a.START, DATE) AND
-      CONVERT(a.START, DATE) <= CONVERT('${end}', DATE);
+      SELECT a.ID, a.NAME, a.ORDER
+      FROM tn_room a
+      WHERE a.CENTER_ID = ${centerId}
+      ORDER BY a.ORDER ASC, a.ID ASC;
+      
+      SELECT a.ID, a.NAME, a.IMAGE_PATH AS IMG, a.ORDER
+      FROM tn_admin a
+      WHERE a.CENTER_ID = ${centerId} AND a.IS_DELETE = 0
+      ORDER BY a.ORDER ASC, a.ID ASC;
     `, (err, result) => {
       db.end();
       if (err) {
         console.log(err);
-        return res.send(fail('캘린더 조회에 실패하였습니다.'));
+        return res.send(fail('조회에 실패하였습니다.'));
       }
-      if (result[0]?.length === 0 || result[1]?.length === 0) return res.send(success(null));
+      if (result[0]?.length === 0) return res.send(success(null));
 
       res.send(success({
-        type: result[0],
+        tab: result[0],
         calendar: result[1],
-        schedule: result[2]
+        room: result[2],
+        teacher: result[3],
       }));
+    })
+  })
+}
+// 설정값 조회
+module.exports.getSetting = (req, res) => {
+  const centerId = req?.session?.isLogin?.CENTER_ID;
+  if (!centerId) return res.send(fail('센터 아이디가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT
+      a.ACTIVE_TAB_ID,
+      a.ACTIVE_CALENDAR_ID,
+      a.ACTIVE_ROOM_ID,
+      a.ACTIVE_TEACHER_ID,
+      a.ACTIVE_VIEW_TYPE_ID
+      FROM tn_setting a
+      WHERE a.CENTER_ID = ${centerId}
+    `, (err, result) => {
+      db.end();
+      if (err || result?.length === 0) {
+        err && console.log(err);
+        return res.send(fail('조회에 실패하였습니다.'));
+      }
+      res.send(success(result[0]));
     })
   })
 }
@@ -2066,29 +2086,29 @@ module.exports.getMemberTestResult = (req, res) => {
         return res.send(fail('회원의 검사 정보 조회에 실패하였습니다.'));
       }
       let [infoData, descData, pointData] = result;
-          [infoData] = infoData;
+      [infoData] = infoData;
       if (!infoData || descData?.length === 0 || pointData?.length === 0) {
         return res.send(fail('회원의 검사 정보 조회에 실패하였습니다.'));
       }
-      
+
       let send = {
-        testData: { 
-          ID: infoData?.ID, 
-          CREATE_ADMIN_NAME: infoData?.CREATE_ADMIN_NAME, 
-          CREATE_DATE: infoData?.CREATE_DATE 
+        testData: {
+          ID: infoData?.ID,
+          CREATE_ADMIN_NAME: infoData?.CREATE_ADMIN_NAME,
+          CREATE_DATE: infoData?.CREATE_DATE
         },
-        testTypeData: { 
-          ID: infoData?.TEST_TYPE_ID, 
-          NAME: infoData?.TEST_TYPE_NAME, 
+        testTypeData: {
+          ID: infoData?.TEST_TYPE_ID,
+          NAME: infoData?.TEST_TYPE_NAME,
           DESCRIPTION: infoData?.TEST_TYPE_DESCRIPTION,
-          METHOD_NAME: infoData?.TEST_TYPE_METHOD_TEXT, 
-          MONTH_MIN: infoData?.MONTH_MIN, 
-          MONTH_MAX: infoData?.MONTH_MAX ,
+          METHOD_NAME: infoData?.TEST_TYPE_METHOD_TEXT,
+          MONTH_MIN: infoData?.MONTH_MIN,
+          MONTH_MAX: infoData?.MONTH_MAX,
           DESCRIPTION: descData,
         },
         testPointData: pointData
       }
-      
+
       res.send(success(send));
     })
   })
