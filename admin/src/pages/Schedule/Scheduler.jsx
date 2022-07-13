@@ -1,16 +1,30 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Styled from 'styled-components';
 import Header from './Header';
+import useAxios from '%/useAxios';
 
 export default function 타입컨텐츠({ settingData, setActive }) {
 
   const [list, setList] = useState([]);
 
+  const validate = () => {
+    console.log('실행');
+    let keys = Object?.keys(settingData) ?? [];
+    for (let i = 0; i < keys.length; i ++) {
+      let key = keys[i];
+      if (settingData[key] === null) return;
+    }
+    getSchedule();
+  }
   const getSchedule = () => {
-    console.log(settingData);
+    // console.log('설정값: ', settingData);
+    useAxios.get('/schedule', { params: settingData }).then(({ data }) => {
+      if (!data?.result || !data?.data) return setList([]);
+      setList(data?.data);
+    })
   }
 
-  useEffect(getSchedule, [settingData]);
+  useEffect(validate, [settingData]);
 
   return (
     <Wrap>
@@ -28,8 +42,8 @@ export default function 타입컨텐츠({ settingData, setActive }) {
         선생님: {settingData?.teacher}<br />
         시작일: {settingData?.start}<br />
         종료일: {settingData?.end}<br />
-        뷰타입: {settingData?.view}<br />
-
+        뷰타입: {settingData?.view}<br /><br />
+        {JSON.stringify(list)}
       </SchedulerContainer>
     </Wrap>
   )

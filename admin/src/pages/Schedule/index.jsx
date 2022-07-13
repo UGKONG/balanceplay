@@ -21,44 +21,50 @@ export default function 스케줄() {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
-  const dateInit = data => {
-    let start = new Date();
-    let end = new Date();
+  const dateInit = (startDT, endDT) => {
+    let start = startDT ?? new Date();
+    let end = endDT ?? new Date();
 
     // 년
     if (activeViewType === 1) {
-
-      return;
+      start.setMonth(0);
+      start.setDate(31);
+      end.setMonth(11);
+      end.setDate(31);
     }
 
     // 월
     if (activeViewType === 2) {
-
-      return;
+      start.setDate(1);
+      start.setMonth(start.getMonth() + 1);
+      start.setDate(1);
+      start.setDate(start.getDate() - 1);
+      let date = start.getDate();
+      start.setDate(1);
+      end.setDate(date);
     }
 
     // 주
     if (activeViewType === 3) {
-
-      return;
+      let day = start.getDay();
+      start.setDate(start.getDate() - day);
+      end.setDate(end.getDate() + (6 - day));
     }
 
-    let now = useDate(undefined, 'date');
-    setStartDate(now);
-    setEndDate(now);
-    setActiveViewType(4);
+    setStartDate(useDate(start, 'date'));
+    setEndDate(useDate(end, 'date'));
+    if (activeViewType === 0 || activeViewType > 4) setActiveViewType(4);
   }
 
   const getCalendarInit = () => {
     useAxios.get('/scheduleInit').then(({ data }) => {
       if (!data?.result || !data?.data) return setInitData(null);
       setInitData(data?.data);
-      console.log(data?.data);
     })
   }
 
   useEffect(getCalendarInit, [activeTab]);
-  useEffect(() => dateInit(initData), [activeViewType]);
+  useEffect(() => dateInit(), [activeViewType]);
 
   if (!initData) return null;
 

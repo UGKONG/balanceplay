@@ -141,15 +141,16 @@ const {
   postVoucherCategory,
   putVoucher,
   putVoucherCategory,
-  getScheduleInit,
-  getCalendar,
-  getRoom,
   getAccountCategory,
   getMemberTest,
   getMemberTestResult,
   getPayment,
   postPayment,
   getSetting,
+  getScheduleInit,
+  getCalendar,
+  getRoom,
+  getSchedule,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -222,6 +223,7 @@ app.get('/api/memberTest/:id', getMemberTest);
 app.get('/api/memberTestResult/:testId', getMemberTestResult);
 app.get('/api/payment/:userId/:voucherId', getPayment);
 app.post('/api/payment', postPayment);
+app.get('/api/schedule', getSchedule);
 
 app.get('/api/:table', getOtherList);
 app.get('/api/:table/:id', getOtherData);
@@ -233,8 +235,8 @@ app.listen(PORT,
 ┌────── Server Start!! ────┐
 │ PROTOCOL: http           │
 │ HOST: localhost          │
-│ PORT: ${PORT}               │
-│ http://localhost:${PORT}    │
+│ PORT: ${PORT}                 │
+│ http://localhost:${PORT}      │
 └──────────────────────────┘
 
   `)

@@ -2148,5 +2148,34 @@ module.exports.getPayment = (req, res) => {
 }
 // 이용권 구매 정보 저장
 module.exports.postPayment = (req, res) => {
+  let centerId = req?.session?.isLogin?.CENTER_ID;
+  let data = req?.body;
   // 정보는 body로..
+}
+// 스케줄 리스트 조회
+module.exports.getSchedule = (req, res) => {
+  let centerId = req?.session?.isLogin?.CENTER_ID;
+  let data = req?.query;
+
+  if (!data?.calendar || !data?.room || !data?.teacher || !data?.start || !data?.end) return res.send(fail('스케줄 조회에 실패하였습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      SELECT a.ID, a.START, a.END, a.TITLE, a.CONTENTS
+      FROM tn_schedule a WHERE 
+      a.CENTER_ID = ${centerId} 
+      AND (${data?.calendar} = 0 OR a.CALENDAR_ID=${data?.calendar})
+      AND (${data?.room} = 0 OR a.ROOM_ID=${data?.room})
+      AND (${data?.teacher} = 0 OR a.TEACHER_ID=${data?.teacher})
+      AND CONVERT(a.START, DATE) >= CONVERT('${data?.start}', DATE) 
+      AND CONVERT(a.END, DATE) <= CONVERT('${data?.end}', DATE);
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('스케줄 조회에 실패하였습니다.'));
+      }
+      res.send(success(result));
+    })
+  })
 }
