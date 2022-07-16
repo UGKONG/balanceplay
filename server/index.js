@@ -171,10 +171,6 @@ app.get('/api/totalResult/:id', getTotalResult);
 app.get('/api/detailResult/:id', getDetailResult);
 app.get('/api/doSurvey/:id', getDoSurvey);
 app.post('/api/doSurvey/:id', postDoSurvey);
-app.get('/api/notice', getNotice);
-app.post('/api/notice', postNotice);
-app.put('/api/notice', putNotice);
-app.delete('/api/notice', deleteNotice);
 app.get('/api/notice/:id', getNoticeDetail);
 app.get('/api/surveyResult/:id', getSurveyResult);
 app.get('/api/myinfo', getMyInfo);
@@ -225,6 +221,12 @@ app.get('/api/payment/:userId/:voucherId', getPayment);
 app.post('/api/payment', postPayment);
 app.get('/api/schedule', getSchedule);
 
+app.route('/api/notice')
+   .get(getNotice)
+   .post(postNotice)
+   .put(putNotice)
+   .delete(deleteNotice);
+
 app.get('/api/:table', getOtherList);
 app.get('/api/:table/:id', getOtherData);
 
@@ -235,8 +237,8 @@ app.listen(PORT,
 ┌────── Server Start!! ────┐
 │ PROTOCOL: http           │
 │ HOST: localhost          │
-│ PORT: ${PORT}                 │
-│ http://localhost:${PORT}      │
+│ PORT: ${PORT}               │
+│ http://localhost:${PORT}    │
 └──────────────────────────┘
 
   `)

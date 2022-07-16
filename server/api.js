@@ -750,31 +750,6 @@ module.exports.postDoSurvey = (req, res) => {
     })
   });
 }
-// 공지사항
-module.exports.postNotice = (req, res) => {
-  let userId = req?.session?.isLogin?.ID;
-  let centerId = req?.session?.isLogin?.CENTER_ID;
-  let { isAdminNotice, title, contents } = req?.body;
-  if (!title || !contents) return res.send(fail('공지등록에 실패하였습니다.'));
-
-  dbConnect(db => {
-    db.query(`
-      INSERT INTO tn_notice 
-      (CENTER_ID, NTC_TTL, NTC_CTNT, TYPE, CRT_USER_SN)
-      VALUES
-      ('${centerId}', '${title}', '${contents}', '${isAdminNotice ? 1 : 0}', '${userId}');
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('공지등록에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(null));
-    });
-  });
-
-}
 // 공지사항 리스트 조회
 module.exports.getNotice = (req, res) => {
   log(req);
@@ -803,6 +778,76 @@ module.exports.getNotice = (req, res) => {
         return;
       }
       res.send(success(result));
+    })
+  })
+}
+// 공지사항 추가
+module.exports.postNotice = (req, res) => {
+  let userId = req?.session?.isLogin?.ID;
+  let centerId = req?.session?.isLogin?.CENTER_ID;
+  let { isAdminNotice, title, contents } = req?.body;
+  if (!title || !contents) return res.send(fail('공지등록에 실패하였습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      INSERT INTO tn_notice 
+      (CENTER_ID, NTC_TTL, NTC_CTNT, TYPE, CRT_USER_SN)
+      VALUES
+      ('${centerId}', '${title}', '${contents}', '${isAdminNotice ? 1 : 0}', '${userId}');
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('공지등록에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(null));
+    });
+  });
+
+}
+// 공지사항 수정
+module.exports.putNotice = (req, res) => {
+  log(req);
+  let data = req?.body;
+  if (!data?.id) return res.send(fail('수정할 데이터가 없습니다.'));
+
+  dbConnect(db => {
+    db.query(`
+      UPDATE tn_notice SET 
+      NTC_TTL = '${data?.title}',
+      NTC_CTNT = '${data?.contents}',
+      TYPE = ${data?.isAdminNotice}
+      WHERE NTC_SN = ${data?.id}
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('공지 수정에 실패하였습니다.'));
+        return;
+      }
+      res.send(success(data?.id));
+    })
+  })
+}
+// 공지사항 삭제
+module.exports.deleteNotice = (req, res) => {
+  log(req);
+  let idArr = req?.body?.idArr ?? [];
+  if (idArr?.length === 0) return res.send(fail('삭제할 항목이 없습니다.'));
+  let query = idArr.map(x => 'NTC_SN = ' + x);
+  query = query.join(' OR ');
+  dbConnect(db => {
+    db.query(`
+      DELETE FROM tn_notice WHERE ${query};
+    `, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('공지 삭제를 실패하였습니다.'));
+        return;
+      }
+      res.send(success(null));
     })
   })
 }
@@ -1087,51 +1132,6 @@ module.exports.adminLogin = (req, res) => {
       req.session.isLogin = { ...result[0], IS_ADMIN: true };
       res.send(success(req.session.isLogin));
     });
-  })
-}
-// 공지사항 수정
-module.exports.putNotice = (req, res) => {
-  log(req);
-  let data = req?.body;
-  if (!data?.id) return res.send(fail('수정할 데이터가 없습니다.'));
-
-  dbConnect(db => {
-    db.query(`
-      UPDATE tn_notice SET 
-      NTC_TTL = '${data?.title}',
-      NTC_CTNT = '${data?.contents}',
-      TYPE = ${data?.isAdminNotice}
-      WHERE NTC_SN = ${data?.id}
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('공지 수정에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(data?.id));
-    })
-  })
-}
-// 공지사항 삭제
-module.exports.deleteNotice = (req, res) => {
-  log(req);
-  let idArr = req?.body?.idArr ?? [];
-  if (idArr?.length === 0) return res.send(fail('삭제할 항목이 없습니다.'));
-  let query = idArr.map(x => 'NTC_SN = ' + x);
-  query = query.join(' OR ');
-  dbConnect(db => {
-    db.query(`
-      DELETE FROM tn_notice WHERE ${query};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('공지 삭제를 실패하였습니다.'));
-        return;
-      }
-      res.send(success(null));
-    })
   })
 }
 // 회원리스트 조회
