@@ -1,0 +1,18 @@
+import React, {} from "react";
+import Styled from "styled-components";
+
+export default function 월 ({ set, data }) {
+
+
+  return (
+    <Container>
+      월 보기
+    </Container>
+  )
+}
+
+const Container = Styled.section`
+  width: 100%;
+  height: 100%;
+  position: relative;
+`

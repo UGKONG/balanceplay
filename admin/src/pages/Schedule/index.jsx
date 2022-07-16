@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import Styled from 'styled-components';
+import React, { useState, useEffect } from 'react';
 import PageAnimate from '%/PageAnimate';
 import useAxios from '%/useAxios';
-import useAlert from '%/useAlert';
 import useDate from '%/useDate';
 import useStore from '%/useStore';
 import TabList from './TabList';
@@ -11,13 +9,11 @@ import Scheduler from './Scheduler';
 export default function 스케줄() {
   const setting = useStore(x => x?.setting);
   const [initData, setInitData] = useState({});
-  const viewType = setting?.ACTIVE_VIEW_TYPE_ID ?? 4;
-
   const [activeTab, setActiveTab] = useState(setting?.ACTIVE_TAB_ID ?? 1);
   const [activeCalendar, setActiveCalendar] = useState(setting?.ACTIVE_CALENDAR_ID ?? 0);
   const [activeRoom, setActiveRoom] = useState(setting?.ACTIVE_ROOM_ID ?? 0);
   const [activeTeacher, setActiveTeacher] = useState(setting?.ACTIVE_TEACHER_ID ?? 0);
-  const [activeViewType, setActiveViewType] = useState(viewType);
+  const [activeViewType, setActiveViewType] = useState(setting?.ACTIVE_VIEW_TYPE_ID ?? 3);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
@@ -28,7 +24,7 @@ export default function 스케줄() {
     // 년
     if (activeViewType === 1) {
       start.setMonth(0);
-      start.setDate(31);
+      start.setDate(1);
       end.setMonth(11);
       end.setDate(31);
     }
@@ -64,7 +60,7 @@ export default function 스케줄() {
   }
 
   useEffect(getCalendarInit, [activeTab]);
-  useEffect(() => dateInit(), [activeViewType]);
+  useEffect(dateInit, [activeViewType]);
 
   if (!initData) return null;
 
@@ -99,6 +95,8 @@ export default function 스케줄() {
         }}
         setActive={{
           view: setActiveViewType,
+          start: setStartDate,
+          end: setEndDate,
         }}
       />
     </PageAnimate>

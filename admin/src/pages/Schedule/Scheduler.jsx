@@ -1,30 +1,30 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Styled from 'styled-components';
-import Header from './Header';
 import useAxios from '%/useAxios';
+import Header from './Header';
+import Year from './Year';
+import Month from './Month';
+import Week from './Week';
+import Day from './Day';
 
 export default function 타입컨텐츠({ settingData, setActive }) {
 
   const [list, setList] = useState([]);
 
-  const validate = () => {
-    console.log('실행');
-    let keys = Object?.keys(settingData) ?? [];
-    for (let i = 0; i < keys.length; i ++) {
-      let key = keys[i];
-      if (settingData[key] === null) return;
-    }
-    getSchedule();
-  }
   const getSchedule = () => {
-    // console.log('설정값: ', settingData);
     useAxios.get('/schedule', { params: settingData }).then(({ data }) => {
       if (!data?.result || !data?.data) return setList([]);
       setList(data?.data);
     })
   }
 
-  useEffect(validate, [settingData]);
+  useEffect(() => {
+    let interval;
+    clearInterval(interval);
+    getSchedule();
+    interval = setInterval(getSchedule, 2000);
+    return () => clearInterval(interval);
+  }, [settingData]);
 
   return (
     <Wrap>
@@ -37,13 +37,10 @@ export default function 타입컨텐츠({ settingData, setActive }) {
         setActive={setActive}
       />
       <SchedulerContainer>
-        캘린더: {settingData?.calendar}<br />
-        방: {settingData?.room}<br />
-        선생님: {settingData?.teacher}<br />
-        시작일: {settingData?.start}<br />
-        종료일: {settingData?.end}<br />
-        뷰타입: {settingData?.view}<br /><br />
-        {JSON.stringify(list)}
+        {settingData?.view === 1 && <Year set={settingData} data={list} />}
+        {settingData?.view === 2 && <Month set={settingData} data={list} />}
+        {settingData?.view === 3 && <Week set={settingData} data={list} />}
+        {settingData?.view === 4 && <Day set={settingData} data={list} />}
       </SchedulerContainer>
     </Wrap>
   )

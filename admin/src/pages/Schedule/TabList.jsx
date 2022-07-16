@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import Styled from 'styled-components';
-import useAxios from '%/useAxios';
 
 export default function 탭리스트({ initData, active, setActive }) {
 

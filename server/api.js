@@ -1939,6 +1939,7 @@ module.exports.getScheduleInit = (req, res) => {
 }
 // 설정값 조회
 module.exports.getSetting = (req, res) => {
+  log(req);
   const centerId = req?.session?.isLogin?.CENTER_ID;
   if (!centerId) return res.send(fail('센터 아이디가 없습니다.'));
 
@@ -1949,7 +1950,9 @@ module.exports.getSetting = (req, res) => {
       a.ACTIVE_CALENDAR_ID,
       a.ACTIVE_ROOM_ID,
       a.ACTIVE_TEACHER_ID,
-      a.ACTIVE_VIEW_TYPE_ID
+      a.ACTIVE_VIEW_TYPE_ID,
+      a.START_TIME,
+      a.END_TIME
       FROM tn_setting a
       WHERE a.CENTER_ID = ${centerId}
     `, (err, result) => {
@@ -2115,6 +2118,7 @@ module.exports.getMemberTestResult = (req, res) => {
 }
 // 이용권 구매 전 정보 조회
 module.exports.getPayment = (req, res) => {
+  log(req);
   let params = req?.params;
   let userId = params?.userId;
   let voucherId = params?.voucherId;
@@ -2148,12 +2152,14 @@ module.exports.getPayment = (req, res) => {
 }
 // 이용권 구매 정보 저장
 module.exports.postPayment = (req, res) => {
+  log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   let data = req?.body;
   // 정보는 body로..
 }
 // 스케줄 리스트 조회
 module.exports.getSchedule = (req, res) => {
+  log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   let data = req?.query;
 
@@ -2161,9 +2167,19 @@ module.exports.getSchedule = (req, res) => {
 
   dbConnect(db => {
     db.query(`
-      SELECT a.ID, a.START, a.END, a.TITLE, a.CONTENTS
-      FROM tn_schedule a WHERE 
-      a.CENTER_ID = ${centerId} 
+      SELECT 
+      a.ID, a.START, a.END, a.TITLE, a.CONTENTS, 
+      b.ID AS CALENDAR_ID,
+      b.NAME AS CALENDAR_NAME,
+      c.ID AS ROOM_ID,
+      c.NAME AS ROOM_NAME,
+      d.ID AS TEACHER_ID,
+      d.NAME AS TEACHER_NAME
+      FROM tn_schedule a 
+      LEFT JOIN tn_calendar b ON a.CALENDAR_ID = b.ID
+      LEFT JOIN tn_room c ON a.ROOM_ID = c.ID
+      LEFT JOIN tn_admin d ON a.TEACHER_ID = d.ID
+      WHERE a.CENTER_ID = ${centerId} 
       AND (${data?.calendar} = 0 OR a.CALENDAR_ID=${data?.calendar})
       AND (${data?.room} = 0 OR a.ROOM_ID=${data?.room})
       AND (${data?.teacher} = 0 OR a.TEACHER_ID=${data?.teacher})
