@@ -9,11 +9,11 @@ import Scheduler from './Scheduler';
 export default function 스케줄() {
   const setting = useStore(x => x?.setting);
   const [initData, setInitData] = useState({});
-  const [activeTab, setActiveTab] = useState(setting?.ACTIVE_TAB_ID ?? 1);
-  const [activeCalendar, setActiveCalendar] = useState(setting?.ACTIVE_CALENDAR_ID ?? 0);
-  const [activeRoom, setActiveRoom] = useState(setting?.ACTIVE_ROOM_ID ?? 0);
-  const [activeTeacher, setActiveTeacher] = useState(setting?.ACTIVE_TEACHER_ID ?? 0);
-  const [activeViewType, setActiveViewType] = useState(setting?.ACTIVE_VIEW_TYPE_ID ?? 3);
+  const [activeTab, setActiveTab] = useState(null);
+  const [activeCalendar, setActiveCalendar] = useState(null);
+  const [activeRoom, setActiveRoom] = useState(null);
+  const [activeTeacher, setActiveTeacher] = useState(null);
+  const [activeViewType, setActiveViewType] = useState(null);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
@@ -61,6 +61,14 @@ export default function 스케줄() {
 
   useEffect(getCalendarInit, [activeTab]);
   useEffect(dateInit, [activeViewType]);
+  useEffect(() => {
+    if (!setting) return;
+    setActiveTab(setting?.ACTIVE_TAB_ID ?? 1);
+    setActiveCalendar(setting?.ACTIVE_CALENDAR_ID ?? 0);
+    setActiveRoom(setting?.ACTIVE_ROOM_ID ?? 0);
+    setActiveTeacher(setting?.ACTIVE_TEACHER_ID ?? 0);
+    setActiveViewType(setting?.ACTIVE_VIEW_TYPE_ID ?? 1);
+  }, [setting]);
 
   if (!initData) return null;
 
@@ -83,6 +91,7 @@ export default function 스케줄() {
           view: setActiveViewType,
         }}
       />
+
       <Scheduler
         initData={initData}
         settingData={{

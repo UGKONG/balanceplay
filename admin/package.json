@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "watch": "webpack -w",
+    "start": "webpack-dev-server --port 7070 --mode development --hot --open",
     "server": "nodemon ../server/index.js",
     "build": "webpack --mode production",
     "dev": "concurrently \"npm run watch\" \"npm run server\""
@@ -41,6 +42,7 @@
     "sass-loader": "^13.0.0",
     "style-loader": "^3.3.1",
     "webpack": "^5.72.1",
-    "webpack-cli": "^4.9.2"
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.9.3"
   }
 }

@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
 import Styled from 'styled-components';
+import Loading from '@/pages/Common/Loading';
 
 export default function 탭리스트({ initData, active, setActive }) {
-
+  
   const isActiveAll = useMemo(() => {
     let tab = active?.tab;
     if (tab === 1 && active?.calendar === 0) return true;
@@ -19,62 +20,69 @@ export default function 탭리스트({ initData, active, setActive }) {
   }
 
   return (
-    <Wrap>
-      {/* 탭 리스트 */}
-      <TabList>
-        {(initData?.tab ?? [])?.map(item => (
-          <TabItem
-            key={item?.ID}
-            className={active?.tab === item?.ID ? 'active' : ''}
-            onClick={() => setActive?.tab(item?.ID)}
-          >{item?.NAME}</TabItem>
-        ))}
-      </TabList>
+    <Container>
+      {Object.keys(initData)?.length === 0 ? <Loading /> : (
+        <>
+          {/* 탭 리스트 */}
+          <TabList>
+            {(initData?.tab ?? [])?.map(item => (
+              <TabItem
+                key={item?.ID}
+                className={active?.tab === item?.ID ? 'active' : ''}
+                onClick={() => setActive?.tab(item?.ID)}
+              >{item?.NAME}</TabItem>
+            ))}
+          </TabList>
 
-      <TabItemList>
-        {/* 전체 */}
-        <Item className={isActiveAll ? 'active' : 'all'} onClick={itemAllClick}>전 체</Item>
+          <TabItemList>
+            {/* 전체 */}
+            <Item className={isActiveAll ? 'active' : 'all'} onClick={itemAllClick}>전 체</Item>
 
-        {/* 캘린더 리스트 */}
-        {active?.tab === 1 && (initData?.calendar ?? [])?.map(item => (
-          <CalendarItem
-            key={item?.ID}
-            className={active?.calendar === item?.ID ? 'active' : ''}
-            onClick={() => setActive?.calendar(item?.ID)}
-          >{item?.NAME}</CalendarItem>
-        ))}
+            {/* 캘린더 리스트 */}
+            {active?.tab === 1 && (initData?.calendar ?? [])?.map(item => (
+              <CalendarItem
+                key={item?.ID}
+                className={active?.calendar === item?.ID ? 'active' : ''}
+                onClick={() => setActive?.calendar(item?.ID)}
+              >{item?.NAME}</CalendarItem>
+            ))}
 
-        {/* 방 리스트 */}
-        {active?.tab === 2 && (initData?.room ?? [])?.map(item => (
-          <RoomItem
-            key={item?.ID}
-            className={active?.room === item?.ID ? 'active' : ''}
-            onClick={() => setActive?.room(item?.ID)}
-          >{item?.NAME}</RoomItem>
-        ))}
+            {/* 방 리스트 */}
+            {active?.tab === 2 && (initData?.room ?? [])?.map(item => (
+              <RoomItem
+                key={item?.ID}
+                className={active?.room === item?.ID ? 'active' : ''}
+                onClick={() => setActive?.room(item?.ID)}
+              >{item?.NAME}</RoomItem>
+            ))}
 
-        {/* 선생님 리스트 */}
-        {active?.tab === 3 && (initData?.teacher ?? [])?.map(item => (
-          <TeacherItem
-            key={item?.ID}
-            className={active?.teacher === item?.ID ? 'active' : ''}
-            onClick={() => setActive?.teacher(item?.ID)}
-          >{item?.NAME}</TeacherItem>
-        ))}
-      </TabItemList>
-    </Wrap>
+            {/* 선생님 리스트 */}
+            {active?.tab === 3 && (initData?.teacher ?? [])?.map(item => (
+              <TeacherItem
+                key={item?.ID}
+                className={active?.teacher === item?.ID ? 'active' : ''}
+                onClick={() => setActive?.teacher(item?.ID)}
+              >{item?.NAME}</TeacherItem>
+            ))}
+          </TabItemList>
+        </>
+      )}
+    </Container>
   )
 }
 
-const Wrap = Styled.article`
+const Container = Styled.article`
   width: 200px;
   height: 100%;
   border: 2px solid #b9e1dc;
   border-radius: 10px;
-  margin-right: 20px;
+  transition: .2s width;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  @media screen and (max-width: 800px) {
+    width: 160px;
+  }
 `;
 const TabList = Styled.ul`
   width: 100%;

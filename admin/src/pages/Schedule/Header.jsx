@@ -1,9 +1,10 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Styled from 'styled-components';
 import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 import useDate from '%/useDate';
+import { MdOutlineRefresh } from "react-icons/md";
 
-export default function 스케줄해더({ active, setActive }) {
+export default function 스케줄해더({ active, setActive, getSchedule }) {
 
   const viewTypeList = useRef([
     { id: 1, name: '년' },
@@ -92,6 +93,7 @@ export default function 스케줄해더({ active, setActive }) {
         <RightArrow onClick={next} />
       </Left>
       <Right>
+        <ReloadBtn onClick={getSchedule} />
         {viewTypeList?.current?.map(item => (
           <ViewItem
             key={item?.id}
@@ -165,5 +167,17 @@ const ViewItem = Styled.li`
   &.active {
     color: #fff;
     background-color: #00ada9;
+  }
+`
+const ReloadBtn = Styled(MdOutlineRefresh)`
+  width: 28px;
+  height: 28px;
+  padding: 2px;
+  font-weight: 900;
+  margin-right: 10px;
+  color: #888;
+  cursor: pointer;
+  &:hover {
+    color: #00918e;
   }
 `

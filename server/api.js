@@ -1961,7 +1961,8 @@ module.exports.getSetting = (req, res) => {
         err && console.log(err);
         return res.send(fail('조회에 실패하였습니다.'));
       }
-      res.send(success(result[0]));
+      let send = result[0];
+      res.send(success({...send, START_TIME: send?.START_TIME || '00:00', END_TIME: send?.END_TIME || '23:00'}));
     })
   })
 }
