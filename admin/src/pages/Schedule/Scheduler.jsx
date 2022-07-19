@@ -6,7 +6,7 @@ import Year from './Year';
 import Month from './Month';
 import Week from './Week';
 import Day from './Day';
-import { AiOutlinePlus } from "react-icons/ai";
+import { AiOutlinePlus } from 'react-icons/ai';
 import Loading from '@/pages/Common/Loading';
 
 export default function 타입컨텐츠({ settingData, setActive }) {
@@ -14,13 +14,20 @@ export default function 타입컨텐츠({ settingData, setActive }) {
   const [list, setList] = useState([]);
 
   const getSchedule = () => {
-    if (settingData?.start === null || settingData?.end === null || settingData?.calendar === null || settingData?.room === null || settingData?.teacher === null) return;
+    if (
+      settingData?.start === null ||
+      settingData?.end === null ||
+      settingData?.calendar === null ||
+      settingData?.room === null ||
+      settingData?.teacher === null
+    )
+      return;
     useAxios.get('/schedule', { params: settingData }).then(({ data }) => {
       setIsLoad(false);
       if (!data?.result || !data?.data) return setList([]);
       setList(data?.data);
-    })
-  }
+    });
+  };
 
   useEffect(() => {
     let interval;
@@ -43,21 +50,26 @@ export default function 타입컨텐츠({ settingData, setActive }) {
           getSchedule={getSchedule}
         />
         <SchedulerContainer>
-          {isLoad ? <Loading /> : (
+          {isLoad ? (
+            <Loading />
+          ) : (
             <>
-              {settingData?.view === 1 && <Year set={settingData} data={list} />}
-              {settingData?.view === 2 && <Month set={settingData} data={list} />}
-              {settingData?.view === 3 && <Week set={settingData} data={list} />}
+              {settingData?.view === 1 && (
+                <Year set={settingData} data={list} />
+              )}
+              {settingData?.view === 2 && (
+                <Month set={settingData} data={list} />
+              )}
+              {settingData?.view === 3 && (
+                <Week set={settingData} data={list} />
+              )}
               {settingData?.view === 4 && <Day set={settingData} data={list} />}
-              <CreateBtn>
-                <PlusIcon />
-              </CreateBtn>
             </>
           )}
         </SchedulerContainer>
       </Wrap>
     </Container>
-  )
+  );
 }
 
 const Container = Styled.article`
@@ -72,12 +84,12 @@ const Wrap = Styled.article`
   height: 100%;
   overflow-x: unset;
   overflow-y: hidden;
-`
+`;
 const SchedulerContainer = Styled.section`
   width: 100%;
   height: calc(100% - 35px);
   position: relative;
-`
+`;
 const CreateBtn = Styled.button`
   width: 50px;
   height: 50px;
@@ -90,9 +102,9 @@ const CreateBtn = Styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-`
+`;
 const PlusIcon = Styled(AiOutlinePlus)`
   font-size: 26px;
   font-weight: 900;
   color: #fff;
-`
+`;

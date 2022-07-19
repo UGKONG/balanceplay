@@ -3,16 +3,19 @@ const conf = require('./config.json');
 const { getClientIp } = require('request-ip');
 
 // DB 연결 함수
-const dbConnect = callback => {
-  let db = mysql.createConnection(conf.db, err => err && console.log('DB가 연결되지 않았습니다.'));
+const dbConnect = (callback) => {
+  let db = mysql.createConnection(
+    conf.db,
+    (err) => err && console.log('DB가 연결되지 않았습니다.'),
+  );
   callback(db);
-}
+};
 // 성공
-const success = data => ({ result: true, msg: '성공', data });
+const success = (data) => ({ result: true, msg: '성공', data });
 // 실패
-const fail = msg => ({ result: false, msg, data: null });
+const fail = (msg) => ({ result: false, msg, data: null });
 // 로그
-const log = req => {
+const log = (req) => {
   let user = req?.session?.isLogin;
   let path = req?.url;
   let method = req?.method;
@@ -21,78 +24,95 @@ const log = req => {
   let ip = getClientIp(req);
   if (ip?.indexOf('::ffff:') > -1) ip = ip?.split('::ffff:')[1];
   if (ip === '::1') ip = '127.0.0.1';
-  console.log(`${user?.NAME}(${user?.ID}): ${method} ${path}\nBody: ${body}\nQuery: ${query}`);
+  console.log(
+    `${user?.NAME}(${user?.ID}): ${method} ${path}\nBody: ${body}\nQuery: ${query}`,
+  );
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       INSERT INTO tn_log (PATH, BODY, METHOD, IP) 
       VALUE ('${path}', '${body}', '${method}', '${ip}');
-    `, () => db.end());
+    `,
+      () => db.end(),
+    );
   });
-}
+};
 
 // OTHER
 module.exports.getOtherList = (req, res) => {
   let table = req?.params?.table;
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT * FROM ${table};
-    `, (err, result) => {
-      db.end();
-      res.send(err ? [] : result);
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        res.send(err ? [] : result);
+      },
+    );
+  });
+};
 module.exports.getOtherData = (req, res) => {
   let table = req?.params?.table;
   let id = req?.params?.id;
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SHOW INDEX FROM ${table};
-    `, (err, result) => {
-      let idColumnName = result[0]?.Column_name;
-      db.query(`
+    `,
+      (err, result) => {
+        let idColumnName = result[0]?.Column_name;
+        db.query(
+          `
         SELECT * FROM ${table} WHERE ${idColumnName} = ${id};
-      `, (err, result) => {
-        db.end();
-        res.send(err ? null : result[0]);
-      })
-    })
-  })
-}
+      `,
+          (err, result) => {
+            db.end();
+            res.send(err ? null : result[0]);
+          },
+        );
+      },
+    );
+  });
+};
 
 // DEV 로그인
 module.exports.devLogin = (req, res) => {
   req.body = {
     EMAIL: 'jsw9330@naver.com',
     CENTER_ID: 2,
-    AUTH_ID: 'kb9VERXkAn7mKbtyyYuD6paXlCnjNQmLFTSMscm0czk'
-  }
+    AUTH_ID: 'kb9VERXkAn7mKbtyyYuD6paXlCnjNQmLFTSMscm0czk',
+  };
   this.login(req, res);
-}
+};
 module.exports.getLog = (req, res) => {
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       ID, METHOD, PATH, IP, DATE_FORMAT(DATE, '%Y-%m-%d %H:%i:%s') AS DATE
       FROM tn_log ORDER BY ID DESC LIMIT 1000;
-    `, (err, result) => {
-      db.end();
-      err && console.log(err);
-      if (err) return res.send(success([]));
-      res.send(success(result));
-    });
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        err && console.log(err);
+        if (err) return res.send(success([]));
+        res.send(success(result));
+      },
+    );
+  });
+};
 // GUEST 로그인
 module.exports.guestLogin = (req, res) => {
   req.body = {
     EMAIL: 'jsw01137@naver.com',
     CENTER_ID: 1,
-    AUTH_ID: 1867606287
-  }
+    AUTH_ID: 1867606287,
+  };
   this.login(req, res);
-}
+};
 // 세션확인
 module.exports.isSession = (req, res) => {
   let isSession = req?.session?.isLogin;
@@ -104,19 +124,20 @@ module.exports.isSession = (req, res) => {
   }
 
   res.send(success(isSession));
-}
+};
 // IP 확인
 module.exports.getIp = (req, res) => {
   let ip = getClientIp(req);
   if (ip?.indexOf('::ffff:') > -1) ip = ip?.split('::ffff:')[1];
   if (ip === '::1') ip = '127.0.0.1';
   res.send(success(ip));
-}
+};
 // 센터 리스트 조회
 module.exports.getCenter = (req, res) => {
   log(req);
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       CENTER_SN AS ID, COMPANY_SN AS COMPANY_ID, CENTER_NM AS NAME,
       MANAGER_NAME AS MASTER_NAME, MANAGER_PHONE AS MASTER_PHONE, 
@@ -125,22 +146,25 @@ module.exports.getCenter = (req, res) => {
       ADDRESS_CITY AS ADDRESS2,
       ADDRESS_DETAIL AS ADDRESS3
       FROM tb_center;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('센터 리스트 조회를 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('센터 리스트 조회를 실패하였습니다.'));
+          return;
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 센터 상세정보 조회
 module.exports.getCenterDetail = (req, res) => {
   log(req);
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       CENTER_SN AS ID, COMPANY_SN AS COMPANY_ID, CENTER_NM AS NAME,
       MANAGER_NAME AS MASTER_NAME, MANAGER_PHONE AS MASTER_PHONE, 
@@ -151,17 +175,19 @@ module.exports.getCenterDetail = (req, res) => {
       ADDRESS_DETAIL AS ADDRESS3,
       CENTER_DESCRIPTION AS DESCRIPTION
       FROM tb_center WHERE CENTER_SN = '${req?.session?.isLogin?.CENTER_ID}';
-    `, (err, result) => {
-      db.end();
-      if (err || result?.length === 0) {
-        console.log(err);
-        res.send(fail('센터 리스트 조회를 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result[0]));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err || result?.length === 0) {
+          console.log(err);
+          res.send(fail('센터 리스트 조회를 실패하였습니다.'));
+          return;
+        }
+        res.send(success(result[0]));
+      },
+    );
+  });
+};
 // 회원 정보 SELECT Query
 const userSelectQuery = `
   USER_SN AS ID, IMAGE_PATH AS IMG, EMAIL, AUTH_ID,
@@ -172,40 +198,46 @@ const userSelectQuery = `
   IS_DELETE, TEST_FLAG, MEMO,
   DATE_FORMAT(CRT_DT, '%Y-%m-%d %H:%i:%s') AS DATE, 
   DATE_FORMAT(MDFCN_DT, '%Y-%m-%d %H:%i:%s') AS MODIFY_DATE
-`
+`;
 // SNS 로그인
 module.exports.snsLogin = (req, res) => {
   log(req);
   let authId = req?.body?.authId ?? null;
   let email = req?.body?.email ?? null;
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT ${userSelectQuery} FROM tn_user
       WHERE EMAIL = '${email}' AND AUTH_ID = '${authId}';
-    `, (err, result) => {
-      db.end();
-      if (err) return res.send(fail('DB Error'));
+    `,
+      (err, result) => {
+        db.end();
+        if (err) return res.send(fail('DB Error'));
 
-      if (result.length === 0) {
-        dbConnect(db => {
-          db.query(`
+        if (result.length === 0) {
+          dbConnect((db) => {
+            db.query(
+              `
             SELECT ${userSelectQuery} FROM tn_user
             WHERE EMAIL = '${email}'
-          `, (err, result) => {
-            db.end();
-            if (err) return res.send(fail('DB Error'));
-            if (result.length === 0) return res.send(success(null));
-            res.send(success(email));
+          `,
+              (err, result) => {
+                db.end();
+                if (err) return res.send(fail('DB Error'));
+                if (result.length === 0) return res.send(success(null));
+                res.send(success(email));
+              },
+            );
           });
-        });
-        return;
-      }
+          return;
+        }
 
-      res.send(success(result[0]));
-    });
+        res.send(success(result[0]));
+      },
+    );
   });
-}
+};
 // 로그인
 module.exports.login = (req, res) => {
   log(req);
@@ -220,39 +252,42 @@ module.exports.login = (req, res) => {
     return;
   }
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT ${userSelectQuery} FROM tn_user 
       WHERE EMAIL = '${EMAIL}' AND AUTH_ID = '${AUTH_ID}' AND CENTER_SN = '${CENTER_ID}';
-    `, (err, result) => {
-      db.end();
-      if (err || result?.length === 0) {
-        err && console.log(err);
-        req.session.isLogin = null;
-        res.send(fail('일치하는 회원이 없습니다.'));
-        return;
-      }
+    `,
+      (err, result) => {
+        db.end();
+        if (err || result?.length === 0) {
+          err && console.log(err);
+          req.session.isLogin = null;
+          res.send(fail('일치하는 회원이 없습니다.'));
+          return;
+        }
 
-      let userData = { ...result[0], IS_ADMIN: false };
+        let userData = { ...result[0], IS_ADMIN: false };
 
-      if (userData?.IS_DELETE === 1) {
-        console.log('탈퇴된 회원 로그인 요청 (SN: ' + userData?.ID + ')');
-        req.session.isLogin = null;
-        res.send(fail('회원탈퇴된 회원입니다.'));
-        return;
-      }
+        if (userData?.IS_DELETE === 1) {
+          console.log('탈퇴된 회원 로그인 요청 (SN: ' + userData?.ID + ')');
+          req.session.isLogin = null;
+          res.send(fail('회원탈퇴된 회원입니다.'));
+          return;
+        }
 
-      console.log('로그인 유저:', userData);
-      req.session.isLogin = userData;
-      res.send(success(userData));
-    });
+        console.log('로그인 유저:', userData);
+        req.session.isLogin = userData;
+        res.send(success(userData));
+      },
+    );
   });
-}
+};
 // 로그아웃
 module.exports.logout = (req, res) => {
   log(req);
   req.session.destroy(() => res.send(success('LOGOUT')));
-}
+};
 // 회원가입
 module.exports.join = (req, res) => {
   log(req);
@@ -266,23 +301,28 @@ module.exports.join = (req, res) => {
   let other = data?.other;
 
   let familyInsertSQL = [];
-  family.forEach(item => {
+  family.forEach((item) => {
     familyInsertSQL.push(`
       (@USER_SN, '${item?.name}', '${item?.type}', '${item?.birth}',
       '${item?.isTogether ? 1 : 0}', '${item?.description}')
     `);
   });
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       INSERT INTO tn_user 
       (
         EMAIL,AUTH_ID,AUTH_SNS,USER_NM,
         CENTER_SN,CENTER_NM,BIRTH,OGDP_TYPE,OGDP,
         GNDR,HGHT,WGHT,IMAGE_PATH
       ) VALUES (
-        '${info?.email}', '${info?.authId}', '${info?.authSns}', '${info?.name}', 
-        '${info?.center?.ID}', '${info?.center?.NAME}', '${info?.birth}', '${info?.ogdpType?.id}', '${info?.ogdpName}', 
+        '${info?.email}', '${info?.authId}', '${info?.authSns}', '${
+        info?.name
+      }', 
+        '${info?.center?.ID}', '${info?.center?.NAME}', '${info?.birth}', '${
+        info?.ogdpType?.id
+      }', '${info?.ogdpName}', 
         '${info?.gender}', '${info?.height}', '${info?.weight}', '${info?.img}'
       );
 
@@ -296,59 +336,75 @@ module.exports.join = (req, res) => {
         SLP, BWL, FD, 
         FRND_REL, FMLY_REL, DEV_DIAG, DEV_DESC
       ) VALUES (
-        @USER_SN, '${info?.name}', '${info?.center?.ID}', '${info?.birth}', '${info?.gender}', 
-        '${info?.height}', '${info?.weight}', '${info?.ogdpType?.id}', '${info?.ogdpName}', 
+        @USER_SN, '${info?.name}', '${info?.center?.ID}', '${info?.birth}', '${
+        info?.gender
+      }', 
+        '${info?.height}', '${info?.weight}', '${info?.ogdpType?.id}', '${
+        info?.ogdpName
+      }', 
         '${info?.visitObj?.values?.join(',')}', '${test?.id}', '${test?.name}', 
         '${now[0]?.value}', '${now[1]?.value}', '${now[2]?.value}', 
-        '${now[3]?.value}', '${now[4]?.value}', '${other?.isOther ? 1 : 2}', '${other?.contents}'
+        '${now[3]?.value}', '${now[4]?.value}', '${other?.isOther ? 1 : 2}', '${
+        other?.contents
+      }'
       );
 
       ` +
-      (familyInsertSQL.length > 0 ?
-        `
+        (familyInsertSQL.length > 0
+          ? `
       INSERT INTO tn_user_fmly
       (
         USER_SN, FMLY_NM, FMLY_TP, BRTHDAY,
         LIVE_TGHR, ETC
       ) VALUES ${familyInsertSQL.join(',')};
 
-    ` : ''), (err, result) => {
-      if (err) {
-        db.end();
-        console.log(err);
-        res.send(fail('회원가입에 실패하였습니다.'));
-        return;
-      }
+    `
+          : ''),
+      (err, result) => {
+        if (err) {
+          db.end();
+          console.log(err);
+          res.send(fail('회원가입에 실패하였습니다.'));
+          return;
+        }
 
-      db.query(`
+        db.query(
+          `
         SELECT
         ${userSelectQuery}
         FROM tn_user WHERE AUTH_ID = '${info?.authId}';
-      `, (err, result) => {
-        db.end();
-        if (err) {
-          console.log(err);
-          res.send(fail('회원조회에 실패하였습니다.'));
-          return;
-        }
-        if (result.length === 0) {
-          console.log('회원이 없습니다.');
-          res.send(fail('회원이 없습니다.'));
-          return;
-        }
-        console.log(`회원가입 성공 (일련번호: ${result[0]?.ID} / ${result[0]?.NAME})`);
-        res.send(success(result[0]));
-      })
-    });
+      `,
+          (err, result) => {
+            db.end();
+            if (err) {
+              console.log(err);
+              res.send(fail('회원조회에 실패하였습니다.'));
+              return;
+            }
+            if (result.length === 0) {
+              console.log('회원이 없습니다.');
+              res.send(fail('회원이 없습니다.'));
+              return;
+            }
+            console.log(
+              `회원가입 성공 (일련번호: ${result[0]?.ID} / ${result[0]?.NAME})`,
+            );
+            res.send(success(result[0]));
+          },
+        );
+      },
+    );
   });
-}
+};
 // 메뉴 조회
 module.exports.getMenu = (req, res) => {
   let type = req.params.id;
-  if (!type) return res.send(fail('메뉴의 타입이 없습니다. (회원용: 1 / 관리자용: 2)'));
+  if (!type)
+    return res.send(fail('메뉴의 타입이 없습니다. (회원용: 1 / 관리자용: 2)'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.ID, a.TYPE, a.TO, a.NAME, a.ORDER,
       b.TEST_TP_METHOD AS METHOD
@@ -356,20 +412,23 @@ module.exports.getMenu = (req, res) => {
       LEFT JOIN tn_test_tp b ON a.NAME = b.TEST_TP_NM
       WHERE a.TYPE = ${type} 
       ORDER BY a.ORDER ASC;
-    `, (err, result) => {
-      db.end();
-      err && console.log(err);
-      res.send(success(err ? [] : result));
-    });
+    `,
+      (err, result) => {
+        db.end();
+        err && console.log(err);
+        res.send(success(err ? [] : result));
+      },
+    );
   });
-}
+};
 // 검사개요 조회
 module.exports.getTestInformation = (req, res) => {
   log(req);
   let sendData = {};
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.TEST_TP_SN AS ID,
       a.TEST_TP_NM AS NAME,
@@ -381,41 +440,50 @@ module.exports.getTestInformation = (req, res) => {
       FROM tn_test_tp a
       LEFT JOIN tn_menu b ON a.TEST_TP_NM = b.NAME
       ORDER BY b.ORDER ASC;
-    `, (err, result) => {
-      if (err) {
-        db.end();
-        console.log(err);
-        return res.send(fail('검사 개요 정보를 불러오는데 실패하였습니다.'));
-      }
-      sendData.main = result;
+    `,
+      (err, result) => {
+        if (err) {
+          db.end();
+          console.log(err);
+          return res.send(fail('검사 개요 정보를 불러오는데 실패하였습니다.'));
+        }
+        sendData.main = result;
 
-      db.query(`
+        db.query(
+          `
         SELECT
         a.DCSN_SN AS ID,
         a.TEST_TP_SN AS TYPE_ID,
         a.DCSN_NM AS NAME,
         a.DCSN_DSCRT AS DESCRIPTION
         FROM tn_test_dcsn a
-      `, (err, result) => {
-        db.end();
-        if (err) {
-          console.log(err);
-          return res.send(fail('검사 개요 정보를 불러오는데 실패하였습니다.'));
-        }
-        sendData.sub = result;
-        res.send(success(sendData));
-      });
-    });
-  })
-}
+      `,
+          (err, result) => {
+            db.end();
+            if (err) {
+              console.log(err);
+              return res.send(
+                fail('검사 개요 정보를 불러오는데 실패하였습니다.'),
+              );
+            }
+            sendData.sub = result;
+            res.send(success(sendData));
+          },
+        );
+      },
+    );
+  });
+};
 // 나의 모든 검사 리스트
 module.exports.getMyTestList = (req, res) => {
   log(req);
   let userId = req.session?.isLogin?.ID;
-  if (!userId) return res.send(fail('검사 리스트를 불러올 회원의 일련번호가 없습니다.'));
+  if (!userId)
+    return res.send(fail('검사 리스트를 불러올 회원의 일련번호가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       TEST_SN AS ID,
       TEST_TP_SN AS TEST_ID,
@@ -423,27 +491,29 @@ module.exports.getMyTestList = (req, res) => {
       DATE_FORMAT(CRT_DT, '%Y-%m-%d %H:%i:%s') AS DATE
       FROM tn_test
       WHERE USER_SN = '${userId}' AND TEST_TP_SN <> 2;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('검사 리스트를 불러오는데 실패하였습니다.'));
-        return;
-      }
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('검사 리스트를 불러오는데 실패하였습니다.'));
+          return;
+        }
 
-      res.send(success(result));
-
-    });
-  })
-}
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 종합결과
 module.exports.getTotalResult = (req, res) => {
   log(req);
   let date = req?.params?.id;
   if (!date) return res.send(fail('종합결과의 기준 날짜가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
     SELECT 
     TEST_TP_SN AS ID,
     TEST_TP_NM AS NAME,
@@ -496,34 +566,40 @@ module.exports.getTotalResult = (req, res) => {
       ) f1
     );
     
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('종합결과를 불러오는데 실패하였습니다.'));
-      }
-
-      let testList = result[0];
-      let pointData = result[1];
-      let commentData = result[2];
-
-      if (testList?.length === 0 || pointData?.length === 0 || commentData?.length === 0) {
-        return res.send(success(null));
-      }
-
-      let temp = [];
-      testList?.forEach(({ ID, NAME }) => {
-        let POINT = pointData?.filter(x => x.TEST_ID === ID) ?? null;
-        let COMMENT = commentData?.filter(x => x.TEST_ID === ID) ?? null;
-        if (POINT.length > 0 && COMMENT.length > 0) {
-          temp.push({ ID, NAME, POINT, COMMENT });
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('종합결과를 불러오는데 실패하였습니다.'));
         }
-      });
 
-      res.send(success(temp));
-    });
-  })
-}
+        let testList = result[0];
+        let pointData = result[1];
+        let commentData = result[2];
+
+        if (
+          testList?.length === 0 ||
+          pointData?.length === 0 ||
+          commentData?.length === 0
+        ) {
+          return res.send(success(null));
+        }
+
+        let temp = [];
+        testList?.forEach(({ ID, NAME }) => {
+          let POINT = pointData?.filter((x) => x.TEST_ID === ID) ?? null;
+          let COMMENT = commentData?.filter((x) => x.TEST_ID === ID) ?? null;
+          if (POINT.length > 0 && COMMENT.length > 0) {
+            temp.push({ ID, NAME, POINT, COMMENT });
+          }
+        });
+
+        res.send(success(temp));
+      },
+    );
+  });
+};
 // 검사 상세 페이지 초기 데이터 조회, 검사 결과 상세 조회
 module.exports.getDetailResult = (req, res) => {
   log(req);
@@ -532,8 +608,9 @@ module.exports.getDetailResult = (req, res) => {
   console.log(userId);
   let sendData = {};
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT 
       TEST_TP_SN AS ID,
       TEST_TP_NM AS NAME,
@@ -542,16 +619,18 @@ module.exports.getDetailResult = (req, res) => {
       TEST_TP_DESC AS DESCRIPTION
       FROM tn_test_tp
       WHERE TEST_TP_SN = '${id}'
-    `, (err, result) => {
-      if (err || result.length === 0) {
-        err && console.log(err);
-        res.send(fail('해당 검사정보가 없습니다.'));
-        db.end();
-        return;
-      }
-      sendData.info = result[0];
+    `,
+      (err, result) => {
+        if (err || result.length === 0) {
+          err && console.log(err);
+          res.send(fail('해당 검사정보가 없습니다.'));
+          db.end();
+          return;
+        }
+        sendData.info = result[0];
 
-      db.query(`
+        db.query(
+          `
         SELECT 
         DCSN_SN AS ID,
         DCSN_NM AS NAME,
@@ -559,11 +638,13 @@ module.exports.getDetailResult = (req, res) => {
         FROM tn_test_dcsn
         WHERE TEST_TP_SN = '${id}'
         ORDER BY DCSN_SN ASC;
-      `, (err, result) => {
-        err && console.log(err);
-        sendData.description = err ? [] : result;
+      `,
+          (err, result) => {
+            err && console.log(err);
+            sendData.description = err ? [] : result;
 
-        db.query(`
+            db.query(
+              `
           SELECT 
           a.TEST_SN AS ID, a.TEST_TP_SN AS TEST_ID, b.TEST_TP_NM AS TEST_NAME,
           a.DCSN_SN AS CATEGORY_ID, c.DCSN_NM AS CATEGORY_NAME, a.DCSN_DTL_SN AS TEST_RESULT_ID, 
@@ -575,14 +656,18 @@ module.exports.getDetailResult = (req, res) => {
           INNER JOIN tn_test_dcsn_dtl d ON a.DCSN_DTL_SN = d.DCSN_DTL_SN
           INNER JOIN tn_test e on 
             a.TEST_SN = e.TEST_SN AND 
-            e.USER_SN = '${typeof (userId) === 'object' ? req?.session?.isLogin?.ID : userId}'
+            e.USER_SN = '${
+              typeof userId === 'object' ? req?.session?.isLogin?.ID : userId
+            }'
           WHERE a.TEST_TP_SN = '${id}'
           ORDER BY e.CRT_DT DESC, a.DCSN_SN ASC;
-        `, (err, result) => {
-          err && console.log(err);
-          sendData.pointResult = err ? [] : result;
+        `,
+              (err, result) => {
+                err && console.log(err);
+                sendData.pointResult = err ? [] : result;
 
-          db.query(`
+                db.query(
+                  `
             SELECT 
             a.TEST_SN AS ID, a.TEST_TP_SN AS TEST_ID, b.TEST_TP_NM AS TEST_NAME,
             a.CMNT_SN AS CATEGORY_ID, c.CMNT_NM AS CATEGORY_NAME, c.CMNT_GRADE AS GRADE, 
@@ -591,21 +676,28 @@ module.exports.getDetailResult = (req, res) => {
             FROM tn_test_cmnt_rslt a
             INNER JOIN tn_test_tp b ON a.TEST_TP_SN = b.TEST_TP_SN
             INNER JOIN tn_test_cmnt c ON a.CMNT_DTL_SN = c.CMNT_DTL_SN
-            INNER JOIN tn_test d on a.TEST_SN = d.TEST_SN AND d.USER_SN = '${userId ?? req?.session?.isLogin?.ID}'
+            INNER JOIN tn_test d on a.TEST_SN = d.TEST_SN AND d.USER_SN = '${
+              userId ?? req?.session?.isLogin?.ID
+            }'
             WHERE a.TEST_TP_SN = '${id}'
             ORDER BY d.CRT_DT DESC, a.CMNT_SN ASC;
-          `, (err, result) => {
-            db.end();
-            err && console.log(err);
-            sendData.commentResult = err ? [] : result;
+          `,
+                  (err, result) => {
+                    db.end();
+                    err && console.log(err);
+                    sendData.commentResult = err ? [] : result;
 
-            res.send(success(sendData));
-          })
-        })
-      });
-    })
+                    res.send(success(sendData));
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    );
   });
-}
+};
 // 신규 검사 초기 데이터 조회
 module.exports.getDoSurvey = (req, res) => {
   log(req);
@@ -613,8 +705,9 @@ module.exports.getDoSurvey = (req, res) => {
   if (!id) return res.send(fail('검사 ID가 없습니다.'));
   let sendData = { category: [], ask: [], answer: [] };
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       CAT_SN AS 'ID',
       CAT_NM AS 'CATEGORY_NAME',
@@ -622,17 +715,19 @@ module.exports.getDoSurvey = (req, res) => {
       TOOL, INSTR AS 'TOOL_DESCRIPTION'
       FROM tn_test_cat
       WHERE TEST_TP_SN = '${id}'
-    `, (err, result) => {
-      if (err || result.length === 0) {
-        db.end();
-        console.log(err);
-        res.send(fail('검사지 카테고리 정보가 존재하지 않습니다.'));
-        return;
-      }
+    `,
+      (err, result) => {
+        if (err || result.length === 0) {
+          db.end();
+          console.log(err);
+          res.send(fail('검사지 카테고리 정보가 존재하지 않습니다.'));
+          return;
+        }
 
-      sendData.category = result;
+        sendData.category = result;
 
-      db.query(`
+        db.query(
+          `
         SELECT
         QSTN_SN AS 'ID',
         CAT_SN AS 'CATEGORY_ID',
@@ -643,17 +738,19 @@ module.exports.getDoSurvey = (req, res) => {
         QSTN_CN AS 'ASK'
         FROM tn_surv_qstn
         WHERE TEST_TP_SN = '${id}'
-      `, (err, result) => {
-        if (err || result.length === 0) {
-          db.end();
-          console.log(err);
-          res.send(fail('검사지 질문 정보가 존재하지 않습니다.'));
-          return;
-        }
+      `,
+          (err, result) => {
+            if (err || result.length === 0) {
+              db.end();
+              console.log(err);
+              res.send(fail('검사지 질문 정보가 존재하지 않습니다.'));
+              return;
+            }
 
-        sendData.ask = result;
+            sendData.ask = result;
 
-        db.query(`
+            db.query(
+              `
           SELECT
           ITM_SN AS 'ID',
           ITM_GRP AS 'ITEM_GROUP',
@@ -662,22 +759,25 @@ module.exports.getDoSurvey = (req, res) => {
           ITM_CN AS 'ANSWER',
           ITM_PNT AS 'POINT'
           FROM tn_surv_itm
-        `, (err, result) => {
-          db.end();
-          if (err || result.length === 0) {
-            console.log(err);
-            res.send(fail('검사지 답변 정보가 존재하지 않습니다.'));
-            return;
-          }
+        `,
+              (err, result) => {
+                db.end();
+                if (err || result.length === 0) {
+                  console.log(err);
+                  res.send(fail('검사지 답변 정보가 존재하지 않습니다.'));
+                  return;
+                }
 
-          sendData.answer = result;
-          res.send(success(sendData));
-        });
-      })
-    });
+                sendData.answer = result;
+                res.send(success(sendData));
+              },
+            );
+          },
+        );
+      },
+    );
   });
-
-}
+};
 // 신규 검사 저장
 module.exports.postDoSurvey = (req, res) => {
   log(req);
@@ -692,7 +792,7 @@ module.exports.postDoSurvey = (req, res) => {
     return;
   }
 
-  let insertSQL = data?.map(item => {
+  let insertSQL = data?.map((item) => {
     let result = `(@TEST_ID, ${item?.ASK}, ${item?.ANSWER})`;
     return result;
   });
@@ -703,8 +803,9 @@ module.exports.postDoSurvey = (req, res) => {
     keys = `(TEST_NM, TEST_TP_SN, USER_SN, CRT_MNGR, MNGR_NM)`;
     values = `('${testName}', '${testTypeId}', '${userId}', '${adminId}', '${adminName}')`;
   }
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       INSERT INTO tn_test
       ${keys}
       VALUES
@@ -739,24 +840,27 @@ module.exports.postDoSurvey = (req, res) => {
         WHERE a.TEST_SN = @TEST_ID
         GROUP BY TEST_SN, TEST_TP_SN, CMNT_SN) e
       INNER JOIN tn_test_cmnt f ON e.TEST_TP_SN = f.TEST_TP_SN AND e.CMNT_SN = f.CMNT_SN AND e.CMNT_PNT >= f.CRTR_LOW AND e.CMNT_PNT<=f.CRTR_HIGH;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('검사지 저장에 실패하였습니다.'));
-        return;
-      }
-      res.send(success('저장되었습니다.'));
-    })
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('검사지 저장에 실패하였습니다.'));
+          return;
+        }
+        res.send(success('저장되었습니다.'));
+      },
+    );
   });
-}
+};
 // 공지사항 리스트 조회
 module.exports.getNotice = (req, res) => {
   log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   let searchText = req?.query?.q ?? '';
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.NTC_SN AS ID,
       a.NTC_TTL AS TITLE,
@@ -770,17 +874,19 @@ module.exports.getNotice = (req, res) => {
       LEFT JOIN tn_common c ON a.TYPE = c.CODE AND c.BASE_ID = 6
       WHERE a.CENTER_ID = '${centerId}' AND (a.NTC_TTL LIKE '%${searchText}%' OR a.NTC_CTNT LIKE '%${searchText}%')
       ORDER BY a.CRT_DT DESC;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('공지사항을 불러오는데 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('공지사항을 불러오는데 실패하였습니다.'));
+          return;
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 공지사항 추가
 module.exports.postNotice = (req, res) => {
   let userId = req?.session?.isLogin?.ID;
@@ -788,77 +894,88 @@ module.exports.postNotice = (req, res) => {
   let { isAdminNotice, title, contents } = req?.body;
   if (!title || !contents) return res.send(fail('공지등록에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       INSERT INTO tn_notice 
       (CENTER_ID, NTC_TTL, NTC_CTNT, TYPE, CRT_USER_SN)
       VALUES
-      ('${centerId}', '${title}', '${contents}', '${isAdminNotice ? 1 : 0}', '${userId}');
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('공지등록에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(null));
-    });
+      ('${centerId}', '${title}', '${contents}', '${
+        isAdminNotice ? 1 : 0
+      }', '${userId}');
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('공지등록에 실패하였습니다.'));
+          return;
+        }
+        res.send(success(null));
+      },
+    );
   });
-
-}
+};
 // 공지사항 수정
 module.exports.putNotice = (req, res) => {
   log(req);
   let data = req?.body;
   if (!data?.id) return res.send(fail('수정할 데이터가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_notice SET 
       NTC_TTL = '${data?.title}',
       NTC_CTNT = '${data?.contents}',
       TYPE = ${data?.isAdminNotice}
       WHERE NTC_SN = ${data?.id}
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('공지 수정에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(data?.id));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('공지 수정에 실패하였습니다.'));
+          return;
+        }
+        res.send(success(data?.id));
+      },
+    );
+  });
+};
 // 공지사항 삭제
 module.exports.deleteNotice = (req, res) => {
   log(req);
   let idArr = req?.body?.idArr ?? [];
   if (idArr?.length === 0) return res.send(fail('삭제할 항목이 없습니다.'));
-  let query = idArr.map(x => 'NTC_SN = ' + x);
+  let query = idArr.map((x) => 'NTC_SN = ' + x);
   query = query.join(' OR ');
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       DELETE FROM tn_notice WHERE ${query};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('공지 삭제를 실패하였습니다.'));
-        return;
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('공지 삭제를 실패하였습니다.'));
+          return;
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 공지사항 상세
 module.exports.getNoticeDetail = (req, res) => {
   log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   let id = req.params?.id;
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.NTC_SN AS ID,
       a.NTC_TTL AS TITLE,
@@ -871,25 +988,28 @@ module.exports.getNoticeDetail = (req, res) => {
       LEFT JOIN tn_user b ON b.USER_SN = a.CRT_USER_SN
       LEFT JOIN tn_common c ON a.TYPE = c.CODE AND c.BASE_ID = 6
       WHERE a.CENTER_ID = '${centerId}' AND a.NTC_SN = '${id}'
-    `, (err, result) => {
-      db.end();
-      if (err || result.length === 0) {
-        console.log(err);
-        res.send(fail('공지사항 정보를 불러오는데 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result[0]));
-    });
+    `,
+      (err, result) => {
+        db.end();
+        if (err || result.length === 0) {
+          console.log(err);
+          res.send(fail('공지사항 정보를 불러오는데 실패하였습니다.'));
+          return;
+        }
+        res.send(success(result[0]));
+      },
+    );
   });
-}
+};
 // 작성 검사 결과 조회
 module.exports.getSurveyResult = (req, res) => {
   log(req);
   let testId = req?.params?.id;
   if (!testId) return res.send(fail('테스트 일련번호가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.TEST_SN AS TEST,
       a.QSTN_SN AS ASK,
@@ -899,26 +1019,29 @@ module.exports.getSurveyResult = (req, res) => {
       LEFT JOIN tn_surv_qstn b ON a.QSTN_SN = b.QSTN_SN
       WHERE a.TEST_SN = '${testId}'
       ORDER BY a.QSTN_SN ASC, a.ITM_SN ASC;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('작성 검사 결과를 조회하는데 실패하였습니다.'));
-        return;
-      }
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('작성 검사 결과를 조회하는데 실패하였습니다.'));
+          return;
+        }
 
-      res.send(success(result));
-    });
+        res.send(success(result));
+      },
+    );
   });
-}
+};
 // 내정보 (아이정보, 가족정보, 초기면접지정보)
 module.exports.getMyInfo = (req, res) => {
   log(req);
   let info = req?.session?.isLogin;
   let sendData = {};
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       FMLY_SN AS ID,
       FMLY_NM AS NAME,
@@ -952,22 +1075,24 @@ module.exports.getMyInfo = (req, res) => {
       FROM tn_user_initial_data a
       LEFT JOIN tb_center b ON a.CENTER_SN = b.CENTER_SN
       WHERE a.USER_SN = '${info?.ID}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('정보를 불러오는데 실패하였습니다.'));
-        return;
-      }
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('정보를 불러오는데 실패하였습니다.'));
+          return;
+        }
 
-      sendData.info = info;
-      sendData.family = result[0];
-      sendData.joinData = result[1] ? result[1][0] : {};
+        sendData.info = info;
+        sendData.family = result[0];
+        sendData.joinData = result[1] ? result[1][0] : {};
 
-      res.send(success(sendData));
-    })
-  })
-}
+        res.send(success(sendData));
+      },
+    );
+  });
+};
 // 내정보 수정 (아이정보)
 module.exports.putMyInfo = (req, res) => {
   log(req);
@@ -975,8 +1100,9 @@ module.exports.putMyInfo = (req, res) => {
   let userId = data?.ID;
   if (!userId) return res.send(fail('수정 정보가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_user SET 
       USER_NM = '${data?.NAME}',
       CENTER_SN = '${data?.CENTER_ID}',
@@ -990,67 +1116,75 @@ module.exports.putMyInfo = (req, res) => {
       SELECT ${userSelectQuery} 
       FROM tn_user 
       WHERE USER_SN = ${userId};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('정보 수정을 하지 못했습니다.'));
-        return;
-      }
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('정보 수정을 하지 못했습니다.'));
+          return;
+        }
 
-      let newUserData = result[1][0];
-      req.session.isLogin = newUserData;
-      res.send(success(newUserData));
-    })
+        let newUserData = result[1][0];
+        req.session.isLogin = newUserData;
+        res.send(success(newUserData));
+      },
+    );
   });
-}
+};
 // 내정보 삭제 (회원탈퇴)
 module.exports.deleteMyInfo = (req, res) => {
   log(req);
   let userId = req?.params?.id;
   if (!userId) return res.send(fail('회원의 일련번호가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_user
       SET IS_DELETE = 1
       WHERE USER_SN = ${userId};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('회원탈퇴를 하지 못하였습니다.'));
-        return;
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('회원탈퇴를 하지 못하였습니다.'));
+          return;
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 가족정보 등록
 module.exports.postMyFamilyInfo = (req, res) => {
   log(req);
   let userId = req?.params?.id;
   let data = req?.body;
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       INSERT INTO tn_user_fmly
       (USER_SN, FMLY_NM, FMLY_TP, BRTHDAY, LIVE_TGHR, ETC)
       VALUES
       ('${userId}', '${data?.NAME}', '${data?.TYPE}', '${data?.BIRTH}', 
       '${data?.IS_TOGETHER}', '${data?.DESCRIPTION}')
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('정보 등록을 하지 못했습니다.'));
-        return;
-      }
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('정보 등록을 하지 못했습니다.'));
+          return;
+        }
 
-      res.send(success(null));
-    })
-  })
-}
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 가족정보 수정
 module.exports.putMyFamilyInfo = (req, res) => {
   log(req);
@@ -1058,49 +1192,53 @@ module.exports.putMyFamilyInfo = (req, res) => {
   let familyId = data?.ID;
   if (!familyId) return res.send(fail('수정 정보가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_user_fmly SET 
       FMLY_NM = '${data?.NAME}',
       BRTHDAY = '${data?.BIRTH}',
       LIVE_TGHR = '${data?.IS_TOGETHER}',
       ETC = '${data?.DESCRIPTION}'
       WHERE FMLY_SN = ${familyId};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('정보 수정을 하지 못했습니다.'));
-        return;
-      }
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('정보 수정을 하지 못했습니다.'));
+          return;
+        }
 
-      res.send(success(null));
-    })
-  })
-}
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 가족정보 삭제
 module.exports.deleteMyFamilyInfo = (req, res) => {
   log(req);
   let familyId = req?.params?.id;
   if (!familyId) return res.send(fail('가족정보의 일련번호가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       DELETE FROM tn_user_fmly
       WHERE FMLY_SN = ${familyId};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('가족정보를 삭제하지 못하였습니다.'));
-        return;
-      }
-      res.send(success(null));
-    })
-  })
-}
-
-
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('가족정보를 삭제하지 못하였습니다.'));
+          return;
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // 관리자
@@ -1112,8 +1250,9 @@ module.exports.adminLogin = (req, res) => {
   if (!id) return res.send(fail('아이디를 입력해주세요.'));
   if (!pw) return res.send(fail('비밀번호를 입력해주세요.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.ID, a.CENTER_ID, b.CENTER_NM AS CENTER_NAME, a.NAME, a.PHONE,
       a.EMAIL, a.GENDER, a.IMAGE_PATH, a.CREATE_DT, a.MODIFY_DT
@@ -1121,27 +1260,30 @@ module.exports.adminLogin = (req, res) => {
       INNER JOIN tb_center b ON a.CENTER_ID = b.CENTER_SN
       WHERE a.EMAIL = '${id}' AND a.PASSWORD = '${pw}'
       LIMIT 1;
-    `, (err, result) => {
-      db.end();
-      if (err || result?.length === 0) {
-        console.log(err);
-        req.session.isLogin = null;
-        res.send(fail('일치하는 관리자가 없습니다.'));
-        return;
-      }
-      req.session.isLogin = { ...result[0], IS_ADMIN: true };
-      res.send(success(req.session.isLogin));
-    });
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err || result?.length === 0) {
+          console.log(err);
+          req.session.isLogin = null;
+          res.send(fail('일치하는 관리자가 없습니다.'));
+          return;
+        }
+        req.session.isLogin = { ...result[0], IS_ADMIN: true };
+        res.send(success(req.session.isLogin));
+      },
+    );
+  });
+};
 // 회원리스트 조회
 module.exports.getMember = (req, res) => {
   log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   let searchText = req?.query?.q ?? '';
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT ${userSelectQuery}
       FROM tn_user a
       WHERE a.IS_DELETE = 0 AND
@@ -1154,75 +1296,84 @@ module.exports.getMember = (req, res) => {
       DATE_FORMAT(a.BUY_DT, '%Y-%m-%d %H:%i:%s') AS BUY_DATE
       FROM tn_user_voucher a
       LEFT JOIN tn_voucher b ON a.VOUCHER_ID = b.ID;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('회원 리스트를 불러오는데 실패하였습니다.'));
-        return;
-      }
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('회원 리스트를 불러오는데 실패하였습니다.'));
+          return;
+        }
 
-      let userList = result[0];
-      let voucherList = result[1];
-      let send = userList?.map(item => ({
-        ...item,
-        VOUCHER: voucherList?.filter(x => x?.USER_ID === item?.ID)
-      }));
+        let userList = result[0];
+        let voucherList = result[1];
+        let send = userList?.map((item) => ({
+          ...item,
+          VOUCHER: voucherList?.filter((x) => x?.USER_ID === item?.ID),
+        }));
 
-      res.send(success(send));
-    });
-  })
-}
+        res.send(success(send));
+      },
+    );
+  });
+};
 // 회원정보 상세조회
 module.exports.getMemberDetail = (req, res) => {
   log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   let id = req?.params?.id;
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT ${userSelectQuery}
       FROM tn_user
       WHERE CENTER_SN = '${centerId}' AND 
             USER_SN = '${id}';
-    `, (err, result) => {
-      db.end();
-      if (err || !result[0]) {
-        console.log(err);
-        res.send(fail('회원 정보를 불러오는데 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result[0]));
-    });
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err || !result[0]) {
+          console.log(err);
+          res.send(fail('회원 정보를 불러오는데 실패하였습니다.'));
+          return;
+        }
+        res.send(success(result[0]));
+      },
+    );
+  });
+};
 // 회원정보 삭제
 module.exports.deleteMember = (req, res) => {
   let idArr = req?.body?.idArr ?? [];
   if (idArr?.length === 0) return res.send(fail('삭제할 항목이 없습니다.'));
-  let query = idArr.map(x => 'USER_SN = ' + x);
+  let query = idArr.map((x) => 'USER_SN = ' + x);
   query = query.join(' OR ');
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_user SET IS_DELETE = 1 WHERE ${query};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('회원 삭제를 실패하였습니다.'));
-        return;
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('회원 삭제를 실패하였습니다.'));
+          return;
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 이용권, 이용권 카테고리 리스트 조회
 module.exports.getVoucher = (req, res) => {
   log(req);
   let searchText = req?.query?.q ?? '';
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT ID, NAME, 'ORDER' 
       FROM tn_voucher_category 
       ORDER BY 'ORDER' ASC, ID ASC;
@@ -1233,50 +1384,56 @@ module.exports.getVoucher = (req, res) => {
       FROM tn_voucher a
       LEFT JOIN tn_common b ON b.CODE = a.USE_TYPE AND b.BASE_ID = 4
       WHERE a.NAME LIKE '%${searchText}%';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('이용권 리스트 조회를 실패하였습니다.'));
-        return;
-      }
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('이용권 리스트 조회를 실패하였습니다.'));
+          return;
+        }
 
-      let categoryList = result[0];
-      let voucherList = result[1];
-      let send = categoryList.map(item => ({
-        ...item, VOUCHER: voucherList.filter(x => x?.CATEGORY_ID === item?.ID)
-      }));
+        let categoryList = result[0];
+        let voucherList = result[1];
+        let send = categoryList.map((item) => ({
+          ...item,
+          VOUCHER: voucherList.filter((x) => x?.CATEGORY_ID === item?.ID),
+        }));
 
-      res.send(success(send));
-    });
-  })
-}
+        res.send(success(send));
+      },
+    );
+  });
+};
 // 이용권 정보 조회
 module.exports.getVoucherDetail = (req, res) => {
   log(req);
   let voucherId = req?.params?.id;
   if (!voucherId) return res.send(fail('이용권 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.ID, a.NAME, a.PLACE, a.USE_TYPE, 
       a.USE_COUNT, a.USE_DAY, b.NAME AS CATEGORY_NAME
       FROM tn_voucher a
       LEFT JOIN tn_voucher_category b ON a.CATEGORY_ID = b.ID
       WHERE a.ID = '${voucherId}';
-    `, (err, result) => {
-      db.end();
-      if (err || !result[0]) {
-        console.log(err);
-        res.send(fail('이용권 정보 조회를 실패하였습니다.'));
-        return;
-      }
+    `,
+      (err, result) => {
+        db.end();
+        if (err || !result[0]) {
+          console.log(err);
+          res.send(fail('이용권 정보 조회를 실패하였습니다.'));
+          return;
+        }
 
-      res.send(success(result[0]));
-    });
-  })
-}
+        res.send(success(result[0]));
+      },
+    );
+  });
+};
 // 테스트 플래그 수정
 module.exports.putChangeTestFlag = (req, res) => {
   log(req);
@@ -1284,22 +1441,25 @@ module.exports.putChangeTestFlag = (req, res) => {
   let flag = req?.body?.flag;
   if (!userId) return res.send(fail('유저 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_user
       SET TEST_FLAG = ${flag} 
       WHERE USER_SN = ${userId};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('저장에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('저장에 실패하였습니다.'));
+          return;
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 회원 정보 수정
 module.exports.putMemberModify = (req, res) => {
   log(req);
@@ -1313,35 +1473,40 @@ module.exports.putMemberModify = (req, res) => {
   let schoolName = req?.body?.SCHOOL_NAME;
 
   if (!userId) return res.send(fail('유저 아이디가 없습니다.'));
-  if (!name || !email || !height || !weight || !schoolName) return res.send(fail('수정 데이터가 없습니다.'));
+  if (!name || !email || !height || !weight || !schoolName)
+    return res.send(fail('수정 데이터가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_user SET
       USER_NM = '${name}', EMAIL = '${email}',
       BIRTH = '${birth}', GNDR = '${gender}',
       HGHT = '${height}', WGHT = '${weight}',
       OGDP = '${schoolName}'
       WHERE USER_SN = '${userId}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('수정에 실패했습니다.'));
-        return;
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('수정에 실패했습니다.'));
+          return;
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 회원 이용권 리스트 조회
 module.exports.getUserVoucher = (req, res) => {
   log(req);
   let userId = req?.params?.id;
   if (!userId) return res.send(fail('유저 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.ID, b.ID AS VOUCHER_ID,a.REMAIN_COUNT, a.REMAIN_DATE, a.STATUS,
       DATE_FORMAT(a.BUY_DT, '%Y-%m-%d %H:%i:%s') AS BUY_DT,
@@ -1351,25 +1516,28 @@ module.exports.getUserVoucher = (req, res) => {
       LEFT JOIN tn_voucher b ON a.VOUCHER_ID = b.ID
       LEFT JOIN tn_voucher_category c ON b.CATEGORY_ID = c.ID
       WHERE a.USER_ID = ${userId};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('유저 이용권 정보 조회에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('유저 이용권 정보 조회에 실패하였습니다.'));
+          return;
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 회원 메모 리스트 조회
 module.exports.getUserMemo = (req, res) => {
   log(req);
   let userId = req?.params?.id;
   if (!userId) return res.send(fail('유저 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       ID, USER_ID, MEMO, IS_UPDATE,
       DATE_FORMAT(CREATE_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DT,
@@ -1377,17 +1545,19 @@ module.exports.getUserMemo = (req, res) => {
       FROM tn_user_memo
       WHERE USER_ID = ${userId}
       ORDER BY CREATE_DT ASC;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('유저 메모 리스트 조회에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('유저 메모 리스트 조회에 실패하였습니다.'));
+          return;
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 회원 메모 저장
 module.exports.postUserMemo = (req, res) => {
   log(req);
@@ -1395,23 +1565,26 @@ module.exports.postUserMemo = (req, res) => {
   let value = req?.body?.value;
   if (!userId) return res.send(fail('유저 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       INSERT INTO tn_user_memo
       (USER_ID, MEMO)
       VALUES
       ('${userId}', '${value}');
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('리스트 조회에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('리스트 조회에 실패하였습니다.'));
+          return;
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 회원 메모 수정
 module.exports.putUserMemo = (req, res) => {
   log(req);
@@ -1419,67 +1592,76 @@ module.exports.putUserMemo = (req, res) => {
   let value = req?.body?.value;
   if (!memoId) return res.send(fail('메모 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_user_memo SET
       MEMO = '${value}', IS_UPDATE = 1
       WHERE ID = ${memoId};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('수정에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('수정에 실패하였습니다.'));
+          return;
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 회원 메모 삭제
 module.exports.deleteUserMemo = (req, res) => {
   log(req);
   let memoId = req?.params?.memoId;
   if (!memoId) return res.send(fail('메모 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       DELETE FROM tn_user_memo WHERE ID = ${memoId};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('삭제에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('삭제에 실패하였습니다.'));
+          return;
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 회원 히스토리 조회
 module.exports.getUserHistory = (req, res) => {
   log(req);
   let userId = req?.params?.id;
   if (!userId) return res.send(fail('회원 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       ID, USER_ID, HISTORY,
       DATE_FORMAT(CREATE_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DT
       FROM tn_user_history 
       WHERE USER_ID = '${userId}'
       ORDER BY CREATE_DT ASC;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('조회에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('조회에 실패하였습니다.'));
+          return;
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 회원 이용권 정지/재개
 module.exports.putUserVoucherStatus = (req, res) => {
   log(req);
@@ -1487,52 +1669,62 @@ module.exports.putUserVoucherStatus = (req, res) => {
   let status = req?.body?.status;
   if (!userVoucherId) return res.send(fail('회원의 이용권 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_user_voucher
       SET STATUS = '${status}'
       WHERE ID = '${userVoucherId}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail((status === 1 ? '재개' : '정지') + '에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(
+            fail((status === 1 ? '재개' : '정지') + '에 실패하였습니다.'),
+          );
+          return;
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 회원 리스트 다운로드 (엑셀)
 module.exports.memberListDownload = (req, res) => {
   log(req);
   let centerId = req.session?.isLogin?.CENTER_ID;
   let centerName = req.session?.isLogin?.CENTER_NAME;
-  if (!centerId || !centerName) return res.send(fail('센터 아이디가 없습니다.'));
+  if (!centerId || !centerName)
+    return res.send(fail('센터 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT ${userSelectQuery} FROM tn_user 
       WHERE CENTER_SN = '${centerId}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('회원 리스트를 조회하는데 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('회원 리스트를 조회하는데 실패하였습니다.'));
+          return;
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 선생님 리스트
 module.exports.getTeacher = (req, res) => {
   log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   if (!centerId) return res.send(fail('센터 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.ID, a.NAME, b.CENTER_NM AS CENTER_NAME, a.PHONE, a.EMAIL, a.GENDER, a.IMAGE_PATH AS IMG,
       DATE_FORMAT(a.CREATE_DT, '%Y-%m-%d %H:%i:%s') AS DATE,
@@ -1540,17 +1732,19 @@ module.exports.getTeacher = (req, res) => {
       FROM tn_admin a
       LEFT JOIN tb_center b ON a.CENTER_ID = b.CENTER_SN
       WHERE a.CENTER_ID = '${centerId}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('선생님 리스트 조회에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('선생님 리스트 조회에 실패하였습니다.'));
+          return;
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 선생님 상세정보 조회
 module.exports.getTeacherDetail = (req, res) => {
   log(req);
@@ -1559,8 +1753,9 @@ module.exports.getTeacherDetail = (req, res) => {
   if (!teacherId) return res.send(fail('선생님 아이디가 없습니다.'));
   if (!centerId) return res.send(fail('센터 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.ID, a.NAME, b.CENTER_NM AS CENTER_NAME, a.PHONE, a.EMAIL, a.GENDER, a.IMAGE_PATH AS IMG,
       DATE_FORMAT(a.CREATE_DT, '%Y-%m-%d %H:%i:%s') AS DATE,
@@ -1568,17 +1763,19 @@ module.exports.getTeacherDetail = (req, res) => {
       FROM tn_admin a
       LEFT JOIN tb_center b ON a.CENTER_ID = b.CENTER_SN
       WHERE a.ID = '${teacherId}' AND a.CENTER_ID = '${centerId}';
-    `, (err, result) => {
-      db.end();
-      if (err || !result[0]) {
-        err && console.log(err);
-        res.send(fail('선생님 정보 조회에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(result[0]));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err || !result[0]) {
+          err && console.log(err);
+          res.send(fail('선생님 정보 조회에 실패하였습니다.'));
+          return;
+        }
+        res.send(success(result[0]));
+      },
+    );
+  });
+};
 // 회원 기본 메모 수정
 module.exports.putUserDefaultMemo = (req, res) => {
   log(req);
@@ -1586,22 +1783,25 @@ module.exports.putUserDefaultMemo = (req, res) => {
   let memo = req?.body?.memo;
   if (!userId) return res.send(fail('회원의 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_user 
       SET MEMO = '${memo}'
       WHERE USER_SN = '${userId}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('메모 저장에 실패하였습니다.'));
-        return;
-      }
-      res.send(success(memo));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('메모 저장에 실패하였습니다.'));
+          return;
+        }
+        res.send(success(memo));
+      },
+    );
+  });
+};
 // 입출금 리스트 조회
 module.exports.getAccount = (req, res) => {
   log(req);
@@ -1609,8 +1809,9 @@ module.exports.getAccount = (req, res) => {
   let searchText = req?.query?.q ?? '';
   if (!centerId) return res.send(fail('입출금 내역 조회에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.ID, a.IS_AUTO, a.CATEGORY, b.NAME AS CATEGORY_NAME, a.DESCRIPTION, a.MONEY_TYPE, a.MONEY,
       DATE_FORMAT(a.CREATE_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
@@ -1620,24 +1821,27 @@ module.exports.getAccount = (req, res) => {
       a.IS_DELETE = 0 AND
       a.DESCRIPTION LIKE '%${searchText}%'
       ORDER BY a.CREATE_DT DESC;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('입출금 내역 조회에 실패하였습니다.'));
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('입출금 내역 조회에 실패하였습니다.'));
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 입출금 내역 정보 조회
 module.exports.getAccountDetail = (req, res) => {
   log(req);
   let accountId = req?.params?.id;
   if (!accountId) return res.send(fail('입출금 내역 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT CODE AS ID, NAME FROM tn_common WHERE BASE_ID = 2;
 
       SELECT
@@ -1646,60 +1850,68 @@ module.exports.getAccountDetail = (req, res) => {
       FROM tn_account
       WHERE ID = '${accountId}' AND 
       IS_DELETE = 0 AND IS_AUTO = 0;
-    `, (err, result) => {
-      db.end();
-      if (err || !result[1][0]) {
-        err && console.log(err);
-        return res.send(fail('입출금 내역 정보 조회에 실패하였습니다.'));
-      }
-      res.send(success({ category: result[0], info: result[1][0] }));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err || !result[1][0]) {
+          err && console.log(err);
+          return res.send(fail('입출금 내역 정보 조회에 실패하였습니다.'));
+        }
+        res.send(success({ category: result[0], info: result[1][0] }));
+      },
+    );
+  });
+};
 // 입출금내역 삭제
 module.exports.deleteAccount = (req, res) => {
   log(req);
   let idArr = req?.body?.idArr ?? [];
   if (idArr?.length === 0) return res.send(fail('삭제할 항목이 없습니다.'));
-  let query = idArr.map(x => 'ID = ' + x);
+  let query = idArr.map((x) => 'ID = ' + x);
   query = query.join(' OR ');
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_account SET IS_DELETE = 1 WHERE ${query};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('입출금내역 삭제를 실패하였습니다.'));
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('입출금내역 삭제를 실패하였습니다.'));
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 입출금내역 수정
 module.exports.putAccount = (req, res) => {
   log(req);
   let data = req?.body?.data;
   if (!data) return res.send(fail('입출금내역 수정에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_account SET 
       CATEGORY = ${data?.CATEGORY} ,
       DESCRIPTION = '${data?.DESCRIPTION}',
       MONEY_TYPE = '${data?.MONEY_TYPE}',
       MONEY = '${data?.MONEY}'
       WHERE ID = ${data?.ID};
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('입출금내역 수정에 실패하였습니다.'));
-      }
-      res.send(success(null));
-    })
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('입출금내역 수정에 실패하였습니다.'));
+        }
+        res.send(success(null));
+      },
+    );
   });
-}
+};
 // 입출금내역 추가
 module.exports.postAccount = (req, res) => {
   log(req);
@@ -1708,68 +1920,79 @@ module.exports.postAccount = (req, res) => {
   let data = req?.body?.data;
   if (!data) return res.send(fail('입출금내역 추가에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       INSERT INTO tn_account
       (CENTER_ID, IS_AUTO, CATEGORY, DESCRIPTION, MONEY_TYPE, MONEY)
       VALUES
       ('${CENTER_ID}', '${isAuto}', '${data?.CATEGORY}', '${data?.DESCRIPTION}', '${data?.MONEY_TYPE}', '${data?.MONEY}')
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('입출금내역 추가에 실패하였습니다.'));
-      }
-      res.send(success(null));
-    })
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('입출금내역 추가에 실패하였습니다.'));
+        }
+        res.send(success(null));
+      },
+    );
   });
-}
+};
 // 입출금 내역 구분 (카테고리) 리스트 조회
 module.exports.getAccountCategory = (req, res) => {
   log(req);
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT CODE AS ID, NAME FROM tn_common WHERE BASE_ID = 2;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('공통코드가 없습니다.'));
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('공통코드가 없습니다.'));
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // Common Code
 module.exports.getCommonCode = (req, res) => {
   let BASE_ID = req?.params?.id;
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       CODE AS ID, NAME, DESCRIPTION
       FROM tn_common
       WHERE BASE_ID = '${BASE_ID}'
       ORDER BY CODE ASC;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        res.send(fail('공통코드가 없습니다.'));
-        return;
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          res.send(fail('공통코드가 없습니다.'));
+          return;
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 이용권 추가
 module.exports.postVoucher = (req, res) => {
   log(req);
   let data = req?.body?.data;
   let centerId = req?.session?.isLogin?.CENTER_ID;
-  if (!data || !centerId) return res.send(fail('이용권 저장에 실패하였습니다.'));
+  if (!data || !centerId)
+    return res.send(fail('이용권 저장에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       INSERT INTO tn_voucher
       (CENTER_ID, CATEGORY_ID, NAME, PLACE, USE_TYPE, USE_COUNT, USE_DAY)
       VALUES
@@ -1779,77 +2002,89 @@ module.exports.postVoucher = (req, res) => {
         ${data?.USE_TYPE === 1 ? data?.USE_COUNT : null}, 
         ${data?.USE_DAY}
       );
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('이용권 저장에 실패하였습니다.'));
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('이용권 저장에 실패하였습니다.'));
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 이용권 삭제
 module.exports.deleteVoucher = (req, res) => {
   log(req);
   let id = req?.params?.id;
   if (!id) return res.send(fail('이용권 삭제에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       DELETE FROM tn_voucher WHERE ID = '${id}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('이용권 삭제에 실패하였습니다.'));
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('이용권 삭제에 실패하였습니다.'));
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 이용권 카테고리 삭제
 module.exports.deleteVoucherCategory = (req, res) => {
   log(req);
   let id = req?.params?.id;
   if (!id) return res.send(fail('이용권 카테고리 삭제에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       DELETE FROM tn_voucher_category WHERE ID = '${id}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('이용권 카테고리 삭제에 실패하였습니다.'));
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('이용권 카테고리 삭제에 실패하였습니다.'));
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 이용권 카테고리 추가
 module.exports.postVoucherCategory = (req, res) => {
   log(req);
   let data = req?.body?.data;
   let centerId = req?.session?.isLogin?.CENTER_ID;
-  if (!data || !centerId) return res.send(fail('카테고리 추가에 실패하였습니다.'));
+  if (!data || !centerId)
+    return res.send(fail('카테고리 추가에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       INSERT INTO tn_voucher_category
       (CENTER_ID, NAME)
       VALUES
       ('${centerId}', '${data?.NAME}');
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('카테고리 추가에 실패하였습니다.'));
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('카테고리 추가에 실패하였습니다.'));
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 이용권 정보 수정
 module.exports.putVoucher = (req, res) => {
   log(req);
@@ -1857,44 +2092,51 @@ module.exports.putVoucher = (req, res) => {
   let data = req?.body?.data;
   if (!id || !data) return res.send(fail('이용권 수정에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_voucher SET
       NAME = '${data?.NAME}', PLACE = '${data?.PLACE}', USE_TYPE = '${data?.USE_TYPE}',
       USE_DAY = '${data?.USE_DAY}', USE_COUNT = '${data?.USE_COUNT}'
       WHERE ID = '${id}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('이용권 수정에 실패하였습니다.'));
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('이용권 수정에 실패하였습니다.'));
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 이용권 카테고리 이름 변경
 module.exports.putVoucherCategory = (req, res) => {
   log(req);
   let id = req?.params?.id;
   let name = req?.body?.name;
-  if (!id || !name) return res.send(fail('카테고리 이름 변경에 실패하였습니다.'));
+  if (!id || !name)
+    return res.send(fail('카테고리 이름 변경에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       UPDATE tn_voucher_category SET
       NAME = '${name}'
       WHERE ID = '${id}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('이용권 수정에 실패하였습니다.'));
-      }
-      res.send(success(null));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('이용권 수정에 실패하였습니다.'));
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};
 // 스케줄 초기 정보 조회
 module.exports.getScheduleInit = (req, res) => {
   log(req);
@@ -1902,8 +2144,9 @@ module.exports.getScheduleInit = (req, res) => {
 
   if (!centerId) return res.send(fail('조회에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT CODE AS ID, NAME FROM tn_common WHERE BASE_ID = 9;
 
       SELECT a.ID, a.NAME, a.ORDER, a.IS_TOP 
@@ -1920,31 +2163,36 @@ module.exports.getScheduleInit = (req, res) => {
       FROM tn_admin a
       WHERE a.CENTER_ID = ${centerId} AND a.IS_DELETE = 0
       ORDER BY a.ORDER ASC, a.ID ASC;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('조회에 실패하였습니다.'));
-      }
-      if (result[0]?.length === 0) return res.send(success(null));
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('조회에 실패하였습니다.'));
+        }
+        if (result[0]?.length === 0) return res.send(success(null));
 
-      res.send(success({
-        tab: result[0],
-        calendar: result[1],
-        room: result[2],
-        teacher: result[3],
-      }));
-    })
-  })
-}
+        res.send(
+          success({
+            tab: result[0],
+            calendar: result[1],
+            room: result[2],
+            teacher: result[3],
+          }),
+        );
+      },
+    );
+  });
+};
 // 설정값 조회
 module.exports.getSetting = (req, res) => {
   log(req);
   const centerId = req?.session?.isLogin?.CENTER_ID;
   if (!centerId) return res.send(fail('센터 아이디가 없습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.ACTIVE_TAB_ID,
       a.ACTIVE_CALENDAR_ID,
@@ -1955,64 +2203,79 @@ module.exports.getSetting = (req, res) => {
       a.END_TIME
       FROM tn_setting a
       WHERE a.CENTER_ID = ${centerId}
-    `, (err, result) => {
-      db.end();
-      if (err || result?.length === 0) {
-        err && console.log(err);
-        return res.send(fail('조회에 실패하였습니다.'));
-      }
-      let send = result[0];
-      res.send(success({...send, START_TIME: send?.START_TIME || '00:00', END_TIME: send?.END_TIME || '23:00'}));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err || result?.length === 0) {
+          err && console.log(err);
+          return res.send(fail('조회에 실패하였습니다.'));
+        }
+        let send = result[0];
+        res.send(
+          success({
+            ...send,
+            START_TIME: send?.START_TIME || '00:00',
+            END_TIME: send?.END_TIME || '23:00',
+          }),
+        );
+      },
+    );
+  });
+};
 // 캘린더 리스트 조회
 module.exports.getCalendar = (req, res) => {
   log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   if (!centerId) return res.send(fail('캘린더 리스트 조회에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       ID, NAME, 'ORDER', IS_FIXED
       FROM tn_calendar WHERE CENTER_ID = '${centerId}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('캘린더 리스트 조회에 실패하였습니다.'));
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('캘린더 리스트 조회에 실패하였습니다.'));
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 방 리스트 조회
 module.exports.getRoom = (req, res) => {
   log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   if (!centerId) return res.send(fail('방 리스트 조회에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT * FROM tn_room WHERE CENTER_ID = '${centerId}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('방 리스트 조회에 실패하였습니다.'));
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('방 리스트 조회에 실패하였습니다.'));
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
 // 회원 검사 리스트 조회
 module.exports.getMemberTest = (req, res) => {
   log(req);
   const userId = req?.params?.id;
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       TEST_TP_SN AS ID,
       TEST_TP_NM AS NAME,
@@ -2029,25 +2292,28 @@ module.exports.getMemberTest = (req, res) => {
       DATE_FORMAT(CRT_DT, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
       FROM tn_test 
       WHERE USER_SN = '${userId}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('회원의 검사 리스트 조회에 실패하였습니다.'));
-      }
-      const test = result[0] ?? [];
-      const list = result[1] ?? [];
-      res.send(success({ test, list }));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('회원의 검사 리스트 조회에 실패하였습니다.'));
+        }
+        const test = result[0] ?? [];
+        const list = result[1] ?? [];
+        res.send(success({ test, list }));
+      },
+    );
+  });
+};
 // 회원 검사 결과 조회
 module.exports.getMemberTestResult = (req, res) => {
   log(req);
   const { testId } = req?.params;
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT
       a.TEST_SN AS ID,
       a.TEST_TP_SN AS TEST_TYPE_ID,
@@ -2083,40 +2349,42 @@ module.exports.getMemberTestResult = (req, res) => {
       LEFT JOIN tn_test_dcsn d ON a.DCSN_SN = d.DCSN_SN
       WHERE a.TEST_SN = '${testId}'
       ORDER BY a.RST_SN ASC;
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('회원의 검사 정보 조회에 실패하였습니다.'));
-      }
-      let [infoData, descData, pointData] = result;
-      [infoData] = infoData;
-      if (!infoData || descData?.length === 0 || pointData?.length === 0) {
-        return res.send(fail('회원의 검사 정보 조회에 실패하였습니다.'));
-      }
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('회원의 검사 정보 조회에 실패하였습니다.'));
+        }
+        let [infoData, descData, pointData] = result;
+        [infoData] = infoData;
+        if (!infoData || descData?.length === 0 || pointData?.length === 0) {
+          return res.send(fail('회원의 검사 정보 조회에 실패하였습니다.'));
+        }
 
-      let send = {
-        testData: {
-          ID: infoData?.ID,
-          CREATE_ADMIN_NAME: infoData?.CREATE_ADMIN_NAME,
-          CREATE_DATE: infoData?.CREATE_DATE
-        },
-        testTypeData: {
-          ID: infoData?.TEST_TYPE_ID,
-          NAME: infoData?.TEST_TYPE_NAME,
-          DESCRIPTION: infoData?.TEST_TYPE_DESCRIPTION,
-          METHOD_NAME: infoData?.TEST_TYPE_METHOD_TEXT,
-          MONTH_MIN: infoData?.MONTH_MIN,
-          MONTH_MAX: infoData?.MONTH_MAX,
-          DESCRIPTION: descData,
-        },
-        testPointData: pointData
-      }
+        let send = {
+          testData: {
+            ID: infoData?.ID,
+            CREATE_ADMIN_NAME: infoData?.CREATE_ADMIN_NAME,
+            CREATE_DATE: infoData?.CREATE_DATE,
+          },
+          testTypeData: {
+            ID: infoData?.TEST_TYPE_ID,
+            NAME: infoData?.TEST_TYPE_NAME,
+            DESCRIPTION: infoData?.TEST_TYPE_DESCRIPTION,
+            METHOD_NAME: infoData?.TEST_TYPE_METHOD_TEXT,
+            MONTH_MIN: infoData?.MONTH_MIN,
+            MONTH_MAX: infoData?.MONTH_MAX,
+            DESCRIPTION: descData,
+          },
+          testPointData: pointData,
+        };
 
-      res.send(success(send));
-    })
-  })
-}
+        res.send(success(send));
+      },
+    );
+  });
+};
 // 이용권 구매 전 정보 조회
 module.exports.getPayment = (req, res) => {
   log(req);
@@ -2126,8 +2394,9 @@ module.exports.getPayment = (req, res) => {
   if (!userId) return res.send(fail('회원이 선택되지 않았습니다.'));
   if (!voucherId) return res.send(fail('이용권이 선택되지 않았습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT ${userSelectQuery} 
       FROM tn_user WHERE USER_SN = '${userId}';
 
@@ -2137,37 +2406,48 @@ module.exports.getPayment = (req, res) => {
       FROM tn_voucher a
       LEFT JOIN tn_voucher_category b ON a.CATEGORY_ID = b.ID
       WHERE a.ID = '${voucherId}';
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('정보 조회에 실패하였습니다.'));
-      }
-      let [user, voucher] = result;
-      user = user[0];
-      voucher = voucher[0];
-      if (!user || !voucher) return res.send(fail('정보 조회에 실패하였습니다.'));
-      res.send(success({ user, voucher }));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('정보 조회에 실패하였습니다.'));
+        }
+        let [user, voucher] = result;
+        user = user[0];
+        voucher = voucher[0];
+        if (!user || !voucher)
+          return res.send(fail('정보 조회에 실패하였습니다.'));
+        res.send(success({ user, voucher }));
+      },
+    );
+  });
+};
 // 이용권 구매 정보 저장
 module.exports.postPayment = (req, res) => {
   log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   let data = req?.body;
   // 정보는 body로..
-}
+};
 // 스케줄 리스트 조회
 module.exports.getSchedule = (req, res) => {
   log(req);
   let centerId = req?.session?.isLogin?.CENTER_ID;
   let data = req?.query;
 
-  if (!data?.calendar || !data?.room || !data?.teacher || !data?.start || !data?.end) return res.send(fail('스케줄 조회에 실패하였습니다.'));
+  if (
+    !data?.calendar ||
+    !data?.room ||
+    !data?.teacher ||
+    !data?.start ||
+    !data?.end
+  )
+    return res.send(fail('스케줄 조회에 실패하였습니다.'));
 
-  dbConnect(db => {
-    db.query(`
+  dbConnect((db) => {
+    db.query(
+      `
       SELECT 
       a.ID, a.START, a.END, a.TITLE, a.CONTENTS, 
       b.ID AS CALENDAR_ID,
@@ -2186,13 +2466,15 @@ module.exports.getSchedule = (req, res) => {
       AND (${data?.teacher} = 0 OR a.TEACHER_ID=${data?.teacher})
       AND CONVERT(a.START, DATE) >= CONVERT('${data?.start}', DATE) 
       AND CONVERT(a.END, DATE) <= CONVERT('${data?.end}', DATE);
-    `, (err, result) => {
-      db.end();
-      if (err) {
-        console.log(err);
-        return res.send(fail('스케줄 조회에 실패하였습니다.'));
-      }
-      res.send(success(result));
-    })
-  })
-}
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('스케줄 조회에 실패하였습니다.'));
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};
