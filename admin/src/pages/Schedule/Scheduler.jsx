@@ -17,7 +17,6 @@ export default function 타입컨텐츠({ active, setActive }) {
     if (!active || !active?.start || !active?.end) return;
 
     useAxios.get('/schedule', { params: active }).then(({ data }) => {
-      console.log('불러옴..');
       setIsLoad(false);
       if (!data?.result || !data?.data) return setList([]);
       setList(data?.data);
