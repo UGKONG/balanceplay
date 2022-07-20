@@ -2465,7 +2465,8 @@ module.exports.getSchedule = (req, res) => {
       AND (${data?.room} = 0 OR a.ROOM_ID=${data?.room})
       AND (${data?.teacher} = 0 OR a.TEACHER_ID=${data?.teacher})
       AND CONVERT(a.START, DATE) >= CONVERT('${data?.start}', DATE) 
-      AND CONVERT(a.END, DATE) <= CONVERT('${data?.end}', DATE);
+      AND CONVERT(a.END, DATE) <= CONVERT('${data?.end}', DATE)
+      ORDER BY a.START;
     `,
       (err, result) => {
         db.end();

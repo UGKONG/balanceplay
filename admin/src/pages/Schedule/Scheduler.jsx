@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { AiOutlinePlus } from 'react-icons/ai';
 import Styled from 'styled-components';
 import useAxios from '%/useAxios';
 import Header from './Header';
@@ -6,28 +7,22 @@ import Year from './Year';
 import Month from './Month';
 import Week from './Week';
 import Day from './Day';
-import { AiOutlinePlus } from 'react-icons/ai';
 import Loading from '@/pages/Common/Loading';
 
-export default function 타입컨텐츠({ settingData, setActive }) {
+export default function 타입컨텐츠({ active, setActive }) {
   const [isLoad, setIsLoad] = useState(true);
   const [list, setList] = useState([]);
 
-  const getSchedule = () => {
-    if (
-      settingData?.start === null ||
-      settingData?.end === null ||
-      settingData?.calendar === null ||
-      settingData?.room === null ||
-      settingData?.teacher === null
-    )
-      return;
-    useAxios.get('/schedule', { params: settingData }).then(({ data }) => {
+  const getSchedule = useCallback(() => {
+    if (!active || !active?.start || !active?.end) return;
+
+    useAxios.get('/schedule', { params: active }).then(({ data }) => {
+      console.log('불러옴..');
       setIsLoad(false);
       if (!data?.result || !data?.data) return setList([]);
       setList(data?.data);
     });
-  };
+  }, [active, setList]);
 
   useEffect(() => {
     let interval;
@@ -35,17 +30,13 @@ export default function 타입컨텐츠({ settingData, setActive }) {
     getSchedule();
     // interval = setInterval(getSchedule, 2000);
     // return () => clearInterval(interval);
-  }, [settingData]);
+  }, [active]);
 
   return (
     <Container>
       <Wrap>
         <Header
-          active={{
-            view: settingData?.view,
-            start: settingData?.start,
-            end: settingData?.end,
-          }}
+          active={active}
           setActive={setActive}
           getSchedule={getSchedule}
         />
@@ -54,16 +45,10 @@ export default function 타입컨텐츠({ settingData, setActive }) {
             <Loading />
           ) : (
             <>
-              {settingData?.view === 1 && (
-                <Year set={settingData} data={list} />
-              )}
-              {settingData?.view === 2 && (
-                <Month set={settingData} data={list} />
-              )}
-              {settingData?.view === 3 && (
-                <Week set={settingData} data={list} />
-              )}
-              {settingData?.view === 4 && <Day set={settingData} data={list} />}
+              {active?.view === 1 && <Year set={active} data={list} />}
+              {active?.view === 2 && <Month set={active} data={list} />}
+              {active?.view === 3 && <Week set={active} data={list} />}
+              {active?.view === 4 && <Day set={active} data={list} />}
             </>
           )}
         </SchedulerContainer>

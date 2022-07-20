@@ -3,7 +3,6 @@ import Styled from 'styled-components';
 import Loading from '@/pages/Common/Loading';
 
 export default function 탭리스트({ initData, active, setActive }) {
-  
   const isActiveAll = useMemo(() => {
     let tab = active?.tab;
     if (tab === 1 && active?.calendar === 0) return true;
@@ -14,61 +13,87 @@ export default function 탭리스트({ initData, active, setActive }) {
 
   const itemAllClick = () => {
     let tab = active?.tab;
-    if (tab === 1) return setActive?.calendar(0);
-    if (tab === 2) return setActive?.room(0);
-    if (tab === 3) return setActive?.teacher(0);
-  }
+    if (tab === 1) return setActive((prev) => ({ ...prev, calendar: 0 }));
+    if (tab === 2) return setActive((prev) => ({ ...prev, room: 0 }));
+    if (tab === 3) return setActive((prev) => ({ ...prev, teacher: 0 }));
+  };
 
   return (
     <Container>
-      {Object.keys(initData)?.length === 0 ? <Loading /> : (
+      {Object.keys(initData)?.length === 0 ? (
+        <Loading />
+      ) : (
         <>
           {/* 탭 리스트 */}
           <TabList>
-            {(initData?.tab ?? [])?.map(item => (
+            {(initData?.tab ?? [])?.map((item) => (
               <TabItem
                 key={item?.ID}
                 className={active?.tab === item?.ID ? 'active' : ''}
-                onClick={() => setActive?.tab(item?.ID)}
-              >{item?.NAME}</TabItem>
+                onClick={() =>
+                  setActive((prev) => ({ ...prev, tab: item?.ID }))
+                }
+              >
+                {item?.NAME}
+              </TabItem>
             ))}
           </TabList>
 
           <TabItemList>
             {/* 전체 */}
-            <Item className={isActiveAll ? 'active' : 'all'} onClick={itemAllClick}>전 체</Item>
+            <Item
+              className={isActiveAll ? 'active' : 'all'}
+              onClick={itemAllClick}
+            >
+              전 체
+            </Item>
 
             {/* 캘린더 리스트 */}
-            {active?.tab === 1 && (initData?.calendar ?? [])?.map(item => (
-              <CalendarItem
-                key={item?.ID}
-                className={active?.calendar === item?.ID ? 'active' : ''}
-                onClick={() => setActive?.calendar(item?.ID)}
-              >{item?.NAME}</CalendarItem>
-            ))}
+            {active?.tab === 1 &&
+              (initData?.calendar ?? [])?.map((item) => (
+                <CalendarItem
+                  key={item?.ID}
+                  className={active?.calendar === item?.ID ? 'active' : ''}
+                  onClick={() =>
+                    setActive((prev) => ({ ...prev, calendar: item?.ID }))
+                  }
+                >
+                  {item?.NAME}
+                </CalendarItem>
+              ))}
 
             {/* 방 리스트 */}
-            {active?.tab === 2 && (initData?.room ?? [])?.map(item => (
-              <RoomItem
-                key={item?.ID}
-                className={active?.room === item?.ID ? 'active' : ''}
-                onClick={() => setActive?.room(item?.ID)}
-              >{item?.NAME}</RoomItem>
-            ))}
+            {active?.tab === 2 &&
+              (initData?.room ?? [])?.map((item) => (
+                <RoomItem
+                  key={item?.ID}
+                  className={active?.room === item?.ID ? 'active' : ''}
+                  onClick={() =>
+                    setActive((prev) => ({ ...prev, room: item?.ID }))
+                  }
+                >
+                  {item?.NAME}
+                </RoomItem>
+              ))}
 
             {/* 선생님 리스트 */}
-            {active?.tab === 3 && (initData?.teacher ?? [])?.map(item => (
-              <TeacherItem
-                key={item?.ID}
-                className={active?.teacher === item?.ID ? 'active' : ''}
-                onClick={() => setActive?.teacher(item?.ID)}
-              >{item?.NAME}</TeacherItem>
-            ))}
+            {active?.tab === 3 &&
+              (initData?.teacher ?? [])?.map((item) => (
+                <TeacherItem
+                  key={item?.ID}
+                  className={active?.teacher === item?.ID ? 'active' : ''}
+                  onClick={() =>
+                    setActive((prev) => ({ ...prev, teacher: item?.ID }))
+                  }
+                >
+                  {item?.NAME}
+                </TeacherItem>
+              ))}
           </TabItemList>
         </>
       )}
     </Container>
-  )
+  );
 }
 
 const Container = Styled.article`
