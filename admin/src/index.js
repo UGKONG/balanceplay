@@ -29,8 +29,10 @@ Chart.register(
 );
 
 render(
-  <Router basename="/admin">
-    <App />
-  </Router>,
-  document.querySelector('#root')
+  <React.StrictMode>
+    <Router basename="/admin">
+      <App />
+    </Router>
+  </React.StrictMode>,
+  document.querySelector('#root'),
 );

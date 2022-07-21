@@ -1,12 +1,22 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Box from './Box';
 
 export default function 주칼럼({ data, currentHourList }) {
   if (data?.list?.length === 0) return null;
-  const list = useMemo(() => data?.list, [data]);
+  const list = useMemo(() => data?.list ?? [], [data]);
 
-  const duplicateFilter = (arr, x) => {
-    return arr?.filter((y) => {
+  // 중복안됨 필터 함수
+  const notDuplicateFilter = useCallback((arr, x) => {
+    return arr?.filter((f) => {
+      let validate1 = new Date(f?.END) <= new Date(x?.START);
+      let validate2 = new Date(f?.START) >= new Date(x?.END);
+      return validate1 || validate2;
+    });
+  }, []);
+
+  // 중복검사 필터 함수
+  const duplicateFilter = useCallback((arr, x) => {
+    let list = arr?.filter((y) => {
       let validate1 = new Date(x?.END) > new Date(y?.START);
       let validate2 = new Date(x?.START) < new Date(y?.START);
       let validate3 = new Date(x?.START) < new Date(y?.END);
@@ -27,125 +37,102 @@ export default function 주칼럼({ data, currentHourList }) {
         (validate9 && validate10)
       );
     });
-  };
+    let result = {
+      ITEM: x,
+      LIST: list,
+    };
+    return result;
+  }, []);
 
-  const test = useMemo(() => {
-    let result = [];
-
-    let temp = [];
-    list?.forEach((x) => {
-      let filter = duplicateFilter(list, x);
-      temp.push({ ID: x?.ID, DUPL: filter });
-    });
-
-    // console.log(temp);
-
-    temp?.forEach((x) => {
-      let id = x?.ID;
-      temp?.forEach((y) => {
-        let dupl = y?.DUPL;
-        let find = dupl?.find((z) => z?.ID === id);
-        find && result?.push([...dupl, ...x?.DUPL]);
-      });
-    });
-
-    let result2 = [];
-    result?.forEach((x) => {
-      let temp = [];
-      x?.forEach((y) => {
-        !temp?.find((z) => z?.ID === y?.ID) && temp?.push(y);
-      });
-      result2?.push(temp);
-    });
-
-    let result3 = [];
-    result2?.forEach((x) => {
-      let json = JSON.stringify(x);
-      !result3?.find((y) => y === json) && result3?.push(json);
-    });
-    result3 = result3?.map((x) => JSON?.parse(x));
-    result3?.sort((a, b) => b?.length - a?.length);
-
-    let result4 = [];
-    let many = result3[0];
-    return console.log(many);
-    many?.forEach((x, i) => {
-      if (i === 0) {
-        result4?.push(x);
-      } else {
-        let findIdx = x?.findIndex((y) => y?.ID === x?.ID);
-        findIdx > -1 && result4?.push(many[findIdx]);
-      }
-    });
-    console.log('result3', result3);
+  // 각 스케줄 별 중복 요소 찾기 (중복 제거 X)
+  const duplicateList = useMemo(() => {
+    return list?.map((x, i) => duplicateFilter(list, x));
   }, [list]);
 
-  const groupFindList = useMemo(() => {
-    // 중복 요소 찾기1 (중복 제거 X)
-    let temp1 = [];
-    // console.log(list);
-    list?.forEach((x, i) => {
-      let filter = duplicateFilter(list, x);
-      filter?.length > 1 && temp1?.push(filter);
-    });
-    if (temp1?.length === 0) return [...list];
-    // console.log(temp1);
+  // 그룹핑 재귀함수
+  const grouping = (item, result, groupId) => {
+    let find = result?.find((x) => x?.ID === item?.ITEM?.ID);
+    if (!find) {
+      groupId += 1;
+    }
 
-    // 멀티 중복 요소 찾기
-    let temp2 = [];
-    temp1?.forEach((x) => {
-      let json1 = JSON.stringify(x?.map((z) => z?.ID));
-      temp1?.forEach((y) => {
-        let json2 = JSON.stringify(y?.map((z) => z?.ID));
-        json1 === json2 && temp2?.push(json1);
-      });
+    item?.LIST?.forEach((x) => {
+      let find = result?.find((y) => y?.ID === x?.ID);
+      !find && result?.push({ ...x, GROUP_ID: groupId });
+
+      find = result?.find((z) => z?.ID === x?.ID);
+      if (!find) {
+        let findItem = duplicateList?.find((y) => y?.ID === x?.ID);
+        grouping(findItem, result, groupId);
+      }
     });
 
-    let temp3 = [];
-    temp2?.forEach((x) => {
-      let find = temp3?.find((y) => y === x);
-      !find && temp3?.push(x);
+    return groupId;
+  };
+
+  const resultList = useMemo(() => {
+    let result = [];
+    let groupId = 0;
+    duplicateList?.forEach((item) => {
+      groupId = grouping(item, result, groupId);
     });
 
-    let temp4 = [];
-    temp3?.forEach((x) => {
-      let filter = temp2?.filter((y) => y === x)?.length;
-      filter > 1 && temp4?.push(x);
-    });
-    temp4 = temp4?.map((x) => JSON.parse(x));
+    let isMove = false;
+    let moveCount = 0;
+    let moveInfo = null;
+    let maxMoveCount = 0;
 
-    let temp5 = [];
-    temp4?.forEach((x, i) => {
-      x?.forEach((y) => {
-        let find = list?.find((z) => z?.ID === y);
-        temp5?.push({ ID: find?.ID, GROUP_ID: i + 1 });
-      });
-    });
+    let sendData = result?.map((x) => {
+      let thisGroup = result?.filter((y) => y?.GROUP_ID === x?.GROUP_ID);
+      let thisIdx = thisGroup?.findIndex((y) => y?.ID === x?.ID);
+      let moveIdx = thisIdx;
+      let notDuplicateList = notDuplicateFilter(thisGroup, x);
+      let firstNotDuplicate = notDuplicateList[0]?.ID;
 
-    return list?.map((x) => {
-      let find = temp5?.find((y) => y?.ID === x?.ID);
-      let count = temp5?.filter((y) => y?.GROUP_ID === find?.GROUP_ID)?.length;
-      let thisGroup = temp5?.filter((y) => y?.GROUP_ID === find?.GROUP_ID);
-      let groupIdx =
-        thisGroup?.length === 0
-          ? 0
-          : thisGroup?.findIndex((y) => y?.ID === find?.ID);
+      let validate1 = notDuplicateList?.length > 0;
+      let validate2 = thisIdx !== 0;
+      let validate3 = !isMove;
+      if (validate1 && validate2 && validate3) {
+        moveIdx = thisGroup?.findIndex((y) => y?.ID === firstNotDuplicate);
+        if (thisIdx !== moveIdx) {
+          isMove = true;
+          moveInfo = {
+            ID: x?.ID,
+            GROUP_ID: x?.GROUP_ID,
+            PREV: thisIdx,
+            NEXT: moveIdx,
+          };
+        }
+      }
+      let resultIsMove = isMove;
+      isMove = false;
+
+      moveCount += resultIsMove ? 1 : 0;
+      if (moveInfo?.GROUP_ID !== x?.GROUP_ID) {
+        maxMoveCount = moveCount;
+        moveCount = 0;
+      }
+      // console.log({
+      //   ID: x?.ID,
+      //   thisIdx: thisIdx,
+      //   moveIdx: moveIdx,
+      //   isMove: resultIsMove,
+      // });
 
       return {
         ...x,
-        GROUP_ID: find?.GROUP_ID ?? null,
-        GROUP_COUNT: count ?? 1,
-        GROUP_IDX: groupIdx ?? 0,
+        GROUP_IDX: isMove ? thisIdx : moveIdx,
+        GROUP_COUNT: thisGroup?.length,
+        MOVE_COUNT: moveCount,
       };
     });
-  }, [list]);
 
-  // groupFindList;
-  test;
+    return sendData?.map((x) => ({ ...x }));
+  }, [list]);
 
   return (
     <>
-      {groupFindList?.map((item, i) => (
+      {resultList?.map((item, i) => (
         <Box
           key={i}
           duplicateIdx={i}

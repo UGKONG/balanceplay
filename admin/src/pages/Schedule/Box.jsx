@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import Styled from 'styled-components';
 import useDate from '%/useDate';
 import useStore from '%/useStore';
@@ -44,6 +44,18 @@ export default function 스케줄박스({ data, currentHourList }) {
   );
 
   const left = useMemo(() => data?.GROUP_IDX * w, [w, data]);
+
+  useEffect(
+    () =>
+      console.log({
+        ID: data?.ID,
+        GROUP_ID: data?.GROUP_ID,
+        GROUP_IDX: data?.GROUP_IDX,
+        GROUP_COUNT: data?.GROUP_COUNT,
+        MOVE_COUNT: data?.MOVE_COUNT,
+      }),
+    [data],
+  );
 
   return (
     <Container
