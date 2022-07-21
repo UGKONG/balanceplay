@@ -52,14 +52,11 @@ export default function 주칼럼({ data, currentHourList }) {
   // 그룹핑 재귀함수
   const grouping = (item, result, groupId) => {
     let find = result?.find((x) => x?.ID === item?.ITEM?.ID);
-    if (!find) {
-      groupId += 1;
-    }
+    if (!find) groupId += 1;
 
     item?.LIST?.forEach((x) => {
       let find = result?.find((y) => y?.ID === x?.ID);
       !find && result?.push({ ...x, GROUP_ID: groupId });
-
       find = result?.find((z) => z?.ID === x?.ID);
       if (!find) {
         let findItem = duplicateList?.find((y) => y?.ID === x?.ID);
@@ -70,69 +67,98 @@ export default function 주칼럼({ data, currentHourList }) {
     return groupId;
   };
 
-  const resultList = useMemo(() => {
+  // 그룹핑
+  const groupingList = useMemo(() => {
     let result = [];
     let groupId = 0;
     duplicateList?.forEach((item) => {
       groupId = grouping(item, result, groupId);
     });
+    return result;
+  }, [list]);
 
-    let isMove = false;
-    let moveCount = 0;
-    let moveInfo = null;
-    let maxMoveCount = 0;
-
-    let sendData = result?.map((x) => {
-      let thisGroup = result?.filter((y) => y?.GROUP_ID === x?.GROUP_ID);
-      let thisIdx = thisGroup?.findIndex((y) => y?.ID === x?.ID);
-      let moveIdx = thisIdx;
-      let notDuplicateList = notDuplicateFilter(thisGroup, x);
-      let firstNotDuplicate = notDuplicateList[0]?.ID;
-
-      let validate1 = notDuplicateList?.length > 0;
-      let validate2 = thisIdx !== 0;
-      let validate3 = !isMove;
-      if (validate1 && validate2 && validate3) {
-        moveIdx = thisGroup?.findIndex((y) => y?.ID === firstNotDuplicate);
-        if (thisIdx !== moveIdx) {
-          isMove = true;
-          moveInfo = {
-            ID: x?.ID,
-            GROUP_ID: x?.GROUP_ID,
-            PREV: thisIdx,
-            NEXT: moveIdx,
-          };
-        }
-      }
-      let resultIsMove = isMove;
-      isMove = false;
-
-      moveCount += resultIsMove ? 1 : 0;
-      if (moveInfo?.GROUP_ID !== x?.GROUP_ID) {
-        maxMoveCount = moveCount;
-        moveCount = 0;
-      }
-      // console.log({
-      //   ID: x?.ID,
-      //   thisIdx: thisIdx,
-      //   moveIdx: moveIdx,
-      //   isMove: resultIsMove,
-      // });
+  // 인덱스 설정
+  const resultList = useMemo(() => {
+    return groupingList?.map((item) => {
+      let groupId = item?.GROUP_ID;
+      let groupList = groupingList?.filter((x) => x?.GROUP_ID === groupId);
+      let possibleList = notDuplicateFilter(groupList, item);
+      let prevIdx = groupList?.findIndex((x) => x?.ID === item?.ID);
+      let nextIdx = groupList?.findIndex((x) => x?.ID === possibleList[0]?.ID);
+      if (nextIdx === -1 || prevIdx === 0) nextIdx = prevIdx;
 
       return {
-        ...x,
-        GROUP_IDX: isMove ? thisIdx : moveIdx,
-        GROUP_COUNT: thisGroup?.length,
-        MOVE_COUNT: moveCount,
+        ...item,
+        NEXT_IDX: nextIdx,
+        PREV_IDX: prevIdx,
+        GROUP_COUNT: groupList?.length,
       };
     });
+  }, [groupingList]);
 
-    return sendData?.map((x) => ({ ...x }));
-  }, [list]);
+  // 인덱싱 재귀함수
+  const indexing = (list) => {
+    if (!list[0]) return;
+    list[0].PREV_IDX = list[0]?.NEXT_IDX;
+    let impossible = notDuplicateFilter(list, list[0]);
+    if (impossible[0]) indexing(impossible);
+  };
+
+  const indexingList = useMemo(() => {
+    let result = [];
+    resultList?.forEach((item) => {
+      let filter = resultList?.filter((x) => {
+        let validate1 = x?.NEXT_IDX === item?.NEXT_IDX;
+        let validate2 = x?.GROUP_ID === item?.GROUP_ID;
+        return validate1 && validate2;
+      });
+      let impossible = notDuplicateFilter(filter, item);
+      let find = impossible?.find((y) => y?.ID === item?.ID);
+      !find && result?.push(item);
+      indexing(impossible);
+    });
+    return result;
+  }, [resultList]);
+
+  // 사이징 설정
+  const sizingList = useMemo(() => {
+    let result = [];
+    let groupIdList = [];
+    groupingList?.forEach((item) => {
+      let find = groupIdList?.find((x) => x === item?.GROUP_ID);
+      !find && groupIdList?.push(item?.GROUP_ID);
+    });
+
+    groupIdList?.forEach((item) => {
+      let list = indexingList?.filter((x) => x?.GROUP_ID === item);
+      let idxIdList = [];
+      list?.forEach((x) => {
+        let idx = idxIdList?.indexOf(x?.PREV_IDX);
+        idx === -1 && idxIdList?.push(x?.PREV_IDX);
+      });
+
+      let copy = [...list];
+      copy?.sort((a, b) => a?.PREV_IDX - b?.PREV_IDX);
+      let count = idxIdList?.length;
+      idxIdList?.sort((a, b) => a - b);
+      idxIdList?.forEach((idx, i) => {
+        let filter = copy?.filter((x) => x?.PREV_IDX === idx);
+        filter = filter?.map((x) => ({
+          ...x,
+          PREV_IDX: i,
+          GROUP_COUNT: count,
+        }));
+        filter?.forEach((x) => result?.push(x));
+      });
+    });
+
+    result?.sort((a, b) => new Date(a?.START) - new Date(b?.START));
+    return result;
+  }, [indexingList]);
 
   return (
     <>
-      {resultList?.map((item, i) => (
+      {sizingList?.map((item, i) => (
         <Box
           key={i}
           duplicateIdx={i}
