@@ -2,7 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Styled from 'styled-components';
 import useDate from '%/useDate';
 
-export default function 스케줄러_프레임({ date, i, currentHourList }) {
+export default function 스케줄러_프레임({
+  date,
+  i,
+  currentHourList,
+  dayCount,
+}) {
   const [now, setNow] = useState(useDate());
 
   const getDate = () => {
@@ -30,7 +35,7 @@ export default function 스케줄러_프레임({ date, i, currentHourList }) {
   return (
     <>
       {i === 0 && (
-        <NowBar style={nowBarTop}>
+        <NowBar w={dayCount} style={nowBarTop}>
           <span />
         </NowBar>
       )}
@@ -75,7 +80,7 @@ const NowBar = Styled.p`
   position: absolute;
   top: 0;
   right: calc(-600% - 12px);
-  width: calc(700% + 12px);
+  width: calc(${(x) => x?.w} * 100% + 12px);
   height: 2px;
   background-color: #ff000030;
   z-index: 10;

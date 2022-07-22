@@ -9,7 +9,7 @@ const store = create((set) => ({
     '#666',
     '#f05a5a',
     '#f0905a',
-    '#d6c23c',
+    '#c0a90d',
     '#33a07f',
     '#2b51ad',
     '#792bad',

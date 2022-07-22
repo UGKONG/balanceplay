@@ -79,7 +79,12 @@ export default function 주({ set, data }) {
         <SchedulerContainer>
           {dayList?.map((date, i) => (
             <Column key={date}>
-              <Frame date={date} i={i} currentHourList={currentHourList} />
+              <Frame
+                date={date}
+                dayCount={7}
+                i={i}
+                currentHourList={currentHourList}
+              />
               <DataColumn
                 currentHourList={currentHourList}
                 data={list?.find((x) => x?.date === date)}

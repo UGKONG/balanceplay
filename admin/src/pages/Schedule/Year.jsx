@@ -1,24 +1,32 @@
-import React, { useRef } from "react";
-import Styled from "styled-components";
+import React, { useCallback, useRef } from 'react';
+import Styled from 'styled-components';
+import YearBox from './YearBox';
 
-export default function 년 ({ set, data }) {
-
+export default function 년({ data }) {
   const yearList = useRef(new Array(12).fill(null));
+
+  const list = useCallback(
+    (num) => {
+      let i = num + 1;
+      return data?.filter((x) => Number(x?.START?.split('-')[1]) === i);
+    },
+    [data],
+  );
 
   return (
     <Container>
       {yearList?.current?.map((d, i) => (
-        <YearBox key={i}>
-          <YearTitle>{i + 1}월</YearTitle>
+        <YearContainer key={i}>
+          <YearTitle count={list(i)?.length}>{i + 1}월</YearTitle>
           <ScheduleList>
-            {data?.filter(x => Number(x?.START?.split('-')[1]) === i + 1)?.map(item => (
-              <ScheduleItem key={item?.ID}>{item.TITLE}</ScheduleItem>
+            {list(i)?.map((item) => (
+              <YearBox key={item?.ID} data={item} />
             ))}
           </ScheduleList>
-        </YearBox>
+        </YearContainer>
       ))}
     </Container>
-  )
+  );
 }
 
 const Container = Styled.section`
@@ -27,8 +35,8 @@ const Container = Styled.section`
   position: relative;
   display: flex;
   flex-wrap: wrap;
-`
-const YearBox = Styled.div`
+`;
+const YearContainer = Styled.div`
   min-width: calc(100% / 6);
   height: 50%;
   flex: 1;
@@ -42,7 +50,7 @@ const YearBox = Styled.div`
        border-right: none;
      }
   }
-`
+`;
 const YearTitle = Styled.p`
   height: 30px;
   text-align: center;
@@ -54,19 +62,24 @@ const YearTitle = Styled.p`
   align-items: center;
   justify-content: center;
   border-right: 1px solid #fff;
-`
+  position: relative;
+  
+  &::after {
+    content: '${(x) => x?.count ?? 0}개';
+    display: ${(x) => (x?.count === 0 ? 'none' : 'block')};
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-size: 10px;
+    color: #666;
+  }
+`;
 const ScheduleList = Styled.ul`
   border-right: 1px solid #b9e1dc99;
   height: calc(100% - 30px);
   padding: 6px;
   overflow: auto;
-`
-const ScheduleItem = Styled.li`
-  color: #fff;
-  font-size: 12px;
-  padding: 6px;
-  margin-bottom: 6px;
-  border-radius: 3px;
-  background-color: #519a92;
-  box-shadow: 1px 2px 4px #55555520;
-`
+  &::-webkit-scrollbar {
+    width: 0;
+  }
+`;

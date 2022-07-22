@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import Box from './Box';
+import WeekBox from './WeekBox';
 
 export default function 주칼럼({ data, currentHourList }) {
   if (data?.list?.length === 0) return null;
@@ -179,6 +179,6 @@ export default function 주칼럼({ data, currentHourList }) {
 
   // 컴포넌트 리턴
   return sizingList?.map((item, i) => (
-    <Box key={i} idx={i} data={item} currentHourList={currentHourList} />
+    <WeekBox key={i} data={item} currentHourList={currentHourList} />
   ));
 }
