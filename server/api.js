@@ -2479,3 +2479,28 @@ module.exports.getSchedule = (req, res) => {
     );
   });
 };
+// 수업 회원 리스트 조회
+module.exports.getReservationUser = (req, res) => {
+  log(req);
+  const scheduleId = req?.params?.id;
+
+  dbConnect((db) => {
+    db.query(
+      `
+      SELECT
+      a.ID, b.USER_SN AS USER_ID, b.USER_NM AS USER_NAME,
+      a.STATUS, a.MEMO
+      FROM tn_reservation a
+      LEFT JOIN tn_user b ON b.USER_SN = a.USER_ID
+      WHERE SCHEDULE_ID = ${scheduleId};
+    `,
+      (err, result) => {
+        if (err) {
+          console.log(err);
+          return res.send(fail('예약회원 조회에 실패하였습니다.'));
+        }
+        res.send(success(result));
+      },
+    );
+  });
+};

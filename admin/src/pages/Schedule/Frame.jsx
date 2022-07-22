@@ -77,8 +77,8 @@ const NowBar = Styled.p`
   right: calc(-600% - 12px);
   width: calc(700% + 12px);
   height: 2px;
-  background-color: #ff000066;
-  z-index: 2;
+  background-color: #ff000030;
+  z-index: 10;
 
   span {
     position: relative;

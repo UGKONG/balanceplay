@@ -12,19 +12,21 @@ const PORT = 8080;
 // 엔진 셋팅
 app.use(cors());
 app.use(bodyParser.json());
-app.use(session({
-  secret: 'balanceplay',  // 암호화
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    path: '/',
-    httpOnly: true,
-    secure: false,
-    maxAge: 60 * 60 * 1000,  // 1시간 세션유지
-  },
-  rolling: true,
-  store: new MySQLStore(conf.db),
-}));
+app.use(
+  session({
+    secret: 'balanceplay', // 암호화
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      path: '/',
+      httpOnly: true,
+      secure: false,
+      maxAge: 60 * 60 * 1000, // 1시간 세션유지
+    },
+    rolling: true,
+    store: new MySQLStore(conf.db),
+  }),
+);
 
 // 회원용 라우터
 const memberPages = [
@@ -47,7 +49,7 @@ const memberPages = [
   '/info/term',
   '/mySchedule',
 ];
-memberPages.forEach(page => app.use(page, express.static(basePath)));
+memberPages.forEach((page) => app.use(page, express.static(basePath)));
 
 // 관리자용 라우터
 const adminPages = [
@@ -73,7 +75,9 @@ const adminPages = [
   '/setting',
   '/payment',
 ];
-adminPages.forEach(page => app.use('/admin' + page, express.static(basePath + '/admin')));
+adminPages.forEach((page) =>
+  app.use('/admin' + page, express.static(basePath + '/admin')),
+);
 
 // API
 const {
@@ -151,6 +155,7 @@ const {
   getCalendar,
   getRoom,
   getSchedule,
+  getReservationUser,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -220,19 +225,21 @@ app.get('/api/memberTestResult/:testId', getMemberTestResult);
 app.get('/api/payment/:userId/:voucherId', getPayment);
 app.post('/api/payment', postPayment);
 app.get('/api/schedule', getSchedule);
+app.get('/api/reservationUser/:id', getReservationUser);
 
-app.route('/api/notice')
-   .get(getNotice)
-   .post(postNotice)
-   .put(putNotice)
-   .delete(deleteNotice);
+app
+  .route('/api/notice')
+  .get(getNotice)
+  .post(postNotice)
+  .put(putNotice)
+  .delete(deleteNotice);
 
 app.get('/api/:table', getOtherList);
 app.get('/api/:table/:id', getOtherData);
 
 // 서버 시작
-app.listen(PORT,
-  () => console.log(`
+app.listen(PORT, () =>
+  console.log(`
 
 ┌────── Server Start!! ────┐
 │ PROTOCOL: http           │
@@ -241,5 +248,5 @@ app.listen(PORT,
 │ http://localhost:${PORT}    │
 └──────────────────────────┘
 
-  `)
+  `),
 );
