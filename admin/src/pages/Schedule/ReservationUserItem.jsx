@@ -1,8 +1,6 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { IoOptionsOutline, IoCloseOutline } from 'react-icons/io5';
 import Styled from 'styled-components';
-import useDate from '%/useDate';
-import useStore from '%/useStore';
 import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 
@@ -51,7 +49,7 @@ export default function 예약회원_아이템({ data, getUser }) {
 }
 
 const Container = Styled.article`
-  padding: 0 6px;
+  padding: 0 5px;
   height: 36px;
   color: #666;
   letter-spacing: 1px;

@@ -1,9 +1,11 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import Styled from 'styled-components';
 import MonthBox from './MonthBox';
+import { Store } from './Scheduler';
 
-export default function 월({ set, data }) {
+export default function 월() {
   const dayList = useRef(['일', '월', '화', '수', '목', '금', '토']);
+  const { active: set, list: data } = useContext(Store);
 
   const init = useMemo(() => {
     let dateList = [];
@@ -33,7 +35,7 @@ export default function 월({ set, data }) {
     return result?.length ?? 0;
   };
 
-  const list = useCallback(
+  const resultList = useCallback(
     (item) => {
       let _date = item < 10 ? '0' + item : item;
       let result = data?.filter(
@@ -41,7 +43,7 @@ export default function 월({ set, data }) {
       );
       return result;
     },
-    [set],
+    [set, data],
   );
 
   return (
@@ -58,7 +60,7 @@ export default function 월({ set, data }) {
             )}
           </Head>
           <Body>
-            {list(item)?.map((item, i) => (
+            {resultList(item)?.map((item, i) => (
               <MonthBox key={i} data={item} />
             ))}
           </Body>

@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import WeekBox from './WeekBox';
 
-export default function 주칼럼({ data, currentHourList }) {
+export default function 주칼럼({ data }) {
   if (data?.list?.length === 0) return null;
-  const list = useMemo(() => data?.list ?? [], [data]);
+  const currentList = useMemo(() => data?.list ?? [], [data]);
 
   // 중복안됨 필터 함수
   const notDuplicateFilter = useCallback((arr, x) => {
@@ -68,8 +68,10 @@ export default function 주칼럼({ data, currentHourList }) {
 
   // 각 스케줄 별 중복 요소 찾기 (중복 제거 X)
   const duplicateList = useMemo(() => {
-    return list?.map((x, i) => duplicateFilter(list, x));
-  }, [list]);
+    if (currentList?.length === 0) return [];
+    let result = currentList?.map((x, i) => duplicateFilter(currentList, x));
+    return result;
+  }, [currentList]);
 
   // 그룹핑 재귀함수
   const grouping = useCallback(
@@ -86,7 +88,6 @@ export default function 주칼럼({ data, currentHourList }) {
           grouping(findItem, result, groupId);
         }
       });
-
       return groupId;
     },
     [duplicateList],
@@ -100,7 +101,7 @@ export default function 주칼럼({ data, currentHourList }) {
       groupId = grouping(item, result, groupId);
     });
     return result;
-  }, [list]);
+  }, [duplicateList]);
 
   // 인덱스 설정
   const resultList = useMemo(() => {
@@ -178,7 +179,6 @@ export default function 주칼럼({ data, currentHourList }) {
   }, [indexingList]);
 
   // 컴포넌트 리턴
-  return sizingList?.map((item, i) => (
-    <WeekBox key={i} data={item} currentHourList={currentHourList} />
-  ));
+  if (sizingList?.length === 0) return null;
+  return sizingList?.map((item, i) => <WeekBox key={i} data={item} />);
 }

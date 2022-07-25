@@ -1,14 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useContext } from 'react';
 import Styled from 'styled-components';
 import useDate from '%/useDate';
+import { Store } from './Scheduler';
 
 export default function 스케줄러_프레임({
   date,
   i,
-  currentHourList,
+  // currentHourList,
   dayCount,
 }) {
   const [now, setNow] = useState(useDate());
+  const { currentHourList } = useContext(Store);
 
   const getDate = () => {
     if (i !== 0) return;

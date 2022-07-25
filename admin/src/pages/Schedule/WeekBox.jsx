@@ -1,19 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState, useContext } from 'react';
 import Styled from 'styled-components';
 import useStore from '%/useStore';
-import useAxios from '%/useAxios';
-import Tooltip from './Tooltip';
+import { Store } from './Scheduler';
 
-export default function 스케줄박스({ data, currentHourList }) {
+export default function 스케줄박스({ data }) {
   if (!data) return null;
-  const [isTooltip, setIsTooltip] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [position, setPosition] = useState(null);
-  const [userList, setUserList] = useState([]);
   const [zIndex, setZIndex] = useState(20);
-  const colorList = useStore((x) => x?.colorList);
   const currentStartTime = useStore((x) => x?.setting?.START_TIME);
-  const currentEndTime = useStore((x) => x?.setting?.END_TIME);
+  const { currentHourList, colorList, isTooltip, setIsTooltip, timeout } =
+    useContext(Store);
 
   const { DATE, START_TIME, END_TIME } = useMemo(
     () => ({
@@ -23,15 +18,6 @@ export default function 스케줄박스({ data, currentHourList }) {
     }),
     [data],
   );
-
-  const getUser = useCallback(() => {
-    setIsLoading(true);
-    useAxios.get('/reservation/' + data?.ID).then(({ data }) => {
-      setIsLoading(false);
-      if (!data?.result || !data?.data) return setUserList([]);
-      setUserList(data?.data);
-    });
-  }, [data, setIsLoading, setUserList]);
 
   const heightTop = useMemo(() => {
     let rowCount = currentHourList?.length;
@@ -52,7 +38,7 @@ export default function 스케줄박스({ data, currentHourList }) {
     };
   }, [data]);
 
-  const bg = useMemo(() => colorList[data?.ROOM_ID], [colorList, data]);
+  const bgColor = useMemo(() => colorList[data?.ROOM_ID], [colorList, data]);
 
   const w = useMemo(() => {
     if (!data?.GROUP_ID || !data?.GROUP_COUNT) return 100;
@@ -62,70 +48,72 @@ export default function 스케줄박스({ data, currentHourList }) {
 
   const left = useMemo(() => data?.FINAL_IDX * w, [w, data]);
 
-  const mouseOver = (e) => {
-    setPosition(() => {
-      let [boxW, boxY] = [e.target.clientWidth, e.target.clientHeight];
-      let [screenW, screenH] = [window.innerWidth, window.innerHeight];
-      let [mouseX, mouseY] = [e.pageX, e.pageY];
-      let xOver = mouseX * 2 > screenW;
-      let yOver = mouseY * 1.7 > screenH;
+  const onMouseEnter = (e) => {
+    clearTimeout(timeout.current);
+    let { pageX, pageY } = e;
+    let { innerWidth, innerHeight } = window;
+    let xOver = pageX * 2 >= innerWidth;
+    let yOver = pageY * 2 >= innerHeight;
+    let { left, top, translateX, translateY } = {
+      left: `${pageX}px`,
+      top: `${pageY}px`,
+      translateX: `14px`,
+      translateY: `14px`,
+    };
 
-      if (!xOver && yOver) {
-        return {
-          translate: `0, calc(-100% + ${boxY}px)`,
-        };
-      }
-      if (xOver && !yOver) {
-        return {
-          translate: `calc(-100% - ${boxW}px - 10px), 0`,
-        };
-      }
-      if (xOver && yOver) {
-        return {
-          translate: `calc(-100% - ${boxW}px - 10px), calc(-100% + ${boxY}px)`,
-        };
-      }
-      return null;
+    if (xOver) {
+      translateX = `calc(-100% - 14px)`;
+    }
+    if (yOver) {
+      translateY = `calc(-100% - 14px)`;
+    }
+
+    setIsTooltip({
+      bool: true,
+      info: data,
+      left,
+      top,
+      translate: `${translateX}, ${translateY}`,
     });
-    setIsTooltip(true);
     setZIndex(100);
   };
-  const mouseLeave = (e) => {
-    setIsTooltip(false);
+  const onMouseLeave = (e) => {
+    clearTimeout(timeout.current);
+
+    if (!isTooltip?.bool) return;
+    timeout.current = setTimeout(() => {
+      setIsTooltip((prev) => ({ ...prev, bool: false, info: null }));
+    }, 500);
     setZIndex(20);
   };
 
-  useEffect(() => isTooltip && getUser(), [isTooltip]);
-
-  return (
-    <Container
-      w={w}
-      key={data?.ID}
-      left={left}
-      i={zIndex}
-      style={{ ...heightTop }}
-      onMouseEnter={mouseOver}
-      onMouseLeave={mouseLeave}
-    >
-      <Wrap bg={bg}>
-        <Info>
-          <Title>{data?.TITLE}</Title>
-        </Info>
-        {isTooltip && (
-          <Tooltip
-            bg={bg}
-            data={data}
-            userList={userList}
-            isLoading={isLoading}
-            getUser={getUser}
-            x={position?.x}
-            y={position?.y}
-            translate={position?.translate}
-          />
-        )}
-      </Wrap>
-    </Container>
+  const JSX = useMemo(
+    () => (
+      <Container
+        w={w}
+        key={data?.ID}
+        left={left}
+        i={zIndex}
+        style={{ ...heightTop }}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
+        <Wrap bg={bgColor}>
+          <Info>
+            <Head>
+              <Count>
+                {data?.RESERVATION_COUNT ?? '0'}/{data?.COUNT}명
+              </Count>
+              <Title>{data?.TITLE}</Title>
+            </Head>
+          </Info>
+        </Wrap>
+      </Container>
+    ),
+    [w, data, bgColor, zIndex, heightTop],
   );
+
+  return JSX;
 }
 
 const Container = Styled.div`
@@ -158,9 +146,17 @@ const Wrap = Styled.div`
 const Info = Styled.section`
   
 `;
-const Title = Styled.p`
+const Head = Styled.p`
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+`;
+const Count = Styled.span`
+  font-size: 13px;
+  font-weight: 500;
+  display: block;
+`;
+const Title = Styled.span`
+  display: block;
 `;

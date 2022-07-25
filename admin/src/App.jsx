@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Routes, Route, useNavigate, useLocation, useHref } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Styled from 'styled-components';
 import conf from '../../server/config.json';
 import useTitle from '%/useTitle';
@@ -31,9 +31,9 @@ import Setting from '@/pages/Setting';
 import Payment from '@/pages/Payment';
 
 export default function 앱() {
-  const dispatch = useStore(x => x.setState);
-  const isLogin = useStore(x => x.isLogin);
-  const isFullPage = useStore(x => x.isFullPage);
+  const dispatch = useStore((x) => x.setState);
+  const isLogin = useStore((x) => x.isLogin);
+  const isFullPage = useStore((x) => x.isFullPage);
   const location = useLocation();
   const navigate = useNavigate();
   const [isSession, setIsSession] = useState(false);
@@ -66,7 +66,7 @@ export default function 앱() {
     useAxios.get('/setting').then(({ data }) => {
       if (!data?.result || !data?.data) return dispatch('setting', null);
       dispatch('setting', data?.data);
-    })
+    });
   }, []);
 
   // 프로그램 정보
@@ -90,7 +90,7 @@ export default function 앱() {
       useAlert.success('알림', '로그아웃되었습니다.');
       navigate('/login');
     });
-  }
+  };
 
   useEffect(sessionChk, [location]);
   useEffect(getSetting, [location]);
@@ -102,31 +102,71 @@ export default function 앱() {
       <Container1 style={isFullPage ? fullPageStyle : null}>
         <Container2>
           <Routes>
-            <Route path='/login' element={<Login />} />
-            {isLogin && isSession && <Route path='/' element={<Home />} />}
-            {isLogin && isSession && <Route path='/member' element={<Member />} />}
-            {isLogin && isSession && <Route path='/member/:id' element={<MemberDetail />} />}
-            {isLogin && isSession && <Route path='/test/:id/new' element={<TestCreate />} />}
-            {isLogin && isSession && <Route path='/test/:id' element={<TestDetail />} />}
-            {isLogin && isSession && <Route path='/notice' element={<Notice />} />}
-            {isLogin && isSession && <Route path='/notice/new' element={<NoticeCreate />} />}
-            {isLogin && isSession && <Route path='/notice/:id' element={<NoticeDetail />} />}
-            {isLogin && isSession && <Route path='/noticeModify/:id' element={<NoticeModify />} />}
-            {isLogin && isSession && <Route path='/schedule' element={<Schedule />} />}
-            {isLogin && isSession && <Route path='/voucher' element={<Voucher />} />}
-            {isLogin && isSession && <Route path='/account' element={<Account />} />}
-            {isLogin && isSession && <Route path='/account/new' element={<AccountCreate />} />}
-            {isLogin && isSession && <Route path='/accountModify/:id' element={<AccountModify />} />}
-            {isLogin && isSession && <Route path='/history' element={<History />} />}
-            {isLogin && isSession && <Route path='/teacher' element={<Teacher />} />}
-            {isLogin && isSession && <Route path='/teacher/:id' element={<TeacherDetail />} />}
-            {isLogin && isSession && <Route path='/setting' element={<Setting />} />}
-            {isLogin && isSession && <Route path='/payment' element={<Payment />} />}
+            <Route path="/login" element={<Login />} />
+            {isLogin && isSession && <Route path="/" element={<Home />} />}
+            {isLogin && isSession && (
+              <Route path="/member" element={<Member />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/member/:id" element={<MemberDetail />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/test/:id/new" element={<TestCreate />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/test/:id" element={<TestDetail />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/notice" element={<Notice />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/notice/new" element={<NoticeCreate />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/notice/:id" element={<NoticeDetail />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/noticeModify/:id" element={<NoticeModify />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/schedule" element={<Schedule />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/voucher" element={<Voucher />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/account" element={<Account />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/account/new" element={<AccountCreate />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/accountModify/:id" element={<AccountModify />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/history" element={<History />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/teacher" element={<Teacher />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/teacher/:id" element={<TeacherDetail />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/setting" element={<Setting />} />
+            )}
+            {isLogin && isSession && (
+              <Route path="/payment" element={<Payment />} />
+            )}
           </Routes>
         </Container2>
         <Footer>
           <ProgramInfo dangerouslySetInnerHTML={{ __html: programInfo }} />
-          {isLogin && isSession && <LogoutBtn title='로그아웃' onClick={logout}>로그아웃</LogoutBtn>}
+          {isLogin && isSession && (
+            <LogoutBtn title="로그아웃" onClick={logout}>
+              로그아웃
+            </LogoutBtn>
+          )}
         </Footer>
       </Container1>
     </>
@@ -138,8 +178,8 @@ const fullPageStyle = {
   position: 'fixed',
   top: 0,
   left: 0,
-  zIndex: 1
-}
+  zIndex: 1,
+};
 const Name = Styled.h1`
   display: none;
 `;

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import Styled from 'styled-components';
 import useDate from '%/useDate';
 import useStore from '%/useStore';
@@ -6,10 +6,12 @@ import DataColumn from './DataColumn';
 import DateList from './DateList';
 import LeftLabel from './LeftLabel';
 import Frame from './Frame';
+import { Store } from './Scheduler';
 
-export default function 주({ set, data }) {
+export default function 주() {
   const startTime = useStore((x) => x?.setting?.START_TIME);
   const endTime = useStore((x) => x?.setting?.END_TIME);
+  const { active: set, list: data, currentHourList } = useContext(Store);
 
   const dayList = useMemo(() => {
     let date = new Date(set?.start);
@@ -21,17 +23,6 @@ export default function 주({ set, data }) {
     }
     return _dayList;
   }, [set]);
-
-  const currentHourList = useMemo(() => {
-    let tempArr = [];
-    let start = Number(startTime?.split(':')[0] ?? 0);
-    let end = Number(endTime?.split(':')[0] ?? 0);
-    let calc = end - start;
-    for (let i = start; i <= start + calc; i++) {
-      tempArr.push(i < 10 ? '0' + i : i);
-    }
-    return tempArr?.map((t) => String(t));
-  }, [startTime, endTime]);
 
   const list = useMemo(() => {
     if (!data) return [];
@@ -79,12 +70,7 @@ export default function 주({ set, data }) {
         <SchedulerContainer>
           {dayList?.map((date, i) => (
             <Column key={date}>
-              <Frame
-                date={date}
-                dayCount={7}
-                i={i}
-                currentHourList={currentHourList}
-              />
+              <Frame date={date} dayCount={7} i={i} />
               <DataColumn
                 currentHourList={currentHourList}
                 data={list?.find((x) => x?.date === date)}

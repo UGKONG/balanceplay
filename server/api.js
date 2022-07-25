@@ -2449,23 +2449,23 @@ module.exports.getSchedule = (req, res) => {
     db.query(
       `
       SELECT 
-      a.ID, a.START, a.END, a.TITLE, a.CONTENTS, 
-      b.ID AS CALENDAR_ID,
-      b.NAME AS CALENDAR_NAME,
-      c.ID AS ROOM_ID,
-      c.NAME AS ROOM_NAME,
-      d.ID AS TEACHER_ID,
-      d.NAME AS TEACHER_NAME
+      a.ID, a.SCHEDULE_GROUP_ID, a.START, a.END, a.TITLE, a.CONTENTS, a.COUNT, a.WAIT_COUNT,
+      b.ID AS CALENDAR_ID, b.NAME AS CALENDAR_NAME,
+      c.ID AS ROOM_ID, c.NAME AS ROOM_NAME,
+      d.ID AS TEACHER_ID, d.NAME AS TEACHER_NAME,
+      COUNT(e.SCHEDULE_ID) AS RESERVATION_COUNT
       FROM tn_schedule a 
       LEFT JOIN tn_calendar b ON a.CALENDAR_ID = b.ID
       LEFT JOIN tn_room c ON a.ROOM_ID = c.ID
       LEFT JOIN tn_admin d ON a.TEACHER_ID = d.ID
+      LEFT JOIN tn_reservation e ON a.ID = e.SCHEDULE_ID
       WHERE a.CENTER_ID = ${centerId} 
       AND (${data?.calendar} = 0 OR a.CALENDAR_ID=${data?.calendar})
       AND (${data?.room} = 0 OR a.ROOM_ID=${data?.room})
       AND (${data?.teacher} = 0 OR a.TEACHER_ID=${data?.teacher})
       AND CONVERT(a.START, DATE) >= CONVERT('${data?.start}', DATE) 
       AND CONVERT(a.END, DATE) <= CONVERT('${data?.end}', DATE)
+      GROUP BY a.ID, e.SCHEDULE_ID
       ORDER BY a.START;
     `,
       (err, result) => {

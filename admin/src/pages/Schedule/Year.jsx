@@ -1,9 +1,11 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useContext } from 'react';
 import Styled from 'styled-components';
 import YearBox from './YearBox';
+import { Store } from './Scheduler';
 
-export default function 년({ data }) {
+export default function 년({}) {
   const yearList = useRef(new Array(12).fill(null));
+  const { list: data } = useContext(Store);
 
   const list = useCallback(
     (num) => {

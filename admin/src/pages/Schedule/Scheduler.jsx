@@ -1,17 +1,36 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  createContext,
+  useRef,
+} from 'react';
 import { AiOutlinePlus } from 'react-icons/ai';
+import Loading from '@/pages/Common/Loading';
 import Styled from 'styled-components';
 import useAxios from '%/useAxios';
+import useStore from '%/useStore';
 import Header from './Header';
 import Year from './Year';
 import Month from './Month';
 import Week from './Week';
 import Day from './Day';
-import Loading from '@/pages/Common/Loading';
+import Tooltip from './Tooltip';
+
+export const Store = createContext();
 
 export default function 타입컨텐츠({ active, setActive }) {
+  const timeout = useRef(null);
+  const startTime = useStore((x) => x?.setting?.START_TIME);
+  const endTime = useStore((x) => x?.setting?.END_TIME);
+  const colorList = useStore((x) => x?.colorList);
   const [isLoad, setIsLoad] = useState(true);
   const [list, setList] = useState([]);
+  const [isTooltip, setIsTooltip] = useState({
+    bool: false,
+    info: null,
+  });
 
   const getSchedule = useCallback(() => {
     if (!active || !active?.start || !active?.end) return;
@@ -23,6 +42,17 @@ export default function 타입컨텐츠({ active, setActive }) {
     });
   }, [active, setList]);
 
+  const currentHourList = useMemo(() => {
+    let tempArr = [];
+    let start = Number(startTime?.split(':')[0] ?? 0);
+    let end = Number(endTime?.split(':')[0] ?? 0);
+    let calc = end - start;
+    for (let i = start; i <= start + calc; i++) {
+      tempArr.push(i < 10 ? '0' + i : i);
+    }
+    return tempArr?.map((t) => String(t));
+  }, [startTime, endTime]);
+
   useEffect(() => {
     let interval;
     clearInterval(interval);
@@ -32,27 +62,40 @@ export default function 타입컨텐츠({ active, setActive }) {
   }, [active]);
 
   return (
-    <Container>
-      <Wrap>
-        <Header
-          active={active}
-          setActive={setActive}
-          getSchedule={getSchedule}
-        />
-        <SchedulerContainer>
-          {isLoad ? (
-            <Loading />
-          ) : (
-            <>
-              {active?.view === 1 && <Year set={active} data={list} />}
-              {active?.view === 2 && <Month set={active} data={list} />}
-              {active?.view === 3 && <Week set={active} data={list} />}
-              {active?.view === 4 && <Day set={active} data={list} />}
-            </>
-          )}
-        </SchedulerContainer>
-      </Wrap>
-    </Container>
+    <Store.Provider
+      value={{
+        currentHourList,
+        colorList,
+        active,
+        list,
+        isTooltip,
+        setIsTooltip,
+        timeout,
+      }}
+    >
+      <Container>
+        <Wrap>
+          <Header
+            active={active}
+            setActive={setActive}
+            getSchedule={getSchedule}
+          />
+          <SchedulerContainer>
+            {isLoad ? (
+              <Loading />
+            ) : (
+              <>
+                {active?.view === 1 && <Year />}
+                {active?.view === 2 && <Month />}
+                {active?.view === 3 && <Week />}
+                {active?.view === 4 && <Day />}
+                {isTooltip?.bool && <Tooltip />}
+              </>
+            )}
+          </SchedulerContainer>
+        </Wrap>
+      </Container>
+    </Store.Provider>
   );
 }
 

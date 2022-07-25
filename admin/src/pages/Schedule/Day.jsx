@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import Styled from 'styled-components';
 import useDate from '%/useDate';
 import useStore from '%/useStore';
@@ -6,10 +6,12 @@ import DataColumn from './DataColumn';
 import DateList from './DateList';
 import LeftLabel from './LeftLabel';
 import Frame from './Frame';
+import { Store } from './Scheduler';
 
-export default function 일({ set, data }) {
+export default function 일() {
   const startTime = useStore((x) => x?.setting?.START_TIME);
   const endTime = useStore((x) => x?.setting?.END_TIME);
+  const { active: set, list: data } = useContext(Store);
 
   const dayList = useMemo(() => {
     let date = new Date(set?.start);
@@ -29,7 +31,7 @@ export default function 일({ set, data }) {
     return tempArr?.map((t) => String(t));
   }, [startTime, endTime]);
 
-  const list = useMemo(() => {
+  const resultList = useMemo(() => {
     if (!data) return [];
 
     let validateFilter = data?.map((item) => {
@@ -68,7 +70,7 @@ export default function 일({ set, data }) {
   return (
     <Container>
       <Head>
-        <DateList list={list} />
+        <DateList list={resultList} />
       </Head>
       <Body>
         <LeftLabel currentHourList={currentHourList} />
@@ -83,7 +85,7 @@ export default function 일({ set, data }) {
               />
               <DataColumn
                 currentHourList={currentHourList}
-                data={list?.find((x) => x?.date === date)}
+                data={resultList?.find((x) => x?.date === date)}
               />
             </Column>
           ))}
