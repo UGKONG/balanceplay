@@ -2539,3 +2539,25 @@ module.exports.putReservation = (req, res) => {
     });
   });
 };
+// 스케줄 삭제
+module.exports.deleteSchedule = (req, res) => {
+  log(req);
+  const id = req?.params?.id;
+
+  dbConnect((db) => {
+    db.query(
+      `
+      DELETE FROM tn_schedule WHERE
+      ID = ${id};
+    `,
+      (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('스케줄 삭제에 실패하였습니다.'));
+        }
+        res.send(success(null));
+      },
+    );
+  });
+};

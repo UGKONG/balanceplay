@@ -89,7 +89,7 @@ export default function 타입컨텐츠({ active, setActive }) {
                 {active?.view === 2 && <Month />}
                 {active?.view === 3 && <Week />}
                 {active?.view === 4 && <Day />}
-                {isTooltip?.bool && <Tooltip />}
+                {isTooltip?.bool && <Tooltip getSchedule={getSchedule} />}
               </>
             )}
           </SchedulerContainer>

@@ -5,6 +5,13 @@ const store = create((set) => ({
   isLogin: null,
   setting: null,
   surveySendData: [],
+  confirmInfo: null,
+  // {
+  //   mainTitle: '',
+  //   subTitle: '',
+  //   yesFn: () => {},
+  //   setState: () => {},
+  // },
   colorList: [
     '#666',
     '#f05a5a',

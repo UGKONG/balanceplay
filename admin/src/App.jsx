@@ -6,6 +6,7 @@ import useTitle from '%/useTitle';
 import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 import useStore from '%/useStore';
+import Confirm from '%/Confirm';
 
 // Components
 import Header from '@/pages/Common/Header';
@@ -31,9 +32,10 @@ import Setting from '@/pages/Setting';
 import Payment from '@/pages/Payment';
 
 export default function 앱() {
-  const dispatch = useStore((x) => x.setState);
-  const isLogin = useStore((x) => x.isLogin);
-  const isFullPage = useStore((x) => x.isFullPage);
+  const dispatch = useStore((x) => x?.setState);
+  const isLogin = useStore((x) => x?.isLogin);
+  const isFullPage = useStore((x) => x?.isFullPage);
+  const confirmInfo = useStore((x) => x?.confirmInfo);
   const location = useLocation();
   const navigate = useNavigate();
   const [isSession, setIsSession] = useState(false);
@@ -169,6 +171,7 @@ export default function 앱() {
           )}
         </Footer>
       </Container1>
+      <Confirm data={confirmInfo} />
     </>
   );
 }

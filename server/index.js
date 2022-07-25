@@ -157,6 +157,7 @@ const {
   getSchedule,
   getReservation,
   putReservation,
+  deleteSchedule,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -226,6 +227,7 @@ app.get('/api/memberTestResult/:testId', getMemberTestResult);
 app.get('/api/payment/:userId/:voucherId', getPayment);
 app.post('/api/payment', postPayment);
 app.get('/api/schedule', getSchedule);
+app.delete('/api/schedule/:id', deleteSchedule);
 app.get('/api/reservation/:id', getReservation);
 app.put('/api/reservation/:id/:status', putReservation);
 

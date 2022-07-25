@@ -64,6 +64,10 @@ const Container = Styled.article`
 `;
 const Name = Styled.p`
   width: 50px;
+  padding-left: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 const Status = Styled.p`
   
@@ -79,8 +83,9 @@ const StatusBtns = Styled.section`
   align-items: center;
   justify-content: flex-end;
   & > span {
+    width: 50px;
     flex: 1;
-    padding-right: 8px;
+    padding: 0 4px 0 2px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

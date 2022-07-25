@@ -3,9 +3,12 @@ import Styled from 'styled-components';
 import Loading from '@/pages/Common/Loading';
 import ReservationUserItem from './ReservationUserItem';
 import useAxios from '%/useAxios';
+import useStore from '%/useStore';
+import useAlert from '%/useAlert';
 import { Store } from './Scheduler';
 
-export default function 툴팁() {
+export default function 툴팁({ getSchedule }) {
+  const dispatch = useStore((x) => x?.setState);
   const { colorList, isTooltip, setIsTooltip, timeout } = useContext(Store);
   const [isLoading, setIsLoading] = useState(true);
   const [userList, setUserList] = useState([]);
@@ -35,6 +38,16 @@ export default function 툴팁() {
     return { left, top, translate };
   }, [isTooltip?.left, isTooltip?.top, isTooltip?.translate]);
 
+  const memberCount = useMemo(
+    () => ({
+      total: userList?.length,
+      reserv: userList?.filter((x) => x?.STATUS === 1)?.length,
+      yes: userList?.filter((x) => x?.STATUS === 2)?.length,
+      no: userList?.filter((x) => x?.STATUS === 3)?.length,
+    }),
+    [userList],
+  );
+
   const getUser = () => {
     setIsLoading(true);
     useAxios.get('/reservation/' + data?.ID).then(({ data }) => {
@@ -55,15 +68,26 @@ export default function 툴팁() {
   const scheduleModify = () => {};
 
   const scheduleDelete = () => {
-    let ask = confirm('해당 스케줄을 삭제하시겠습니까?');
-    if (!ask) return;
-    // useAxios.delete('/' + data?.ID);
+    const mainTitle = (data?.TITLE ?? '해당 ') + ' 수업을 삭제하시겠습니까?';
+    const subTitle = '수업에 대한 정보가 삭제됩니다.';
+    const yesFn = () => {
+      useAxios.delete('/schedule/' + data?.ID).then(({ data }) => {
+        if (!data?.result) {
+          useAlert.error('알림', data?.msg);
+          return;
+        }
+        useAlert.success('알림', '수업이 삭제되었습니다.');
+        getSchedule();
+      });
+    };
+
+    dispatch('confirmInfo', { mainTitle, subTitle, yesFn });
   };
 
   useEffect(() => {
     if (!data || !isOn) return;
     getUser();
-    return () => getUser;
+    return () => getUser();
   }, [data, isOn]);
 
   return (
@@ -93,15 +117,22 @@ export default function 툴팁() {
           </Row>
           <Title>{data?.TITLE}</Title>
           <Row>
-            날짜: {DATE[0]}년 {DATE[1]}월 {DATE[2]}일
+            날짜: {DATE[0]}년 {DATE[1]}월 {DATE[2]}일 {START_TIME} ~ {END_TIME}
           </Row>
           <Row>
-            시간: {START_TIME} ~ {END_TIME}
+            정원: {data?.COUNT}명 / 대기: {data?.WAIT_COUNT}명
           </Row>
           <Row>강사: {data?.TEACHER_NAME}</Row>
           <Row style={{ marginTop: 5 }}>{data?.CONTENTS ?? '-'}</Row>
         </Info>
-        <ListTitle okCount={userList?.length}>예약 회원</ListTitle>
+        <ListTitle>
+          <TotalCount>총: {memberCount?.total}명</TotalCount>
+          <StatusCount>
+            <span>예약: {memberCount?.reserv}명</span>
+            <span>출석: {memberCount?.yes}명</span>
+            <span>결석: {memberCount?.no}명</span>
+          </StatusCount>
+        </ListTitle>
         <List>
           {isLoading ? (
             <Loading />
@@ -159,6 +190,7 @@ const TooltipWrap = Styled.div`
   }
 `;
 const ModifyBtnContainer = Styled.div`
+  border: 1px solid #fff;
   justify-content: flex-end;
   position: absolute;
   right: 0;
@@ -171,7 +203,6 @@ const ModifyBtnContainer = Styled.div`
 `;
 const ModifyBtn = Styled.button`
   height: 30px;
-  margin-left: 5px;
   border: none;
 `;
 const DeleteBtn = Styled.button`
@@ -202,16 +233,20 @@ const Info = Styled.section`
 const ListTitle = Styled.p`
   width: 100%;
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   margin-bottom: 6px;
   position: relative;
-
-  &::after {
-    content: '${(x) => x?.okCount ?? 0}명';
-    font-size: 12px;
-    position: absolute;
-    bottom: 0;
-    right: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+`;
+const TotalCount = Styled.span`
+  font-size: 13px;
+  font-weight: 500;
+`;
+const StatusCount = Styled.span`
+  & > span:not(& > span:last-of-type)::after {
+    content: ' / ';
   }
 `;
 const List = Styled.section`
