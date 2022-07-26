@@ -11,7 +11,7 @@ module.exports = {
       '@': _ + '/src/',
     },
   },
-  entry: _ + '/src/index.jsx',
+  entry: _ + '/src/index.js',
   output: {
     path: _ + '/../build/admin',
     filename: 'index.js',

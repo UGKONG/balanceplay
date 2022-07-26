@@ -2449,7 +2449,7 @@ module.exports.getSchedule = (req, res) => {
     db.query(
       `
       SELECT 
-      a.ID, a.SCHEDULE_GROUP_ID, a.START, a.END, a.TITLE, a.CONTENTS, a.COUNT, a.WAIT_COUNT,
+      a.ID, a.SCHEDULE_GROUP_ID, a.TYPE, a.START, a.END, a.TITLE, a.MEMO, a.COUNT, a.WAIT_COUNT,
       b.ID AS CALENDAR_ID, b.NAME AS CALENDAR_NAME,
       c.ID AS ROOM_ID, c.NAME AS ROOM_NAME,
       d.ID AS TEACHER_ID, d.NAME AS TEACHER_NAME,
@@ -2513,20 +2513,11 @@ module.exports.putReservation = (req, res) => {
   log(req);
   const reservationId = req?.params?.id;
   const status = req?.params?.status;
-  let query = '';
-
-  if (status == 4) {
-    // 제거
-    query = `
-      DELETE FROM tn_reservation WHERE ID = '${reservationId}';
-    `;
-  } else {
-    query = `
-      UPDATE tn_reservation SET
-      STATUS = ${status}
-      WHERE ID = '${reservationId}';
-    `;
-  }
+  let query = `
+    UPDATE tn_reservation SET
+    STATUS = ${status}
+    WHERE ID = '${reservationId}';
+  `;
 
   dbConnect((db) => {
     db.query(query, (err, result) => {
@@ -2536,6 +2527,24 @@ module.exports.putReservation = (req, res) => {
         return res.send(fail('예약상태 변경에 실패하였습니다.'));
       }
       res.send(success(result));
+    });
+  });
+};
+// 회원 예약 취소
+module.exports.deleteReservation = (req, res) => {
+  log(req);
+  const reservationId = req?.params?.id;
+  let query = `
+    DELETE FROM tn_reservation WHERE ID = '${reservationId}';
+  `;
+  dbConnect((db) => {
+    db.query(query, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('예약 취소에 실패하였습니다.'));
+      }
+      res.send(success(null));
     });
   });
 };
@@ -2559,5 +2568,51 @@ module.exports.deleteSchedule = (req, res) => {
         res.send(success(null));
       },
     );
+  });
+};
+// 기간 중복 검사
+module.exports.duplicateFilter = (list, target) => {};
+// 스케줄 정보 저장
+module.exports.postSchedule = (req, res) => {
+  log(req);
+  const centerId = req?.session?.isLogin?.CENTER_ID;
+  const data = req?.body;
+  return res.send(data);
+
+  let sql = `
+    INSERT tn_schedule_group () VALUES ();
+    (CENTER_ID, SCHEDULE_GROUP_ID)
+  `;
+  dbConnect((db) => {
+    db.query(sql, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('스케줄 저장에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    });
+  });
+};
+// 스케줄 정보 수정
+module.exports.putSchedule = (req, res) => {
+  log(req);
+  const centerId = req?.session?.isLogin?.CENTER_ID;
+  const data = req?.body;
+  return res.send(data);
+
+  let sql = `
+    UPDATE INTO tn_shcedule_group
+    (CENTER_ID, SCHEDULE_GROUP_ID)
+  `;
+  dbConnect((db) => {
+    db.query(sql, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('스케줄 저장에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    });
   });
 };

@@ -7,8 +7,15 @@ export default function 스케줄박스({ data }) {
   if (!data) return null;
   const [zIndex, setZIndex] = useState(20);
   const currentStartTime = useStore((x) => x?.setting?.START_TIME);
-  const { currentHourList, colorList, isTooltip, setIsTooltip, timeout } =
-    useContext(Store);
+  const {
+    roomList,
+    currentHourList,
+    colorList,
+    isTooltip,
+    setIsTooltip,
+    timeout,
+    setWriteInfo,
+  } = useContext(Store);
 
   const { DATE, START_TIME, END_TIME } = useMemo(
     () => ({
@@ -38,7 +45,10 @@ export default function 스케줄박스({ data }) {
     };
   }, [data]);
 
-  const bgColor = useMemo(() => colorList[data?.ROOM_ID], [colorList, data]);
+  const bg = useMemo(() => {
+    let idx = roomList?.findIndex((x) => x?.ID === Number(data?.ROOM_ID));
+    return colorList[idx];
+  }, [colorList, data]);
 
   const w = useMemo(() => {
     if (!data?.GROUP_ID || !data?.GROUP_COUNT) return 100;
@@ -87,6 +97,16 @@ export default function 스케줄박스({ data }) {
     setZIndex(20);
   };
 
+  const click = () => {
+    setWriteInfo({
+      ...data,
+      START_DATE: data?.START?.split(' ')[0],
+      START_TIME: data?.START?.split(' ')[1],
+      END_DATE: data?.END?.split(' ')[0],
+      END_TIME: data?.END?.split(' ')[1],
+    });
+  };
+
   const JSX = useMemo(
     () => (
       <Container
@@ -97,8 +117,9 @@ export default function 스케줄박스({ data }) {
         style={{ ...heightTop }}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
+        onClick={click}
       >
-        <Wrap bg={bgColor}>
+        <Wrap bg={bg}>
           <Info>
             <Head>
               <Count>
@@ -110,7 +131,7 @@ export default function 스케줄박스({ data }) {
         </Wrap>
       </Container>
     ),
-    [w, data, bgColor, zIndex, heightTop],
+    [w, data, bg, zIndex, heightTop],
   );
 
   return JSX;

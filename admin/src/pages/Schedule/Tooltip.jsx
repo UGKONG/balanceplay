@@ -9,7 +9,8 @@ import { Store } from './Scheduler';
 
 export default function 툴팁({ getSchedule }) {
   const dispatch = useStore((x) => x?.setState);
-  const { colorList, isTooltip, setIsTooltip, timeout } = useContext(Store);
+  const { roomList, colorList, isTooltip, setIsTooltip, timeout } =
+    useContext(Store);
   const [isLoading, setIsLoading] = useState(true);
   const [userList, setUserList] = useState([]);
 
@@ -28,10 +29,10 @@ export default function 툴팁({ getSchedule }) {
     };
   }, [data]);
 
-  const bgColor = useMemo(
-    () => colorList[data?.ROOM_ID] || null,
-    [colorList, data],
-  );
+  const bg = useMemo(() => {
+    let idx = roomList?.findIndex((x) => x?.ID === Number(data?.ROOM_ID));
+    return colorList[idx];
+  }, [colorList, data]);
 
   const positionStyle = useMemo(() => {
     let { left, top, translate } = isTooltip;
@@ -93,12 +94,12 @@ export default function 툴팁({ getSchedule }) {
   return (
     <Container po={positionStyle}>
       <TooltipWrap
-        bg={bgColor}
+        bg={bg}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >
         <ModifyBtnContainer
-          bg={bgColor}
+          bg={bg}
           style={{ width: userList?.length > 0 ? '100%' : 'auto' }}
         >
           {userList?.length > 0 ? (

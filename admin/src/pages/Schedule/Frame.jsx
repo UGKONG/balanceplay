@@ -3,14 +3,9 @@ import Styled from 'styled-components';
 import useDate from '%/useDate';
 import { Store } from './Scheduler';
 
-export default function 스케줄러_프레임({
-  date,
-  i,
-  // currentHourList,
-  dayCount,
-}) {
+export default function 스케줄러_프레임({ date, i, dayCount }) {
   const [now, setNow] = useState(useDate());
-  const { currentHourList } = useContext(Store);
+  const { currentHourList, setWriteInfo } = useContext(Store);
 
   const getDate = () => {
     if (i !== 0) return;
@@ -29,7 +24,15 @@ export default function 스케줄러_프레임({
   }, [now, currentHourList]);
 
   const click = (date, time) => {
-    console.log(date, time);
+    let defaultEndTime = new Date(date + ' ' + time);
+    defaultEndTime?.setHours(defaultEndTime?.getHours() + 1);
+    defaultEndTime = useDate(defaultEndTime, 'time');
+    setWriteInfo({
+      START_DATE: date,
+      END_DATE: date,
+      START_TIME: time,
+      END_TIME: defaultEndTime,
+    });
   };
 
   useEffect(getDate, []);

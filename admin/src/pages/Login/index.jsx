@@ -6,13 +6,13 @@ import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 import logo from '~/images/logo.png';
 
-export default function 로그인페이지 () {
+export default function 로그인페이지() {
   const navigate = useNavigate();
-  const dispatch = useStore(x => x.setState);
+  const dispatch = useStore((x) => x.setState);
   const [id, setId] = useState('');
   const [pw, setPw] = useState('');
 
-  const submit = e => {
+  const submit = (e) => {
     e.preventDefault();
     useAxios.post('/adminLogin', { id, pw }).then(({ data }) => {
       if (!data?.result || adminData) {
@@ -26,18 +26,30 @@ export default function 로그인페이지 () {
       navigate('/');
     });
     return false;
-  }
+  };
 
   return (
     <Wrap>
-      <Logo src={logo} alt='로고' />
+      <Logo src={logo} alt="로고" />
       <Form onSubmit={submit}>
-        <Input field='id' type='text' placeholder='아이디' onChange={e => setId(e.target.value)} />
-        <Input field='pw' type='password' placeholder='비밀번호' onChange={e => setPw(e.target.value)} />
-        <Submit type='submit'>전 송</Submit>
+        <Input
+          className="id"
+          field="id"
+          type="text"
+          placeholder="아이디"
+          onChange={(e) => setId(e.target.value)}
+        />
+        <Input
+          className="pw"
+          field="pw"
+          type="password"
+          placeholder="비밀번호"
+          onChange={(e) => setPw(e.target.value)}
+        />
+        <Submit type="submit">전 송</Submit>
       </Form>
     </Wrap>
-  )
+  );
 }
 
 const Wrap = Styled.main`
@@ -75,11 +87,19 @@ const Input = Styled.input`
   padding: 0 16px !important;
   height: 50px !important;
   border-radius: 10px !important;
-  border-top-left-radius: ${x => x.field === 'pw' && 0} !important;
-  border-top-right-radius: ${x => x.field === 'pw' && 0} !important;
-  border-bottom-left-radius: ${x => x.field === 'id' && 0} !important;
-  border-bottom-right-radius: ${x => x.field === 'id' && 0} !important;
-  border-top: ${x => x.field === 'pw' && 'none'} !important;
+  border-top-left-radius: ${(x) => x.field === 'pw' && 0} !important;
+  border-top-right-radius: ${(x) => x.field === 'pw' && 0} !important;
+  border-bottom-left-radius: ${(x) => x.field === 'id' && 0} !important;
+  border-bottom-right-radius: ${(x) => x.field === 'id' && 0} !important;
+  &.id {
+    border-bottom: 0;
+  }
+  &.id:focus + &.pw {
+    border-top: 0;
+  }
+  &.pw {
+    border-top: 1px solid #ddd;
+  }
 `;
 const Submit = Styled.button`
   border-radius: 10px !important;

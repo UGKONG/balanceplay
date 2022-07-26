@@ -1,0 +1,27 @@
+
+      import API from "!../admin/node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js";
+      import domAPI from "!../admin/node_modules/style-loader/dist/runtime/styleDomAPI.js";
+      import insertFn from "!../admin/node_modules/style-loader/dist/runtime/insertBySelector.js";
+      import setAttributes from "!../admin/node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js";
+      import insertStyleElement from "!../admin/node_modules/style-loader/dist/runtime/insertStyleElement.js";
+      import styleTagTransformFn from "!../admin/node_modules/style-loader/dist/runtime/styleTagTransform.js";
+      import content, * as namedExport from "!!../admin/node_modules/css-loader/dist/cjs.js!../admin/node_modules/sass-loader/dist/cjs.js!./semantic.css";
+      
+      
+
+var options = {};
+
+options.styleTagTransform = styleTagTransformFn;
+options.setAttributes = setAttributes;
+
+      options.insert = insertFn.bind(null, "head");
+    
+options.domAPI = domAPI;
+options.insertStyleElement = insertStyleElement;
+
+var update = API(content, options);
+
+
+
+export * from "!!../admin/node_modules/css-loader/dist/cjs.js!../admin/node_modules/sass-loader/dist/cjs.js!./semantic.css";
+       export default content && content.locals ? content.locals : undefined;

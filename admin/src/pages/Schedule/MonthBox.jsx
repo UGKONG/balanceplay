@@ -4,9 +4,13 @@ import { Store } from './Scheduler';
 
 export default function 스케줄박스({ data }) {
   if (!data) return null;
-  const { colorList, isTooltip, setIsTooltip, timeout } = useContext(Store);
+  const { roomList, colorList, isTooltip, setIsTooltip, timeout } =
+    useContext(Store);
 
-  const bg = useMemo(() => colorList[data?.ROOM_ID], [colorList, data]);
+  const bg = useMemo(() => {
+    let idx = roomList?.findIndex((x) => x?.ID === Number(data?.ROOM_ID));
+    return colorList[idx];
+  }, [colorList, data]);
 
   const hour = useMemo(() => {
     let time = data?.START?.split(' ')[1];

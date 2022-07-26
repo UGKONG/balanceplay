@@ -1,6 +1,5 @@
 import React from 'react';
 import Styled from 'styled-components';
-import { IoCloseOutline } from 'react-icons/io5';
 import useStore from '%/useStore';
 
 export default function 확인창({ data }) {
@@ -19,10 +18,7 @@ export default function 확인창({ data }) {
     <All>
       <Background onClick={close} />
       <Container>
-        <Title>
-          {data?.mainTitle ?? '제목'}
-          <CloseBtn onClick={close} />
-        </Title>
+        <Title>{data?.mainTitle ?? '제목'}</Title>
         <SubTitle>{data?.subTitle ?? '서브제목'}</SubTitle>
         <BtnContainer>
           <YesBtn onClick={yesClick}>확인</YesBtn>
@@ -56,26 +52,11 @@ const Container = Styled.article`
   width: 28%;
   background-color: #efefef;
 `;
-const CloseBtn = Styled(IoCloseOutline)`
-  width: 28px;
-  height: 28px;
-  color: #666;
-  position: absolute;
-  top: 0;
-  right: 0;
-  cursor: pointer;
-  &:hover {
-    color: #444;
-  }
-  &:active {
-    color: #222;
-  }
-`;
 const Title = Styled.div`
   font-size: 16px;
   font-weight: 500;
   color: #333;
-  padding-top: 30px;
+  padding-top: 6px;
   position: relative;
 `;
 const SubTitle = Styled.div`

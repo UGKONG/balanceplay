@@ -11,12 +11,14 @@ import Loading from '@/pages/Common/Loading';
 import Styled from 'styled-components';
 import useAxios from '%/useAxios';
 import useStore from '%/useStore';
+import useDate from '%/useDate';
 import Header from './Header';
 import Year from './Year';
 import Month from './Month';
 import Week from './Week';
 import Day from './Day';
 import Tooltip from './Tooltip';
+import WriteScheduleModal from './WriteScheduleModal';
 
 export const Store = createContext();
 
@@ -27,10 +29,12 @@ export default function 타입컨텐츠({ active, setActive }) {
   const colorList = useStore((x) => x?.colorList);
   const [isLoad, setIsLoad] = useState(true);
   const [list, setList] = useState([]);
+  const [writeInfo, setWriteInfo] = useState(null);
   const [isTooltip, setIsTooltip] = useState({
     bool: false,
     info: null,
   });
+  const [roomList, setRoomList] = useState([]);
 
   const getSchedule = useCallback(() => {
     if (!active || !active?.start || !active?.end) return;
@@ -41,6 +45,13 @@ export default function 타입컨텐츠({ active, setActive }) {
       setList(data?.data);
     });
   }, [active, setList]);
+
+  const getRoomList = () => {
+    useAxios.get('/room').then(({ data }) => {
+      if (!data?.result || !data?.data) return setRoomList([]);
+      setRoomList(data?.data);
+    });
+  };
 
   const currentHourList = useMemo(() => {
     let tempArr = [];
@@ -53,6 +64,19 @@ export default function 타입컨텐츠({ active, setActive }) {
     return tempArr?.map((t) => String(t));
   }, [startTime, endTime]);
 
+  const createSchedule = () => {
+    let today = new Date();
+    today?.setHours(today?.getHours() + 1);
+    today?.setMinutes(0);
+    today?.setSeconds(0);
+    today?.setMilliseconds(0);
+    let START_TIME = useDate(today, 'time');
+    today?.setHours(today?.getHours() + 1);
+    let END_TIME = useDate(today, 'time');
+    setWriteInfo({ START_TIME, END_TIME });
+  };
+
+  useEffect(getRoomList, []);
   useEffect(() => {
     let interval;
     clearInterval(interval);
@@ -64,6 +88,7 @@ export default function 타입컨텐츠({ active, setActive }) {
   return (
     <Store.Provider
       value={{
+        roomList,
         currentHourList,
         colorList,
         active,
@@ -71,6 +96,8 @@ export default function 타입컨텐츠({ active, setActive }) {
         isTooltip,
         setIsTooltip,
         timeout,
+        writeInfo,
+        setWriteInfo,
       }}
     >
       <Container>
@@ -90,6 +117,15 @@ export default function 타입컨텐츠({ active, setActive }) {
                 {active?.view === 3 && <Week />}
                 {active?.view === 4 && <Day />}
                 {isTooltip?.bool && <Tooltip getSchedule={getSchedule} />}
+                <CreateBtn onClick={createSchedule}>
+                  <PlusIcon />
+                </CreateBtn>
+                {writeInfo && (
+                  <WriteScheduleModal
+                    currentData={writeInfo}
+                    setCurrentData={setWriteInfo}
+                  />
+                )}
               </>
             )}
           </SchedulerContainer>

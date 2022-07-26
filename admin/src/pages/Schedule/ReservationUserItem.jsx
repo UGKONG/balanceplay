@@ -3,6 +3,7 @@ import { IoOptionsOutline, IoCloseOutline } from 'react-icons/io5';
 import Styled from 'styled-components';
 import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
+import useStore from '%/useStore';
 
 export default function 예약회원_아이템({ data, getUser }) {
   const btns = useRef([
@@ -10,15 +11,33 @@ export default function 예약회원_아이템({ data, getUser }) {
     { id: 3, name: '결석', color: '#f13535' },
     { id: 4, name: '취소', color: '#777777' },
   ]);
+  const dispatch = useStore((x) => x?.setState);
   const [isOption, setIsOption] = useState(false);
 
-  const statusChange = (status, statusName) => {
+  const reservCancel = () => {
+    useAxios.delete('/reservation/' + data?.ID).then(({ data }) => {
+      if (!data?.result) return useAlert.error('알림', data?.msg);
+      useAlert.success('알림', data?.USER_NAME + '님의 예약이 취소되었습니다.');
+    });
+  };
+  const reservStatusChange = (status, statusName) => {
     useAxios.put('/reservation/' + data?.ID + '/' + status).then(({ data }) => {
       if (!data?.result) return useAlert.error('알림', data?.msg);
       useAlert.success('알림', statusName + '되었습니다.');
       setIsOption(false);
       getUser();
     });
+  };
+  const statusChange = (status, statusName) => {
+    if (status === 4) {
+      dispatch('confirmInfo', {
+        mainTitle: data?.USER_NAME + '님의 예약을 취소하시겠습니까?',
+        subTitle: '이용권이 차감되지 않습니다.',
+        yesFn: () => reservCancel(),
+      });
+    } else {
+      reservStatusChange(status, statusName);
+    }
   };
 
   return (
