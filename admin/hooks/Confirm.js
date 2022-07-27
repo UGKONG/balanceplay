@@ -60,9 +60,10 @@ const Title = Styled.div`
   position: relative;
 `;
 const SubTitle = Styled.div`
-  font-size: 12px;
-  color: #666;
-  margin-top: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #ff0000;
+  margin-top: 10px;
 `;
 const BtnContainer = Styled.div`
   margin-top: 30px;

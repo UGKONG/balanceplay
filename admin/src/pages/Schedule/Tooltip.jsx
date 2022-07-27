@@ -6,11 +6,18 @@ import useAxios from '%/useAxios';
 import useStore from '%/useStore';
 import useAlert from '%/useAlert';
 import { Store } from './Scheduler';
+import { BsChevronRight } from 'react-icons/bs';
 
 export default function 툴팁({ getSchedule }) {
   const dispatch = useStore((x) => x?.setState);
-  const { roomList, colorList, isTooltip, setIsTooltip, timeout } =
-    useContext(Store);
+  const {
+    roomList,
+    colorList,
+    isTooltip,
+    setIsTooltip,
+    timeout,
+    setWriteInfo,
+  } = useContext(Store);
   const [isLoading, setIsLoading] = useState(true);
   const [userList, setUserList] = useState([]);
 
@@ -63,26 +70,70 @@ export default function 툴팁({ getSchedule }) {
   };
 
   const onMouseLeave = () => {
-    setIsTooltip((prev) => ({ ...prev, bool: false, info: null }));
+    clearTimeout(timeout.current);
+
+    if (!isTooltip?.bool) return;
+    timeout.current = setTimeout(() => {
+      setIsTooltip((prev) => ({ ...prev, bool: false, info: null }));
+    }, 300);
   };
 
-  const scheduleModify = () => {};
+  const scheduleModify = () => {
+    setWriteInfo({
+      ...data,
+      START_DATE: data?.START?.split(' ')[0],
+      START_TIME: data?.START?.split(' ')[1],
+      END_DATE: data?.END?.split(' ')[0],
+      END_TIME: data?.END?.split(' ')[1],
+    });
+  };
 
-  const scheduleDelete = () => {
-    const mainTitle = (data?.TITLE ?? '해당 ') + ' 수업을 삭제하시겠습니까?';
-    const subTitle = '수업에 대한 정보가 삭제됩니다.';
-    const yesFn = () => {
-      useAxios.delete('/schedule/' + data?.ID).then(({ data }) => {
-        if (!data?.result) {
-          useAlert.error('알림', data?.msg);
-          return;
-        }
-        useAlert.success('알림', '수업이 삭제되었습니다.');
-        getSchedule();
-      });
-    };
+  // 해당 스케줄만 삭제
+  const thisScheduleDelete = () => ({
+    mainTitle: '해당 스케줄만 삭제하시겠습니까?',
+    subTitle: '※ 삭제 시 예약된 회원은 모두 예약이 취소됩니다.',
+  });
+  // 해당 스케줄 이후 모든 반복 스케줄 삭제
+  const nextScheduleAllDelete = () => ({
+    mainTitle: '해당 스케줄을 포함하여 이후 반복 스케줄을 삭제하시겠습니까?',
+    subTitle: '※ 삭제 시 예약된 회원은 모두 예약이 취소됩니다.',
+  });
+  // 스케줄 삭제
+  const scheduleAllDelete = () => ({
+    mainTitle: '해당 스케줄을 포함하여 반복된 모든 스케줄을 삭제하시겠습니까?',
+    subTitle: '※ 삭제 시 예약된 회원은 모두 예약이 취소됩니다.',
+  });
 
-    dispatch('confirmInfo', { mainTitle, subTitle, yesFn });
+  // 스케줄 삭제 타입 분할 로직
+  const scheduleDelete = (type) => {
+    if (type !== 'this' && type !== 'next' && type !== 'all') {
+      return console.log('this || next || all');
+    }
+
+    let confirmInfo = null;
+    if (type === 'this') {
+      confirmInfo = thisScheduleDelete();
+    } else if (type === 'next') {
+      confirmInfo = nextScheduleAllDelete();
+    } else if (type === 'all') {
+      confirmInfo = scheduleAllDelete();
+    }
+
+    dispatch('confirmInfo', {
+      mainTitle: confirmInfo?.mainTitle,
+      subTitle: confirmInfo?.subTitle,
+      yesFn: () => {
+        let query = `id=${data?.ID}&groupId=${data?.SCHEDULE_GROUP_ID}&start=${data?.START}`;
+        useAxios.delete(`/schedule/${type}?${query}`).then(({ data }) => {
+          if (!data?.result) {
+            useAlert.error('알림', data?.msg);
+            return;
+          }
+          useAlert.success('알림', '삭제되었습니다.');
+          getSchedule();
+        });
+      },
+    });
   };
 
   useEffect(() => {
@@ -98,57 +149,95 @@ export default function 툴팁({ getSchedule }) {
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >
-        <ModifyBtnContainer
-          bg={bg}
-          style={{ width: userList?.length > 0 ? '100%' : 'auto' }}
-        >
-          {userList?.length > 0 ? (
-            <NoticeMsg>예약자가 존재하여 수정이 불가합니다.</NoticeMsg>
-          ) : (
-            <>
-              <ModifyBtn onClick={scheduleModify}>수정</ModifyBtn>
-              <DeleteBtn onClick={scheduleDelete}>삭제</DeleteBtn>
-            </>
-          )}
+        <ModifyBtnContainer bg={bg}>
+          <NoticeMsg>
+            {data?.CALENDAR_NAME}{' '}
+            {data?.ROOM_NAME ? ' / ' + data?.ROOM_NAME : ''}
+          </NoticeMsg>
+          <ModifyBtn onClick={scheduleModify}>수정</ModifyBtn>
+          <DeleteBtn>
+            삭제 <RightArrowIcon />
+            <DeleteOptionBtnContainer>
+              <DeleteOptionBtn onClick={() => scheduleDelete('this')}>
+                해당 스케줄만 삭제
+              </DeleteOptionBtn>
+              <DeleteOptionBtn onClick={() => scheduleDelete('next')}>
+                이후 반복된 스케줄 전체삭제
+              </DeleteOptionBtn>
+              <DeleteOptionBtn onClick={() => scheduleDelete('all')}>
+                반복된 스케줄 전체삭제
+              </DeleteOptionBtn>
+            </DeleteOptionBtnContainer>
+          </DeleteBtn>
         </ModifyBtnContainer>
-        <Info>
-          <Row>
+        <Info calendarType={data?.CALENDAR_TYPE}>
+          {/* <Row>
             <Left>{data?.CALENDAR_NAME}</Left>
             <Right>{data?.ROOM_NAME}</Right>
-          </Row>
+          </Row> */}
           <Title>{data?.TITLE}</Title>
           <Row>
             날짜: {DATE[0]}년 {DATE[1]}월 {DATE[2]}일 {START_TIME} ~ {END_TIME}
           </Row>
-          <Row>
-            정원: {data?.COUNT}명 / 대기: {data?.WAIT_COUNT}명
-          </Row>
-          <Row>강사: {data?.TEACHER_NAME}</Row>
-          <Row style={{ marginTop: 5 }}>{data?.CONTENTS ?? '-'}</Row>
-        </Info>
-        <ListTitle>
-          <TotalCount>총: {memberCount?.total}명</TotalCount>
-          <StatusCount>
-            <span>예약: {memberCount?.reserv}명</span>
-            <span>출석: {memberCount?.yes}명</span>
-            <span>결석: {memberCount?.no}명</span>
-          </StatusCount>
-        </ListTitle>
-        <List>
-          {isLoading ? (
-            <Loading />
-          ) : userList?.length === 0 ? (
-            <NotItem>예약회원이 없습니다.</NotItem>
-          ) : (
-            userList?.map((item) => (
-              <ReservationUserItem
-                key={item?.ID}
-                data={item}
-                getUser={getUser}
-              />
-            ))
+          {data?.CALENDAR_TYPE === 1 && (
+            <>
+              <Row>
+                정원: {data?.COUNT}명 / 대기: {data?.WAIT_COUNT}명
+              </Row>
+              <Row>강사: {data?.TEACHER_NAME}</Row>
+              {data?.MEMO && (
+                <Row
+                  style={{
+                    marginTop: 5,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {data?.MEMO}
+                </Row>
+              )}
+            </>
           )}
-        </List>
+          {data?.IS_REPEAT > 0 && (
+            <Row
+              style={{
+                marginTop: 5,
+                fontSize: 12,
+                textDecoration: 'underline',
+              }}
+            >
+              ※ 해당 스케줄은 반복 생성된 스케줄입니다.
+            </Row>
+          )}
+        </Info>
+        {data?.CALENDAR_TYPE === 1 && (
+          <>
+            <ListTitle>
+              <TotalCount>총: {memberCount?.total}명</TotalCount>
+              <StatusCount>
+                <span>예약: {memberCount?.reserv}명</span>
+                <span>출석: {memberCount?.yes}명</span>
+                <span>결석: {memberCount?.no}명</span>
+              </StatusCount>
+            </ListTitle>
+            <List>
+              {isLoading ? (
+                <Loading />
+              ) : userList?.length === 0 ? (
+                <NotItem>예약회원이 없습니다.</NotItem>
+              ) : (
+                userList?.map((item) => (
+                  <ReservationUserItem
+                    key={item?.ID}
+                    data={item}
+                    getUser={getUser}
+                  />
+                ))
+              )}
+            </List>
+          </>
+        )}
       </TooltipWrap>
     </Container>
   );
@@ -175,7 +264,7 @@ const TooltipWrap = Styled.div`
   position: relative;
   min-width: 250px;
   max-width: 400px;
-  min-height: 300px;
+  min-height: 100px;
   max-height: 500px;
   color: #fff;
   padding: 6px 9px 9px;
@@ -196,7 +285,7 @@ const ModifyBtnContainer = Styled.div`
   position: absolute;
   right: 0;
   bottom: calc(100% + 5px);
-  width: auto;
+  width: 100%;
   height: 40px;
   border-radius: 5px;
   padding: 0 5px;
@@ -205,12 +294,73 @@ const ModifyBtnContainer = Styled.div`
 const ModifyBtn = Styled.button`
   height: 30px;
   border: none;
+  white-space: nowrap;
+  padding: 0 8px !important;
+  background-color: transparent !important;
+  /* background-color: #666666 !important; */
+  &:hover {
+    color: #eeeeee !important;
+    /* background-color: #5c5c5c !important; */
+  }
+  &:focus {
+    box-shadow: none !important;
+  }
+  /* &:active {
+    background-color: #505050 !important;
+  } */
 `;
-const DeleteBtn = Styled.button`
+const DeleteBtn = Styled.section`
+  font-size: 13px;
+  font-weight: 400;
+  color: #fff;
+  border-radius: 3px;
+  white-space: nowrap;
+  padding: 0 8px !important;
+  line-height: 30px;
+  cursor: pointer;
+  position: relative;
   height: 30px;
-  margin-left: 5px;
-  background-color: #fe5a5a;
+  /* margin-left: 5px; */
+  /* background-color: #fe5a5a; */
+  background-color: transparent !important;
   border: none;
+  &:hover > section {
+    display: block;
+  }
+  &::before {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(100% + 20px);
+    height: 100%;
+    background-color: transparent;
+  }
+
+`;
+const RightArrowIcon = Styled(BsChevronRight)`
+  margin-left: 2px;
+  width: 10px;
+  height: 10px;
+`;
+const DeleteOptionBtnContainer = Styled.section`
+  position: absolute;
+  left: calc(100% + 10px);
+  top: -4px;
+  display: none;
+`;
+const DeleteOptionBtn = Styled(DeleteBtn)`
+  white-space: nowrap;
+  margin-bottom: 5px;
+  padding: 0 14px 0 12px !important;
+  background-color: #fe5a5a !important;
+  line-height: 34px;
+  height: 34px;
+  border: 1px solid #fff;
+  &:last-of-type {
+    margin-bottom: 0;
+  }
   &:hover {
     background-color: #f74a4a !important;
   }
@@ -223,13 +373,16 @@ const DeleteBtn = Styled.button`
 `;
 const NoticeMsg = Styled.span`
   width: 100%;
-  text-align: center;
+  padding: 0 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 const Info = Styled.section`
   width: 100%;
-  border-bottom: 1px solid #ffffff30;
-  padding-bottom: 10px;
-  margin-bottom: 6px;
+  border-bottom: ${(x) => (x?.calendarType === 1 ? 1 : 0)}px solid #ffffff30;
+  padding-bottom: ${(x) => (x?.calendarType === 1 ? 10 : 0)}px;
+  margin-bottom: ${(x) => (x?.calendarType === 1 ? 6 : 0)}px;
 `;
 const ListTitle = Styled.p`
   width: 100%;

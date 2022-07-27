@@ -13,11 +13,11 @@ const store = create((set) => ({
   //   setState: () => {},
   // },
   colorList: [
-    '#f05a5a',
+    // '#f05a5a',
     '#f0905a',
     '#c0a90d',
     '#33a07f',
-    '#4ab2d2',
+    '#3f9fbc',
     '#2b51ad',
     '#792bad',
     '#c023aa',

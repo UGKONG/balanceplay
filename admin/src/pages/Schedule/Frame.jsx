@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState, useContext } from 'react';
 import Styled from 'styled-components';
 import useDate from '%/useDate';
+import useAlert from '%/useAlert';
 import { Store } from './Scheduler';
 
 export default function 스케줄러_프레임({ date, i, dayCount }) {
   const [now, setNow] = useState(useDate());
-  const { currentHourList, setWriteInfo } = useContext(Store);
+  const { active, currentHourList, setWriteInfo, calendarList } =
+    useContext(Store);
 
   const getDate = () => {
     if (i !== 0) return;
@@ -24,10 +26,18 @@ export default function 스케줄러_프레임({ date, i, dayCount }) {
   }, [now, currentHourList]);
 
   const click = (date, time) => {
+    if (active?.calendar === 0) {
+      return useAlert.info('알림', '캘린더를 선택해주세요.');
+    }
+
     let defaultEndTime = new Date(date + ' ' + time);
     defaultEndTime?.setHours(defaultEndTime?.getHours() + 1);
     defaultEndTime = useDate(defaultEndTime, 'time');
+    let calendarFind = calendarList?.find((x) => x?.ID === active?.calendar);
+    calendarFind = calendarFind ? calendarFind?.TYPE : 0;
     setWriteInfo({
+      CALENDAR_ID: active?.calendar,
+      CALENDAR_TYPE: calendarFind,
       START_DATE: date,
       END_DATE: date,
       START_TIME: time,

@@ -35,6 +35,7 @@ export default function 타입컨텐츠({ active, setActive }) {
     info: null,
   });
   const [roomList, setRoomList] = useState([]);
+  const [calendarList, setCalendarList] = useState([]);
 
   const getSchedule = useCallback(() => {
     if (!active || !active?.start || !active?.end) return;
@@ -50,6 +51,13 @@ export default function 타입컨텐츠({ active, setActive }) {
     useAxios.get('/room').then(({ data }) => {
       if (!data?.result || !data?.data) return setRoomList([]);
       setRoomList(data?.data);
+    });
+  };
+
+  const getCalendarList = () => {
+    useAxios.get('/calendar').then(({ data }) => {
+      if (!data?.result || !data?.data) return setCalendarList([]);
+      setCalendarList(data?.data);
     });
   };
 
@@ -73,10 +81,19 @@ export default function 타입컨텐츠({ active, setActive }) {
     let START_TIME = useDate(today, 'time');
     today?.setHours(today?.getHours() + 1);
     let END_TIME = useDate(today, 'time');
-    setWriteInfo({ START_TIME, END_TIME });
+
+    let findCalendar = calendarList?.find((x) => x?.ID === active?.calendar);
+    let CALENDAR_TYPE = findCalendar ? findCalendar?.TYPE : 0;
+
+    setWriteInfo({
+      CALENDAR_TYPE,
+      START_TIME,
+      END_TIME,
+    });
   };
 
   useEffect(getRoomList, []);
+  useEffect(getCalendarList, []);
   useEffect(() => {
     let interval;
     clearInterval(interval);
@@ -89,6 +106,7 @@ export default function 타입컨텐츠({ active, setActive }) {
     <Store.Provider
       value={{
         roomList,
+        calendarList,
         currentHourList,
         colorList,
         active,
@@ -98,6 +116,7 @@ export default function 타입컨텐츠({ active, setActive }) {
         timeout,
         writeInfo,
         setWriteInfo,
+        getSchedule,
       }}
     >
       <Container>
@@ -117,9 +136,11 @@ export default function 타입컨텐츠({ active, setActive }) {
                 {active?.view === 3 && <Week />}
                 {active?.view === 4 && <Day />}
                 {isTooltip?.bool && <Tooltip getSchedule={getSchedule} />}
-                <CreateBtn onClick={createSchedule}>
-                  <PlusIcon />
-                </CreateBtn>
+                {active?.calendar !== 0 && (
+                  <CreateBtn onClick={createSchedule}>
+                    <PlusIcon />
+                  </CreateBtn>
+                )}
                 {writeInfo && (
                   <WriteScheduleModal
                     currentData={writeInfo}

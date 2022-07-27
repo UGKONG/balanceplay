@@ -98,13 +98,13 @@ export default function 스케줄박스({ data }) {
   };
 
   const click = () => {
-    setWriteInfo({
-      ...data,
-      START_DATE: data?.START?.split(' ')[0],
-      START_TIME: data?.START?.split(' ')[1],
-      END_DATE: data?.END?.split(' ')[0],
-      END_TIME: data?.END?.split(' ')[1],
-    });
+    // setWriteInfo({
+    //   ...data,
+    //   START_DATE: data?.START?.split(' ')[0],
+    //   START_TIME: data?.START?.split(' ')[1],
+    //   END_DATE: data?.END?.split(' ')[0],
+    //   END_TIME: data?.END?.split(' ')[1],
+    // });
   };
 
   const JSX = useMemo(

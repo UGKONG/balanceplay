@@ -38,6 +38,30 @@ const log = (req) => {
     );
   });
 };
+const useDate = (dt = new Date(), type = 'all', format = false) => {
+  let date = new Date(dt);
+  let Y = date.getFullYear();
+  let M =
+    date.getMonth() + 1 < 10
+      ? '0' + (date.getMonth() + 1)
+      : date.getMonth() + 1;
+  let D = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+  let h = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
+  let m = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
+  let s = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
+  let resultDate = format
+    ? Y + '년' + M + '월' + D + '일'
+    : Y + '-' + M + '-' + D;
+  let resultTime = format
+    ? h + '시' + m + '분' + s + '초'
+    : h + ':' + m + ':' + s;
+  let result = null;
+  if (type === 'date') result = resultDate;
+  if (type === 'time') result = resultTime;
+  if (type !== 'date' && type !== 'time')
+    result = resultDate + ' ' + resultTime;
+  return result;
+};
 
 // OTHER
 module.exports.getOtherList = (req, res) => {
@@ -2232,8 +2256,10 @@ module.exports.getCalendar = (req, res) => {
     db.query(
       `
       SELECT
-      ID, NAME, 'ORDER', IS_FIXED
-      FROM tn_calendar WHERE CENTER_ID = '${centerId}';
+      a.ID, a.TYPE, b.NAME AS TYPE_NAME, a.NAME, a.ORDER, a.IS_TOP
+      FROM tn_calendar a
+      LEFT JOIN tn_common b ON b.BASE_ID = 11 AND b.CODE = a.TYPE
+      WHERE CENTER_ID = '${centerId}';
     `,
       (err, result) => {
         db.end();
@@ -2450,22 +2476,35 @@ module.exports.getSchedule = (req, res) => {
       `
       SELECT 
       a.ID, a.SCHEDULE_GROUP_ID, a.TYPE, a.START, a.END, a.TITLE, a.MEMO, a.COUNT, a.WAIT_COUNT,
-      b.ID AS CALENDAR_ID, b.NAME AS CALENDAR_NAME,
+      b.ID AS CALENDAR_ID, b.TYPE AS CALENDAR_TYPE, b.NAME AS CALENDAR_NAME,
       c.ID AS ROOM_ID, c.NAME AS ROOM_NAME,
       d.ID AS TEACHER_ID, d.NAME AS TEACHER_NAME,
-      COUNT(e.SCHEDULE_ID) AS RESERVATION_COUNT
+      IF(e.COUNT IS NULL, 0, e.COUNT) AS RESERVATION_COUNT,
+      f.COUNT AS IS_REPEAT
       FROM tn_schedule a 
       LEFT JOIN tn_calendar b ON a.CALENDAR_ID = b.ID
       LEFT JOIN tn_room c ON a.ROOM_ID = c.ID
       LEFT JOIN tn_admin d ON a.TEACHER_ID = d.ID
-      LEFT JOIN tn_reservation e ON a.ID = e.SCHEDULE_ID
-      WHERE a.CENTER_ID = ${centerId} 
-      AND (${data?.calendar} = 0 OR a.CALENDAR_ID=${data?.calendar})
-      AND (${data?.room} = 0 OR a.ROOM_ID=${data?.room})
-      AND (${data?.teacher} = 0 OR a.TEACHER_ID=${data?.teacher})
+      LEFT JOIN (
+        SELECT
+        SCHEDULE_ID,
+        COUNT(SCHEDULE_ID) AS COUNT
+        FROM tn_reservation
+        GROUP BY SCHEDULE_ID
+      ) e ON a.ID = e.SCHEDULE_ID
+      LEFT JOIN (
+        SELECT
+        SCHEDULE_GROUP_ID,
+        COUNT(SCHEDULE_GROUP_ID) AS COUNT
+        FROM tn_schedule
+        GROUP BY SCHEDULE_GROUP_ID
+      ) f ON a.SCHEDULE_GROUP_ID = f.SCHEDULE_GROUP_ID
+      WHERE a.CENTER_ID = '${centerId}' 
+      AND ('${data?.calendar}' = 0 OR a.CALENDAR_ID = '${data?.calendar}')
+      AND ('${data?.room}' = 0 OR a.ROOM_ID = '${data?.room}')
+      AND ('${data?.teacher}' = 0 OR a.TEACHER_ID = '${data?.teacher}')
       AND CONVERT(a.START, DATE) >= CONVERT('${data?.start}', DATE) 
       AND CONVERT(a.END, DATE) <= CONVERT('${data?.end}', DATE)
-      GROUP BY a.ID, e.SCHEDULE_ID
       ORDER BY a.START;
     `,
       (err, result) => {
@@ -2479,7 +2518,7 @@ module.exports.getSchedule = (req, res) => {
     );
   });
 };
-// 수업 회원 리스트 조회
+// 스케줄 회원 리스트 조회
 module.exports.getReservation = (req, res) => {
   log(req);
   const scheduleId = req?.params?.id;
@@ -2551,23 +2590,70 @@ module.exports.deleteReservation = (req, res) => {
 // 스케줄 삭제
 module.exports.deleteSchedule = (req, res) => {
   log(req);
-  const id = req?.params?.id;
+  const type = req?.params?.type;
+  const { id, groupId, start } = req?.query;
+
+  if (type !== 'this' && type !== 'next' && type !== 'all') {
+    console.log('this || next || all');
+    return res.send(fail('스케줄 삭제 시도에 실패하였습니다.'));
+  }
+
+  let selectSQL = '';
+  let deleteSQL = '';
+  if (type === 'all') {
+    selectSQL = `
+      SELECT COUNT(*) AS COUNT FROM tn_reservation WHERE SCHEDULE_ID IN 
+        (SELECT ID FROM tn_schedule WHERE SCHEDULE_GROUP_ID = '${groupId}') AND STATUS <> 1;
+    `;
+    deleteSQL = `
+      DELETE FROM tn_reservation WHERE SCHEDULE_ID IN 
+        (SELECT ID FROM tn_schedule WHERE SCHEDULE_GROUP_ID = '${groupId}');
+      DELETE FROM tn_schedule WHERE SCHEDULE_GROUP_ID = '${groupId}';
+    `;
+  } else if (type === 'this') {
+    selectSQL = `
+      SELECT COUNT(*) AS COUNT FROM tn_reservation WHERE SCHEDULE_ID = '${id}' AND STATUS <> 1;
+    `;
+    deleteSQL = `
+      DELETE FROM tn_reservation WHERE SCHEDULE_ID = '${id}';
+      DELETE FROM tn_schedule WHERE ID = '${id}';
+    `;
+  } else if (type === 'next') {
+    selectSQL = `
+      SELECT COUNT(*) AS COUNT FROM tn_reservation WHERE SCHEDULE_ID IN 
+        (SELECT ID FROM tn_schedule WHERE SCHEDULE_GROUP_ID = '${groupId}' AND CONVERT(START, DATE) >= CONVERT('${start}', DATE)) AND STATUS <> 1;
+    `;
+    deleteSQL = `
+      DELETE FROM tn_reservation WHERE SCHEDULE_ID IN 
+        (SELECT ID FROM tn_schedule WHERE SCHEDULE_GROUP_ID = '${groupId}' AND CONVERT(START, DATE) >= CONVERT('${start}', DATE));
+      DELETE FROM tn_schedule WHERE SCHEDULE_GROUP_ID = '${groupId}' AND CONVERT(START, DATE) >= CONVERT('${start}', DATE);
+    `;
+  } else {
+    return res.send(fail('스케줄 삭제에 실패하였습니다.'));
+  }
 
   dbConnect((db) => {
-    db.query(
-      `
-      DELETE FROM tn_schedule WHERE
-      ID = ${id};
-    `,
-      (err, result) => {
+    db.query(selectSQL, (err, result) => {
+      if (err) {
+        db.end();
+        console.log(err);
+        return res.send(fail('스케줄 삭제에 실패하였습니다.'));
+      }
+
+      if (result[0]?.COUNT > 0) {
+        db.end();
+        return res.send(fail('이미 출석 또는 결석 처리 스케줄이 존재합니다.'));
+      }
+
+      db.query(deleteSQL, (err, result) => {
         db.end();
         if (err) {
           console.log(err);
           return res.send(fail('스케줄 삭제에 실패하였습니다.'));
         }
         res.send(success(null));
-      },
-    );
+      });
+    });
   });
 };
 // 기간 중복 검사
@@ -2577,14 +2663,79 @@ module.exports.postSchedule = (req, res) => {
   log(req);
   const centerId = req?.session?.isLogin?.CENTER_ID;
   const data = req?.body;
-  return res.send(data);
 
-  let sql = `
-    INSERT tn_schedule_group () VALUES ();
-    (CENTER_ID, SCHEDULE_GROUP_ID)
+  let insertSQL = `
+    INSERT INTO tn_schedule_group (CENTER_ID) VALUES (${centerId});
+    
+    SET @GROUP_ID = LAST_INSERT_ID();
+    
+    INSERT INTO tn_schedule
+    (
+      CENTER_ID, SCHEDULE_GROUP_ID, CALENDAR_ID, ROOM_ID, 
+      TEACHER_ID, TYPE, COUNT, WAIT_COUNT, 
+      START, END, TITLE, MEMO
+    ) VALUES 
   `;
+
+  if (
+    !data?.MON &&
+    !data?.TUE &&
+    !data?.WED &&
+    !data?.THU &&
+    !data?.FRI &&
+    !data?.SAT &&
+    !data?.SUN
+  ) {
+    insertSQL += `(
+      '${centerId}', @GROUP_ID, '${data?.CALENDAR_ID}', '${data?.ROOM_ID}', 
+      '${data?.TEACHER_ID}', '${data?.TYPE}', '${data?.COUNT}', '${data?.WAIT_COUNT}', 
+      '${data?.START_DATE} ${data?.START_TIME}', '${data?.END_DATE} ${data?.END_TIME}', 
+      '${data?.TITLE}', '${data?.MEMO}'
+    )`;
+    dbConnect((db) => {
+      db.query(insertSQL, (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('스케줄 저장에 실패하였습니다.'));
+        }
+        res.send(success(null));
+      });
+    });
+    return;
+  }
+
+  const dayList = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  const startDate = new Date(data?.START_DATE);
+  const endDate = new Date(data?.END_DATE);
+  const calcDay = Math.round((endDate - startDate) / 1000 / 24 / 60 / 60 + 1);
+  const valueList = [];
+
+  for (let i = 0; i < calcDay; i++) {
+    let day = dayList[startDate.getDay()];
+    if (data[day]) {
+      valueList.push(`
+        (
+          '${centerId}', @GROUP_ID, '${data?.CALENDAR_ID}', 
+          '${data?.ROOM_ID}', '${data?.TEACHER_ID}', '${data?.TYPE}', 
+          '${data?.COUNT}', '${data?.WAIT_COUNT}', 
+          '${useDate(startDate, 'date')} ${data?.START_TIME}', 
+          '${useDate(startDate, 'date')} ${data?.END_TIME}', 
+          '${data?.TITLE}', '${data?.MEMO}'
+        )
+      `);
+    }
+    startDate.setDate(startDate.getDate() + 1);
+  }
+
+  if (valueList?.length === 0) {
+    return res.send(fail('저장된 스케줄이 없습니다.'));
+  } else {
+    insertSQL += valueList.join(', ');
+  }
+
   dbConnect((db) => {
-    db.query(sql, (err, result) => {
+    db.query(insertSQL, (err, result) => {
       db.end();
       if (err) {
         console.log(err);
@@ -2597,13 +2748,19 @@ module.exports.postSchedule = (req, res) => {
 // 스케줄 정보 수정
 module.exports.putSchedule = (req, res) => {
   log(req);
-  const centerId = req?.session?.isLogin?.CENTER_ID;
   const data = req?.body;
-  return res.send(data);
 
   let sql = `
-    UPDATE INTO tn_shcedule_group
-    (CENTER_ID, SCHEDULE_GROUP_ID)
+    UPDATE tn_schedule SET
+    START = '${data?.START_DATE} ${data?.START_TIME}',
+    END = '${data?.END_DATE} ${data?.END_TIME}',
+    ROOM_ID = '${data?.ROOM_ID}', 
+    TEACHER_ID = '${data?.TEACHER_ID}', 
+    COUNT = '${data?.COUNT}', 
+    WAIT_COUNT = '${data?.WAIT_COUNT}', 
+    TITLE = '${data?.TITLE}', 
+    MEMO = '${data?.MEMO}'
+    WHERE ID = '${data?.ID}'
   `;
   dbConnect((db) => {
     db.query(sql, (err, result) => {

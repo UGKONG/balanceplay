@@ -232,7 +232,7 @@ app.post('/api/payment', postPayment);
 app.get('/api/schedule', getSchedule);
 app.post('/api/schedule', postSchedule);
 app.put('/api/schedule/:id', putSchedule);
-app.delete('/api/schedule/:id', deleteSchedule);
+app.delete('/api/schedule/:type', deleteSchedule);
 app.get('/api/reservation/:id', getReservation);
 app.put('/api/reservation/:id/:status', putReservation);
 app.delete('/api/reservation/:id', deleteReservation);

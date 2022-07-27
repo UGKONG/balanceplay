@@ -4,6 +4,7 @@ import useAxios from '%/useAxios';
 import useDate from '%/useDate';
 import useAlert from '%/useAlert';
 import { Store } from './Scheduler';
+import { BsCheck } from 'react-icons/bs';
 
 export default function 스케줄작성() {
   const dayList = useRef([
@@ -19,7 +20,16 @@ export default function 스케줄작성() {
     { id: 1, name: '개인래슨' },
     { id: 2, name: '그룹래슨' },
   ]);
-  const { colorList, writeInfo, setWriteInfo, roomList } = useContext(Store);
+  const {
+    list,
+    active,
+    colorList,
+    writeInfo,
+    setWriteInfo,
+    roomList,
+    calendarList,
+    getSchedule,
+  } = useContext(Store);
   const [data, setData] = useState({
     ...writeInfo,
     TYPE: writeInfo?.TYPE ?? typeList?.current[0]?.id,
@@ -32,6 +42,7 @@ export default function 스케줄작성() {
     SAT: false,
   });
   const [teacherList, setTeacherList] = useState([]);
+  const [isFullDay, setIsFullDay] = useState(false);
 
   const scheduleStatus = useMemo(() => (writeInfo?.ID ? 1 : 0), [writeInfo]);
 
@@ -68,6 +79,7 @@ export default function 스케줄작성() {
     let END_DATE = data?.END_DATE;
     let START_TIME = data?.START_TIME;
     let END_TIME = data?.END_TIME;
+    let CALENDAR_ID = Number(data?.CALENDAR_ID);
     let ROOM_ID = Number(data?.ROOM_ID);
     let TEACHER_ID = Number(data?.TEACHER_ID);
     let SUN = data?.SUN;
@@ -81,11 +93,26 @@ export default function 스케줄작성() {
     let WAIT_COUNT = TYPE === 1 ? 0 : Number(data?.WAIT_COUNT || 0);
     let MEMO = data?.MEMO ?? '';
 
+    if (data?.CALENDAR_TYPE !== 1) {
+      ROOM_ID = 0;
+      TEACHER_ID = 0;
+    }
+
     if (!TITLE?.trim()) {
       return useAlert?.warn('알림', '스케줄 제목을 정확히 선택해주세요.');
     }
     if (!START_DATE || START_DATE?.length !== 10) {
       return useAlert?.warn('알림', '시작 날짜를 정확히 선택해주세요.');
+    }
+    if (SUN || MON || TUE || WED || THU || FRI || SAT) {
+      let startDate = new Date(START_DATE);
+      let endDate = new Date(END_DATE);
+      let calc = Math.round((endDate - startDate) / 1000 / 24 / 60 / 60);
+      if (calc === 0)
+        return useAlert.warn(
+          '알림',
+          '반복은 시작일과 종료일을 다르게 할 수 없습니다.',
+        );
     }
     if (!END_DATE || END_DATE?.length !== 10) {
       return useAlert?.warn('알림', '종료 날짜를 정확히 선택해주세요.');
@@ -96,16 +123,16 @@ export default function 스케줄작성() {
     if (!END_TIME || END_TIME?.length !== 8) {
       return useAlert?.warn('알림', '종료 시간을 정확히 선택해주세요.');
     }
-    if (!ROOM_ID) {
+    if (!CALENDAR_ID) {
+      return useAlert?.warn('알림', '캘린더를 선택해주세요.');
+    }
+    if (!ROOM_ID && data?.CALENDAR_TYPE === 1) {
       return useAlert?.warn('알림', '룸을 선택해주세요.');
     }
-    if (!TEACHER_ID) {
+    if (!TEACHER_ID && data?.CALENDAR_TYPE === 1) {
       return useAlert?.warn('알림', '강사를 선택해주세요.');
     }
-    if (!TEACHER_ID) {
-      return useAlert?.warn('알림', '강사를 선택해주세요.');
-    }
-    if (!COUNT) {
+    if (!COUNT && data?.CALENDAR_TYPE === 1) {
       return useAlert?.warn('알림', '예약 인원은 최소 1명 이상이여야 합니다.');
     }
 
@@ -117,6 +144,7 @@ export default function 스케줄작성() {
       END_DATE,
       START_TIME,
       END_TIME,
+      CALENDAR_ID,
       ROOM_ID,
       TEACHER_ID,
       SUN,
@@ -134,20 +162,40 @@ export default function 스케줄작성() {
 
   const postSubmit = (send) => {
     useAxios.post('/schedule', send).then(({ data }) => {
-      console.log(data);
+      if (!data?.result) return useAlert.error('알림', data?.msg);
+      useAlert.success('알림', '스케줄이 생성되었습니다.');
+      close();
+      getSchedule();
     });
   };
 
   const putSubmit = (send) => {
     useAxios.put('/schedule/' + send?.ID, send).then(({ data }) => {
-      console.log(data);
+      if (!data?.result) return useAlert.error('알림', data?.msg);
+      useAlert.success('알림', '스케줄이 수정되었습니다.');
+      close();
+      getSchedule();
     });
+  };
+
+  const fullDayChange = (e) => {
+    setData((prev) => ({
+      ...prev,
+      START_TIME: '00:00:00',
+      END_TIME: '23:59:00',
+    }));
+    setIsFullDay(e?.target?.checked);
   };
 
   useEffect(() => {
     getTeacherList();
     return () => getTeacherList;
   }, []);
+
+  useEffect(() => {
+    if (!data) return;
+    if (scheduleStatus === 0 && !data?.CALENDAR_TYPE) return close();
+  }, [data]);
 
   return (
     <All>
@@ -156,31 +204,47 @@ export default function 스케줄작성() {
         <HeaderTitle>
           <span>스케줄 {scheduleStatus === 1 ? '수정' : '생성'}</span>
           <TypeContainer>
-            <TypeWrap style={{ width: scheduleStatus === 1 ? 75 : 150 }}>
+            <TypeWrap
+              style={{
+                width:
+                  scheduleStatus === 1 || data?.CALENDAR_TYPE === 2 ? 75 : 150,
+              }}
+            >
               <TypeBackground
                 type={data?.TYPE}
-                isModify={scheduleStatus === 1}
-                style={{ width: scheduleStatus === 1 ? '100%' : '50%' }}
+                isModify={scheduleStatus === 1 || data?.CALENDAR_TYPE === 2}
+                style={{
+                  width:
+                    scheduleStatus === 1 || data?.CALENDAR_TYPE === 2
+                      ? '100%'
+                      : '50%',
+                }}
               />
-              {typeList?.current?.map((item) => (
-                <TypeItem
-                  key={item?.id}
-                  type={data?.TYPE}
-                  id={item?.id}
-                  style={{
-                    display: !scheduleStatus
-                      ? 'flex'
-                      : data?.TYPE === item?.id
-                      ? 'flex'
-                      : 'none',
-                  }}
-                  onClick={() =>
-                    setData((prev) => ({ ...prev, TYPE: item?.id }))
-                  }
-                >
-                  {item?.name}
+              {data?.CALENDAR_TYPE === 1 ? (
+                typeList?.current?.map((item) => (
+                  <TypeItem
+                    key={item?.id}
+                    type={data?.TYPE}
+                    id={item?.id}
+                    style={{
+                      display: !scheduleStatus
+                        ? 'flex'
+                        : data?.TYPE === item?.id
+                        ? 'flex'
+                        : 'none',
+                    }}
+                    onClick={() =>
+                      setData((prev) => ({ ...prev, TYPE: item?.id }))
+                    }
+                  >
+                    {item?.name}
+                  </TypeItem>
+                ))
+              ) : (
+                <TypeItem type={data?.TYPE} style={{ color: '#fff' }}>
+                  일반
                 </TypeItem>
-              ))}
+              )}
             </TypeWrap>
           </TypeContainer>
         </HeaderTitle>
@@ -211,60 +275,103 @@ export default function 스케줄작성() {
               }
             />
           </Row>
+          {!isFullDay && (
+            <Row>
+              <TimeData
+                value={data?.START_TIME}
+                onChange={(e) =>
+                  setData((prev) => ({
+                    ...prev,
+                    START_TIME: e?.target?.value + ':00',
+                  }))
+                }
+              />
+              <TimeData
+                value={data?.END_TIME}
+                onChange={(e) =>
+                  setData((prev) => ({
+                    ...prev,
+                    END_TIME: e?.target?.value + ':00',
+                  }))
+                }
+              />
+            </Row>
+          )}
           <Row style={{ marginBottom: 20 }}>
-            <TimeData
-              value={data?.START_TIME}
-              disabled={scheduleStatus === 1}
-              onChange={(e) =>
-                setData((prev) => ({
-                  ...prev,
-                  START_TIME: e?.target?.value + ':00',
-                }))
-              }
-            />
-            <TimeData
-              value={data?.END_TIME}
-              disabled={scheduleStatus === 1}
-              onChange={(e) =>
-                setData((prev) => ({
-                  ...prev,
-                  END_TIME: e?.target?.value + ':00',
-                }))
-              }
-            />
+            {scheduleStatus === 0 && (
+              <FullDayCheckbox>
+                <input
+                  type="checkbox"
+                  id="fullDay"
+                  checked={isFullDay}
+                  onChange={fullDayChange}
+                />
+                <label htmlFor="fullDay" className="checkbox">
+                  <CheckIcon />
+                </label>
+                <label htmlFor="fullDay" className="label">
+                  종일 일정
+                </label>
+              </FullDayCheckbox>
+            )}
           </Row>
           <Row>
-            <Label>룸</Label>
-            <Label>강 사</Label>
+            <Label>캘린더</Label>
           </Row>
-          <Row style={{ marginBottom: 20 }}>
+          <Row>
             <Select
-              value={data?.ROOM_ID ?? 0}
-              onChange={(e) =>
-                setData((prev) => ({ ...prev, ROOM_ID: e?.target?.value }))
+              disabled
+              value={
+                scheduleStatus === 0 ? active?.calendar : data?.CALENDAR_ID
               }
             >
-              <option value="0">룸 선택</option>
-              {roomList?.map((item) => (
-                <option key={item?.ID} value={item?.ID}>
-                  {item?.NAME}
-                </option>
-              ))}
-            </Select>
-            <Select
-              value={data?.TEACHER_ID ?? 0}
-              onChange={(e) =>
-                setData((prev) => ({ ...prev, TEACHER_ID: e?.target?.value }))
-              }
-            >
-              <option value="0">강사 선택</option>
-              {teacherList?.map((item) => (
+              <option value="0">캘린더 선택</option>
+              {calendarList?.map((item) => (
                 <option key={item?.ID} value={item?.ID}>
                   {item?.NAME}
                 </option>
               ))}
             </Select>
           </Row>
+          {data?.CALENDAR_TYPE === 1 && (
+            <>
+              <Row>
+                <Label>룸</Label>
+                <Label>강 사</Label>
+              </Row>
+              <Row style={{ marginBottom: 20 }}>
+                <Select
+                  value={data?.ROOM_ID ?? 0}
+                  onChange={(e) =>
+                    setData((prev) => ({ ...prev, ROOM_ID: e?.target?.value }))
+                  }
+                >
+                  <option value="0">룸 선택</option>
+                  {roomList?.map((item) => (
+                    <option key={item?.ID} value={item?.ID}>
+                      {item?.NAME}
+                    </option>
+                  ))}
+                </Select>
+                <Select
+                  value={data?.TEACHER_ID ?? 0}
+                  onChange={(e) =>
+                    setData((prev) => ({
+                      ...prev,
+                      TEACHER_ID: e?.target?.value,
+                    }))
+                  }
+                >
+                  <option value="0">강사 선택</option>
+                  {teacherList?.map((item) => (
+                    <option key={item?.ID} value={item?.ID}>
+                      {item?.NAME}
+                    </option>
+                  ))}
+                </Select>
+              </Row>
+            </>
+          )}
           {scheduleStatus === 0 && (
             <>
               <Row>
@@ -326,7 +433,7 @@ export default function 스케줄작성() {
           <Row>
             <Label>메 모</Label>
           </Row>
-          <Row style={{ marginBottom: 20 }}>
+          <Row>
             <TextInput
               value={data?.MEMO ?? ''}
               onChange={(e) =>
@@ -334,13 +441,24 @@ export default function 스케줄작성() {
               }
             />
           </Row>
-          <Row>
-            <Submit onClick={validate}>
-              {scheduleStatus === 1 ? '수정' : '생성'}
-            </Submit>
-            <Cancel onClick={close}>취소</Cancel>
+          <Row
+            style={{
+              marginBottom: 20,
+              marginLeft: 5,
+              marginRight: 5,
+              fontSize: 12,
+              color: '#666',
+            }}
+          >
+            {data?.IS_REPEAT ? '※ 해당 스케줄은 반복 생성된 스케줄입니다.' : ''}
           </Row>
         </Contents>
+        <Row>
+          <Submit onClick={validate}>
+            {scheduleStatus === 1 ? '수정' : '생성'}
+          </Submit>
+          <Cancel onClick={close}>취소</Cancel>
+        </Row>
       </Container>
     </All>
   );
@@ -418,11 +536,14 @@ const TypeBackground = Styled.p`
 `;
 const Contents = Styled.section`
   width: 100%;
+  max-height: 710px;
+  overflow: auto;
 `;
 const Row = Styled.div`
+  width: 100%;
+  height: auto;
   justify-content: space-between;
   flex-wrap: wrap;
-  height: auto;
   transition: height .3s;
   & > * {
     flex: 1;
@@ -469,7 +590,42 @@ const DateData = Styled.input.attrs(() => ({
 const TimeData = Styled.input.attrs(() => ({
   type: 'time',
 }))`
+  min-width: calc(50% - 10px);
+  max-width: 50%;
   height: 34px !important;
+`;
+const FullDayCheckbox = Styled.p`
+  display: flex;
+  align-items: center;
+  & > input {
+    display: none;
+
+    &:checked {
+      & ~ .label, & + .checkbox > svg {
+        color: #069f9c;
+      }
+    }
+  }
+  & > label.checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  & > label.label {
+    font-size: 14px;
+    color: #555;
+    margin-left: 5px;
+    cursor: pointer;
+  }
+`;
+const CheckIcon = Styled(BsCheck)`
+  cursor: pointer;
+  color: #888;
+  width: 100%;
+  height: 100%;
 `;
 const Select = Styled.select`
   min-width: 100px;
