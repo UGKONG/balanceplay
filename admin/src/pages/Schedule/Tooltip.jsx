@@ -8,9 +8,11 @@ import useAlert from '%/useAlert';
 import { Store } from './Scheduler';
 import { BsChevronRight } from 'react-icons/bs';
 
-export default function 툴팁({ getSchedule }) {
+export default function 툴팁({ getSchedule, setIsReservationModal }) {
   const dispatch = useStore((x) => x?.setState);
+  const SCHEDULE_COLOR_TYPE = useStore((x) => x?.setting?.SCHEDULE_COLOR_TYPE);
   const {
+    teacherList,
     roomList,
     colorList,
     isTooltip,
@@ -37,9 +39,17 @@ export default function 툴팁({ getSchedule }) {
   }, [data]);
 
   const bg = useMemo(() => {
-    let idx = roomList?.findIndex((x) => x?.ID === Number(data?.ROOM_ID));
+    let idx;
+    if (SCHEDULE_COLOR_TYPE === 2) {
+      idx = teacherList?.findIndex((x) => x?.ID === Number(data?.TEACHER_ID));
+      idx = Math.round(((idx / teacherList?.length) * 100) / 10);
+    } else {
+      idx = roomList?.findIndex((x) => x?.ID === Number(data?.ROOM_ID));
+      idx = Math.round(((idx / roomList?.length) * 100) / 10);
+    }
+
     return colorList[idx];
-  }, [colorList, data]);
+  }, [colorList, teacherList, roomList, data]);
 
   const positionStyle = useMemo(() => {
     let { left, top, translate } = isTooltip;
@@ -170,6 +180,11 @@ export default function 툴팁({ getSchedule }) {
             </DeleteOptionBtnContainer>
           </DeleteBtn>
         </ModifyBtnContainer>
+        {data?.CALENDAR_TYPE === 1 && (
+          <ReservationBtn bg={bg} onClick={() => setIsReservationModal(data)}>
+            예 약
+          </ReservationBtn>
+        )}
         <Info calendarType={data?.CALENDAR_TYPE}>
           {/* <Row>
             <Left>{data?.CALENDAR_NAME}</Left>
@@ -278,6 +293,15 @@ const TooltipWrap = Styled.div`
     width: 100%;
     height: 45px;
   }
+  &::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: calc(100% + 40px);
+    right: 0;
+    width: 70px;
+    height: 50px;
+  }
 `;
 const ModifyBtnContainer = Styled.div`
   border: 1px solid #fff;
@@ -290,6 +314,23 @@ const ModifyBtnContainer = Styled.div`
   border-radius: 5px;
   padding: 0 5px;
   background-color: ${(x) => x?.bg ?? '#555'};
+`;
+const ReservationBtn = Styled.div`
+  cursor: pointer;
+  border: 1px solid #fff;
+  justify-content: flex-end;
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 49px);
+  height: 40px;
+  border-radius: 5px;
+  padding: 0 14px;
+  letter-spacing: 1px;
+  background-color: ${(x) => x?.bg ?? '#555'};
+  z-index: 2;
+  &:hover {
+    filter: brightness(1.1);
+  }
 `;
 const ModifyBtn = Styled.button`
   height: 30px;

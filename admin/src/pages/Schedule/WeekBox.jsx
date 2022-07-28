@@ -7,14 +7,15 @@ export default function 스케줄박스({ data }) {
   if (!data) return null;
   const [zIndex, setZIndex] = useState(20);
   const currentStartTime = useStore((x) => x?.setting?.START_TIME);
+  const SCHEDULE_COLOR_TYPE = useStore((x) => x?.setting?.SCHEDULE_COLOR_TYPE);
   const {
+    teacherList,
     roomList,
     currentHourList,
     colorList,
     isTooltip,
     setIsTooltip,
     timeout,
-    setWriteInfo,
   } = useContext(Store);
 
   const { DATE, START_TIME, END_TIME } = useMemo(
@@ -46,9 +47,17 @@ export default function 스케줄박스({ data }) {
   }, [data]);
 
   const bg = useMemo(() => {
-    let idx = roomList?.findIndex((x) => x?.ID === Number(data?.ROOM_ID));
+    let idx;
+    if (SCHEDULE_COLOR_TYPE === 2) {
+      idx = teacherList?.findIndex((x) => x?.ID === Number(data?.TEACHER_ID));
+      idx = Math.round(((idx / teacherList?.length) * 100) / 10);
+    } else {
+      idx = roomList?.findIndex((x) => x?.ID === Number(data?.ROOM_ID));
+      idx = Math.round(((idx / roomList?.length) * 100) / 10);
+    }
+
     return colorList[idx];
-  }, [colorList, data]);
+  }, [colorList, teacherList, roomList, data]);
 
   const w = useMemo(() => {
     if (!data?.GROUP_ID || !data?.GROUP_COUNT) return 100;
@@ -97,16 +106,6 @@ export default function 스케줄박스({ data }) {
     setZIndex(20);
   };
 
-  const click = () => {
-    // setWriteInfo({
-    //   ...data,
-    //   START_DATE: data?.START?.split(' ')[0],
-    //   START_TIME: data?.START?.split(' ')[1],
-    //   END_DATE: data?.END?.split(' ')[0],
-    //   END_TIME: data?.END?.split(' ')[1],
-    // });
-  };
-
   const JSX = useMemo(
     () => (
       <Container
@@ -117,7 +116,6 @@ export default function 스케줄박스({ data }) {
         style={{ ...heightTop }}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
-        onClick={click}
       >
         <Wrap bg={bg}>
           <Info>
@@ -162,6 +160,7 @@ const Wrap = Styled.div`
   border-radius: 3px;
   box-shadow: 1px 1px #55555555;
   cursor: zoom-in;
+  overflow: hidden;
   background-color: ${(x) => x?.bg ?? '#555'};
 `;
 const Info = Styled.section`

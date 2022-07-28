@@ -19,13 +19,16 @@ import Week from './Week';
 import Day from './Day';
 import Tooltip from './Tooltip';
 import WriteScheduleModal from './WriteScheduleModal';
+import ReservationModal from './ReservationModal';
+import SettingModal from './SettingModal';
 
 export const Store = createContext();
 
-export default function 타입컨텐츠({ active, setActive }) {
+export default function 타입컨텐츠({ active, setActive, initData }) {
   const timeout = useRef(null);
   const startTime = useStore((x) => x?.setting?.START_TIME);
   const endTime = useStore((x) => x?.setting?.END_TIME);
+  const timeRange = useStore((x) => x?.setting?.SCHEDULE_TIME_RANGE);
   const colorList = useStore((x) => x?.colorList);
   const [isLoad, setIsLoad] = useState(true);
   const [list, setList] = useState([]);
@@ -34,8 +37,8 @@ export default function 타입컨텐츠({ active, setActive }) {
     bool: false,
     info: null,
   });
-  const [roomList, setRoomList] = useState([]);
-  const [calendarList, setCalendarList] = useState([]);
+  const [isReservationModal, setIsReservationModal] = useState(null);
+  const [isSettingModal, setIsSettingModal] = useState(false);
 
   const getSchedule = useCallback(() => {
     if (!active || !active?.start || !active?.end) return;
@@ -46,20 +49,6 @@ export default function 타입컨텐츠({ active, setActive }) {
       setList(data?.data);
     });
   }, [active, setList]);
-
-  const getRoomList = () => {
-    useAxios.get('/room').then(({ data }) => {
-      if (!data?.result || !data?.data) return setRoomList([]);
-      setRoomList(data?.data);
-    });
-  };
-
-  const getCalendarList = () => {
-    useAxios.get('/calendar').then(({ data }) => {
-      if (!data?.result || !data?.data) return setCalendarList([]);
-      setCalendarList(data?.data);
-    });
-  };
 
   const currentHourList = useMemo(() => {
     let tempArr = [];
@@ -79,10 +68,12 @@ export default function 타입컨텐츠({ active, setActive }) {
     today?.setSeconds(0);
     today?.setMilliseconds(0);
     let START_TIME = useDate(today, 'time');
-    today?.setHours(today?.getHours() + 1);
+    today?.setMinutes(today?.getMinutes() + timeRange);
     let END_TIME = useDate(today, 'time');
 
-    let findCalendar = calendarList?.find((x) => x?.ID === active?.calendar);
+    let findCalendar = initData?.calendar?.find(
+      (x) => x?.ID === active?.calendar,
+    );
     let CALENDAR_TYPE = findCalendar ? findCalendar?.TYPE : 0;
 
     setWriteInfo({
@@ -92,24 +83,24 @@ export default function 타입컨텐츠({ active, setActive }) {
     });
   };
 
-  useEffect(getRoomList, []);
-  useEffect(getCalendarList, []);
   useEffect(() => {
     let interval;
     clearInterval(interval);
     getSchedule();
     // interval = setInterval(getSchedule, 2000);
     // return () => clearInterval(interval);
-  }, [active]);
+  }, [active, initData?.calendar, initData?.room]);
 
   return (
     <Store.Provider
       value={{
-        roomList,
-        calendarList,
+        calendarList: initData?.calendar,
+        roomList: initData?.room,
+        teacherList: initData?.teacher,
         currentHourList,
         colorList,
         active,
+        setActive,
         list,
         isTooltip,
         setIsTooltip,
@@ -125,6 +116,7 @@ export default function 타입컨텐츠({ active, setActive }) {
             active={active}
             setActive={setActive}
             getSchedule={getSchedule}
+            setIsSettingModal={setIsSettingModal}
           />
           <SchedulerContainer>
             {isLoad ? (
@@ -135,7 +127,12 @@ export default function 타입컨텐츠({ active, setActive }) {
                 {active?.view === 2 && <Month />}
                 {active?.view === 3 && <Week />}
                 {active?.view === 4 && <Day />}
-                {isTooltip?.bool && <Tooltip getSchedule={getSchedule} />}
+                {isTooltip?.bool && (
+                  <Tooltip
+                    getSchedule={getSchedule}
+                    setIsReservationModal={setIsReservationModal}
+                  />
+                )}
                 {active?.calendar !== 0 && (
                   <CreateBtn onClick={createSchedule}>
                     <PlusIcon />
@@ -152,6 +149,14 @@ export default function 타입컨텐츠({ active, setActive }) {
           </SchedulerContainer>
         </Wrap>
       </Container>
+
+      {isReservationModal && (
+        <ReservationModal
+          data={isReservationModal}
+          setIsReservationModal={setIsReservationModal}
+        />
+      )}
+      {isSettingModal && <SettingModal setIsSettingModal={setIsSettingModal} />}
     </Store.Provider>
   );
 }

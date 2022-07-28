@@ -1,10 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import Styled from 'styled-components';
 import { FiArrowLeft, FiArrowRight } from 'react-icons/fi';
 import useDate from '%/useDate';
 import { MdOutlineRefresh } from 'react-icons/md';
+import { IoSettingsOutline } from 'react-icons/io5';
 
-export default function 스케줄해더({ active, setActive, getSchedule }) {
+export default function 스케줄해더({
+  active,
+  setActive,
+  getSchedule,
+  setIsSettingModal,
+}) {
   const viewTypeList = useRef([
     { id: 1, name: '년' },
     { id: 2, name: '월' },
@@ -97,14 +103,19 @@ export default function 스케줄해더({ active, setActive, getSchedule }) {
           {active?.start?.split('-')[0]}년 {active?.start?.split('-')[1]}월{' '}
           {active?.start?.split('-')[2]}일
         </span>
-        <span>~</span>
-        <span>
-          {active?.end?.split('-')[0]}년 {active?.end?.split('-')[1]}월{' '}
-          {active?.end?.split('-')[2]}일
-        </span>
+        {active?.view !== 4 && (
+          <>
+            <span>~</span>
+            <span>
+              {active?.end?.split('-')[0]}년 {active?.end?.split('-')[1]}월{' '}
+              {active?.end?.split('-')[2]}일
+            </span>
+          </>
+        )}
         <RightArrow onClick={next} />
       </Left>
       <Right>
+        <SettingBtn onClick={() => setIsSettingModal(true)} />
         <ReloadBtn onClick={getSchedule} />
         {viewTypeList?.current?.map((item) => (
           <ViewItem
@@ -158,6 +169,7 @@ const RightArrow = Styled(FiArrowRight)`
 const Right = Styled.ul`
   display: flex;
   position: relative;
+  align-items: center;
 `;
 const ViewItem = Styled.li`
   width: 28px;
@@ -187,6 +199,18 @@ const ReloadBtn = Styled(MdOutlineRefresh)`
   padding: 2px;
   font-weight: 900;
   margin-right: 10px;
+  color: #888;
+  cursor: pointer;
+  &:hover {
+    color: #00918e;
+  }
+`;
+const SettingBtn = Styled(IoSettingsOutline)`
+  width: 26px;
+  height: 26px;
+  padding: 2px;
+  font-weight: 900;
+  margin-right: 5px;
   color: #888;
   cursor: pointer;
   &:hover {

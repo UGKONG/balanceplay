@@ -21,7 +21,7 @@ app.use(
       path: '/',
       httpOnly: true,
       secure: false,
-      maxAge: 60 * 60 * 1000, // 1시간 세션유지
+      maxAge: 60 * 60 * 1000 * 12, // 12시간 세션유지
     },
     rolling: true,
     store: new MySQLStore(conf.db),
@@ -152,15 +152,20 @@ const {
   postPayment,
   getSetting,
   getScheduleInit,
-  getCalendar,
-  getRoom,
   getSchedule,
+  postSchedule,
+  putSchedule,
+  deleteSchedule,
+  getCalendar,
+  postCalendar,
+  deleteCalendar,
+  getRoom,
+  postRoom,
+  deleteRoom,
   getReservation,
   putReservation,
   deleteReservation,
-  deleteSchedule,
-  postSchedule,
-  putSchedule,
+  putSetting,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -223,8 +228,13 @@ app.post('/api/voucherCategory', postVoucherCategory);
 app.put('/api/voucherCategory/:id', putVoucherCategory);
 app.get('/api/scheduleInit', getScheduleInit);
 app.get('/api/setting', getSetting);
+app.put('/api/setting', putSetting);
 app.get('/api/calendar', getCalendar);
+app.post('/api/calendar', postCalendar);
+app.delete('/api/calendar/:id', deleteCalendar);
 app.get('/api/room', getRoom);
+app.post('/api/room', postRoom);
+app.delete('/api/room/:id', deleteRoom);
 app.get('/api/memberTest/:id', getMemberTest);
 app.get('/api/memberTestResult/:testId', getMemberTestResult);
 app.get('/api/payment/:userId/:voucherId', getPayment);

@@ -79,6 +79,7 @@ export default function 스케줄() {
         initData={initData}
         active={settingData}
         setActive={setSettingData}
+        getCalendarInit={getCalendarInit}
       />
 
       <Scheduler

@@ -2173,7 +2173,7 @@ module.exports.getScheduleInit = (req, res) => {
       `
       SELECT CODE AS ID, NAME FROM tn_common WHERE BASE_ID = 9;
 
-      SELECT a.ID, a.NAME, a.ORDER, a.IS_TOP 
+      SELECT a.ID, a.NAME, a.TYPE, a.ORDER, a.IS_TOP 
       FROM tn_calendar a
       WHERE a.CENTER_ID = ${centerId}
       ORDER BY a.ORDER ASC, a.ID ASC;
@@ -2224,7 +2224,9 @@ module.exports.getSetting = (req, res) => {
       a.ACTIVE_TEACHER_ID,
       a.ACTIVE_VIEW_TYPE_ID,
       a.START_TIME,
-      a.END_TIME
+      a.END_TIME,
+      a.SCHEDULE_TIME_RANGE,
+      a.SCHEDULE_COLOR_TYPE
       FROM tn_setting a
       WHERE a.CENTER_ID = ${centerId}
     `,
@@ -2755,6 +2757,7 @@ module.exports.putSchedule = (req, res) => {
     START = '${data?.START_DATE} ${data?.START_TIME}',
     END = '${data?.END_DATE} ${data?.END_TIME}',
     ROOM_ID = '${data?.ROOM_ID}', 
+    CALENDAR_ID = '${data?.CALENDAR_ID}',
     TEACHER_ID = '${data?.TEACHER_ID}', 
     COUNT = '${data?.COUNT}', 
     WAIT_COUNT = '${data?.WAIT_COUNT}', 
@@ -2770,6 +2773,166 @@ module.exports.putSchedule = (req, res) => {
         return res.send(fail('스케줄 저장에 실패하였습니다.'));
       }
       res.send(success(null));
+    });
+  });
+};
+// 설정값 수정
+module.exports.putSetting = (req, res) => {
+  log(req);
+  const data = req?.body;
+  const centerId = req?.session?.isLogin?.CENTER_ID;
+
+  let sql = `
+    UPDATE tn_setting SET
+    ACTIVE_CALENDAR_ID = '${data?.ACTIVE_CALENDAR_ID}',
+    ACTIVE_ROOM_ID = '${data?.ACTIVE_ROOM_ID}',
+    ACTIVE_VIEW_TYPE_ID = '${data?.ACTIVE_VIEW_TYPE_ID}', 
+    ACTIVE_TAB_ID = '${data?.ACTIVE_TAB_ID}', 
+    START_TIME = '${data?.START_TIME}', 
+    END_TIME = '${data?.END_TIME}', 
+    SCHEDULE_TIME_RANGE = '${data?.SCHEDULE_TIME_RANGE}', 
+    SCHEDULE_COLOR_TYPE = '${data?.SCHEDULE_COLOR_TYPE}'
+    WHERE CENTER_ID = '${centerId}';
+  `;
+
+  dbConnect((db) => {
+    db.query(sql, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('저장에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    });
+  });
+};
+// 캘린더 생성
+module.exports.postCalendar = (req, res) => {
+  log(req);
+  const centerId = req?.session?.isLogin?.CENTER_ID;
+  const data = req?.body;
+
+  const sql = `
+    INSERT INTO tn_calendar
+    (CENTER_ID, TYPE, NAME)
+    VALUES
+    ('${centerId}', '${data?.TYPE}', '${data?.NAME}');
+  `;
+
+  dbConnect((db) => {
+    db.query(sql, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('캘린더 생성에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    });
+  });
+};
+// 룸 생성
+module.exports.postRoom = (req, res) => {
+  log(req);
+  const centerId = req?.session?.isLogin?.CENTER_ID;
+  const data = req?.body;
+
+  const sql = `
+    INSERT INTO tn_room
+    (CENTER_ID, NAME)
+    VALUES
+    ('${centerId}', '${data?.NAME}');
+  `;
+
+  dbConnect((db) => {
+    db.query(sql, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('룸 생성에 실패하였습니다.'));
+      }
+      res.send(success(null));
+    });
+  });
+};
+// 캘린더 삭제
+module.exports.deleteCalendar = (req, res) => {
+  log(req);
+  const id = req?.params?.id;
+
+  const selectSQL = `
+    SELECT
+    COUNT(*) AS COUNT
+    FROM tn_reservation
+    WHERE SCHEDULE_ID IN (
+        SELECT ID FROM tn_schedule WHERE CALENDAR_ID = '${id}'
+    );
+  `;
+
+  dbConnect((db) => {
+    db.query(selectSQL, (err, result) => {
+      if (err) {
+        db.end();
+        console.log(err);
+        return res.send(fail('캘린더 삭제에 실패하였습니다.'));
+      }
+      let count = result[0]?.COUNT;
+      if (count > 0) {
+        db.end();
+        return res.send(fail('예약 수업이 존재하는 캘린더입니다.'));
+      }
+
+      const deleteSQL = `
+        DELETE FROM tn_schedule WHERE CALENDAR_ID = '${id}';
+        DELETE FROM tn_calendar WHERE ID = '${id}';
+      `;
+      db.query(deleteSQL, (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('캘린더 삭제에 실패하였습니다.'));
+        }
+
+        res.send(success(null));
+      });
+    });
+  });
+};
+// 룸 삭제
+module.exports.deleteRoom = (req, res) => {
+  log(req);
+  const id = req?.params?.id;
+
+  const selectSQL = `
+    SELECT COUNT(*) AS COUNT 
+    FROM tn_schedule WHERE 
+    ROOM_ID = '${id}'
+  `;
+
+  dbConnect((db) => {
+    db.query(selectSQL, (err, result) => {
+      if (err) {
+        db.end();
+        console.log(err);
+        return res.send(fail('룸 삭제에 실패하였습니다.'));
+      }
+      let count = result[0]?.COUNT;
+      if (count > 0) {
+        db.end();
+        return res.send(fail('수업에 지정된 룸입니다.'));
+      }
+
+      const deleteSQL = `
+        DELETE FROM tn_room WHERE ID = '${id}';
+      `;
+      db.query(deleteSQL, (err, result) => {
+        db.end();
+        if (err) {
+          console.log(err);
+          return res.send(fail('룸 삭제에 실패하였습니다.'));
+        }
+
+        res.send(success(null));
+      });
     });
   });
 };

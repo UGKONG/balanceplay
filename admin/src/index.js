@@ -31,7 +31,7 @@ Chart.register(
 
 render(
   <React.StrictMode>
-    <Router basename="/admin">
+    <Router basename="/admin" forceRefresh={true}>
       <App />
     </Router>
   </React.StrictMode>,

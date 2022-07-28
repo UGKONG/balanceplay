@@ -1,16 +1,27 @@
 import React, { useMemo, useContext } from 'react';
 import Styled from 'styled-components';
+import useStore from '%/useStore';
 import { Store } from './Scheduler';
 
 export default function 스케줄박스({ data }) {
   if (!data) return null;
-  const { roomList, colorList, isTooltip, setIsTooltip, timeout } =
+
+  const SCHEDULE_COLOR_TYPE = useStore((x) => x?.setting?.SCHEDULE_COLOR_TYPE);
+  const { teacherList, roomList, colorList, isTooltip, setIsTooltip, timeout } =
     useContext(Store);
 
   const bg = useMemo(() => {
-    let idx = roomList?.findIndex((x) => x?.ID === Number(data?.ROOM_ID));
+    let idx;
+    if (SCHEDULE_COLOR_TYPE === 2) {
+      idx = teacherList?.findIndex((x) => x?.ID === Number(data?.TEACHER_ID));
+      idx = Math.round(((idx / teacherList?.length) * 100) / 10);
+    } else {
+      idx = roomList?.findIndex((x) => x?.ID === Number(data?.ROOM_ID));
+      idx = Math.round(((idx / roomList?.length) * 100) / 10);
+    }
+
     return colorList[idx];
-  }, [colorList, data]);
+  }, [colorList, teacherList, roomList, data]);
 
   const date = useMemo(() => {
     let _date = data?.START?.split(' ')[0];

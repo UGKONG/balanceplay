@@ -18,8 +18,12 @@ export default function 확인창({ data }) {
     <All>
       <Background onClick={close} />
       <Container>
-        <Title>{data?.mainTitle ?? '제목'}</Title>
-        <SubTitle>{data?.subTitle ?? '서브제목'}</SubTitle>
+        <Title
+          dangerouslySetInnerHTML={{ __html: data?.mainTitle ?? '제목' }}
+        />
+        <SubTitle
+          dangerouslySetInnerHTML={{ __html: data?.subTitle ?? '서브제목' }}
+        />
         <BtnContainer>
           <YesBtn onClick={yesClick}>확인</YesBtn>
           <NoBtn onClick={close}>취소</NoBtn>

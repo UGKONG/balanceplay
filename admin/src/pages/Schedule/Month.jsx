@@ -2,16 +2,18 @@ import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import Styled from 'styled-components';
 import MonthBox from './MonthBox';
 import { Store } from './Scheduler';
+import useDate from '%/useDate';
+import useAlert from '%/useAlert';
 
 export default function 월() {
   const dayList = useRef(['일', '월', '화', '수', '목', '금', '토']);
-  const { active: set, list: data } = useContext(Store);
+  const { active, list: data, calendarList, setWriteInfo } = useContext(Store);
 
   const init = useMemo(() => {
     let dateList = [];
-    let startDay = new Date(set?.start)?.getDay();
-    let endDay = new Date(set?.end)?.getDay();
-    let count = Number(set?.end?.split('-')[2]);
+    let startDay = new Date(active?.start)?.getDay();
+    let endDay = new Date(active?.end)?.getDay();
+    let count = Number(active?.end?.split('-')[2]);
     let calc = startDay + (6 - endDay) + count;
     for (let i = 0; i < calc; i++) {
       let result = null;
@@ -25,12 +27,12 @@ export default function 월() {
       dateList?.push(result);
     }
     return { rowCount: dateList?.length / 7, dateList };
-  }, [set]);
+  }, [active]);
 
   const filterCount = (date) => {
     let _date = date < 10 ? '0' + date : date;
     let result = data?.filter(
-      (x) => x?.START?.split(' ')[0] === set?.start?.slice(0, 8) + _date,
+      (x) => x?.START?.split(' ')[0] === active?.start?.slice(0, 8) + _date,
     );
     return result?.length ?? 0;
   };
@@ -39,12 +41,43 @@ export default function 월() {
     (item) => {
       let _date = item < 10 ? '0' + item : item;
       let result = data?.filter(
-        (x) => x?.START?.split(' ')[0] === set?.start?.slice(0, 8) + _date,
+        (x) => x?.START?.split(' ')[0] === active?.start?.slice(0, 8) + _date,
       );
       return result;
     },
-    [set, data],
+    [active, data],
   );
+
+  const createSchedule = (date) => {
+    if (!date) return;
+    if (active?.calendar === 0) {
+      return useAlert.info('알림', '캘린더를 선택해주세요.');
+    }
+
+    let today = new Date();
+    today?.setHours(today?.getHours() + 1);
+    today?.setMinutes(0);
+    today?.setSeconds(0);
+    today?.setMilliseconds(0);
+    let START_TIME = useDate(today, 'time');
+    today?.setHours(today?.getHours() + 1);
+    let END_TIME = useDate(today, 'time');
+
+    let findCalendar = calendarList?.find((x) => x?.ID === active?.calendar);
+    let CALENDAR_TYPE = findCalendar ? findCalendar?.TYPE : 0;
+
+    let START_DATE = active?.start?.slice(0, 8);
+    let END_DATE = START_DATE + (Number(date) < 10 ? '0' + date : date);
+    START_DATE = START_DATE + (Number(date) < 10 ? '0' + date : date);
+
+    setWriteInfo({
+      CALENDAR_TYPE,
+      START_DATE,
+      END_DATE,
+      START_TIME,
+      END_TIME,
+    });
+  };
 
   return (
     <Container>
@@ -52,7 +85,12 @@ export default function 월() {
         <DayBox key={item}>{item}</DayBox>
       ))}
       {init?.dateList?.map((item, i) => (
-        <DateBox key={i} rowCount={init?.rowCount}>
+        <DateBox
+          key={i}
+          rowCount={init?.rowCount}
+          className={item ? 'true' : 'false'}
+          onClick={() => createSchedule(item)}
+        >
           <Head>
             {item && <span>{item}</span>}
             {item && filterCount(item) > 0 && (
@@ -106,6 +144,9 @@ const DateBox = Styled.article`
   border-bottom: 1px solid #b9e1dc99;
   font-size: 12px;
   color: #555;
+  &.true {
+    cursor: pointer;
+  }
   &:nth-of-type(7n + 1) {
     & > p > span:first-of-type {
       color: #f00;
@@ -119,6 +160,9 @@ const DateBox = Styled.article`
   }
   &:nth-of-type(${(x) => x?.rowCount * 7 - 7}) ~ & {
     border-bottom: none;
+  }
+  &:hover > p > span {
+    text-decoration: underline;
   }
 `;
 const Head = Styled.p`

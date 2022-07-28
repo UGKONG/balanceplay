@@ -38,6 +38,12 @@ export default function 주() {
       if (startDateObj <= setStartObj) {
         startDateObj = setStartObj;
       }
+      if (endDateObj <= setStartObj) {
+        endDateObj = setStartObj;
+      }
+      if (startDateObj >= setEndObj) {
+        startDateObj = setEndObj;
+      }
       if (endDateObj >= setEndObj) {
         endDateObj = setEndObj;
       }

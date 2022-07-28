@@ -21,8 +21,8 @@ export default function 스케줄작성() {
     { id: 2, name: '그룹래슨' },
   ]);
   const {
-    list,
     active,
+    setActive,
     colorList,
     writeInfo,
     setWriteInfo,
@@ -123,6 +123,13 @@ export default function 스케줄작성() {
     if (!END_TIME || END_TIME?.length !== 8) {
       return useAlert?.warn('알림', '종료 시간을 정확히 선택해주세요.');
     }
+
+    let startDateTime = new Date(START_DATE + ' ' + START_TIME);
+    let endDateTime = new Date(END_DATE + ' ' + END_TIME);
+    if (endDateTime - startDateTime > 0) {
+      return useAlert?.warn('알림', '기간을 정확히 선택해주세요.');
+    }
+
     if (!CALENDAR_ID) {
       return useAlert?.warn('알림', '캘린더를 선택해주세요.');
     }
@@ -164,8 +171,8 @@ export default function 스케줄작성() {
     useAxios.post('/schedule', send).then(({ data }) => {
       if (!data?.result) return useAlert.error('알림', data?.msg);
       useAlert.success('알림', '스케줄이 생성되었습니다.');
+      setActive((prev) => ({ ...prev, calendar: send?.CALENDAR_ID }));
       close();
-      getSchedule();
     });
   };
 
@@ -173,8 +180,8 @@ export default function 스케줄작성() {
     useAxios.put('/schedule/' + send?.ID, send).then(({ data }) => {
       if (!data?.result) return useAlert.error('알림', data?.msg);
       useAlert.success('알림', '스케줄이 수정되었습니다.');
+      setActive((prev) => ({ ...prev, calendar: send?.CALENDAR_ID }));
       close();
-      getSchedule();
     });
   };
 
@@ -195,6 +202,14 @@ export default function 스케줄작성() {
   useEffect(() => {
     if (!data) return;
     if (scheduleStatus === 0 && !data?.CALENDAR_TYPE) return close();
+    if (!data?.START_DATE || !data?.END_DATE) {
+      setData((prev) => ({
+        ...prev,
+        START_DATE: active?.view === 4 ? active?.start : today,
+        END_DATE: active?.view === 4 ? active?.start : today,
+      }));
+    }
+    return null;
   }, [data]);
 
   return (
@@ -320,17 +335,23 @@ export default function 스케줄작성() {
           </Row>
           <Row>
             <Select
-              disabled
               value={
                 scheduleStatus === 0 ? active?.calendar : data?.CALENDAR_ID
               }
+              onChange={(e) =>
+                setData((prev) => ({
+                  ...prev,
+                  CALENDAR_ID: Number(e?.target?.value),
+                }))
+              }
             >
-              <option value="0">캘린더 선택</option>
-              {calendarList?.map((item) => (
-                <option key={item?.ID} value={item?.ID}>
-                  {item?.NAME}
-                </option>
-              ))}
+              {calendarList
+                ?.filter((x) => x?.TYPE === data?.CALENDAR_TYPE)
+                ?.map((item) => (
+                  <option key={item?.ID} value={item?.ID}>
+                    {item?.NAME}
+                  </option>
+                ))}
             </Select>
           </Row>
           {data?.CALENDAR_TYPE === 1 && (
