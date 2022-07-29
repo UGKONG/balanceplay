@@ -122,7 +122,7 @@ const {
   getVoucherDetail,
   putChangeTestFlag,
   putMemberModify,
-  getUserVoucher,
+  getUserVoucherList,
   getUserMemo,
   postUserMemo,
   putUserMemo,
@@ -163,6 +163,7 @@ const {
   postRoom,
   deleteRoom,
   getReservation,
+  postReservation,
   putReservation,
   deleteReservation,
   putSetting,
@@ -202,7 +203,7 @@ app.get('/api/voucher', getVoucher);
 app.get('/api/voucher/:id', getVoucherDetail);
 app.put('/api/changeTestFlag', putChangeTestFlag);
 app.put('/api/memberModify', putMemberModify);
-app.get('/api/userVoucher/:id', getUserVoucher);
+app.get('/api/userVoucherList/:id', getUserVoucherList);
 app.put('/api/userVoucher/:userVoucherId', putUserVoucherStatus);
 app.get('/api/userMemo/:id', getUserMemo);
 app.post('/api/userMemo/:id', postUserMemo);
@@ -244,6 +245,7 @@ app.post('/api/schedule', postSchedule);
 app.put('/api/schedule/:id', putSchedule);
 app.delete('/api/schedule/:type', deleteSchedule);
 app.get('/api/reservation/:id', getReservation);
+app.post('/api/reservation', postReservation);
 app.put('/api/reservation/:id/:status', putReservation);
 app.delete('/api/reservation/:id', deleteReservation);
 

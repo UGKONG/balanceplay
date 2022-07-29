@@ -7,7 +7,7 @@ import PageAnimate from '%/PageAnimate';
 import VoucherLi from './VoucherLi';
 import Loading from '@/pages/Common/Loading';
 
-export default function 보유이용권 () {
+export default function 보유이용권() {
   const params = useParams();
   const navigate = useNavigate();
   const userId = params?.id;
@@ -16,35 +16,44 @@ export default function 보유이용권 () {
 
   const payment = () => {
     navigate('/payment', {
-      state: { userId: Number(userId), voucherId: null }
+      state: { userId: Number(userId), voucherId: null },
     });
-  }
+  };
 
   const getList = () => {
-    useAxios.get('/userVoucher/' + userId).then(({ data }) => {
+    useAxios.get('/userVoucherList/' + userId).then(({ data }) => {
       if (!data?.result) return setList([]);
       setList(data?.data);
       setIsLoad(false);
-    })
-  }
+    });
+  };
 
   useEffect(getList, []);
 
   return (
-    <PageAnimate name='slide-up' style={{ overflow: 'auto' }}>
+    <PageAnimate name="slide-up" style={{ overflow: 'auto' }}>
       <Header>
         <VoucherBuyBtn onClick={payment}>이용권 구매</VoucherBuyBtn>
       </Header>
       <VoucherList>
-        {isLoad ? <Loading /> : (
+        {isLoad ? (
+          <Loading />
+        ) : (
           <>
-          {list?.length === 0 && <NotLi>보유중인 이용권이 없습니다.</NotLi>}
-          {list?.map(item => <VoucherLi key={item?.ID} userId={userId} data={item} getList={getList} />)}
+            {list?.length === 0 && <NotLi>보유중인 이용권이 없습니다.</NotLi>}
+            {list?.map((item) => (
+              <VoucherLi
+                key={item?.ID}
+                userId={userId}
+                data={item}
+                getList={getList}
+              />
+            ))}
           </>
         )}
       </VoucherList>
     </PageAnimate>
-  )
+  );
 }
 
 const Header = Styled.div`

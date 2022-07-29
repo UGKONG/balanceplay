@@ -5,7 +5,7 @@ import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 import useStore from '%/useStore';
 
-export default function 예약회원_아이템({ data, getUser }) {
+export default function 예약회원_아이템({ data, scheduleData, getUser }) {
   const btns = useRef([
     { id: 2, name: '출석', color: '#00ada9' },
     { id: 3, name: '결석', color: '#f13535' },
@@ -15,9 +15,11 @@ export default function 예약회원_아이템({ data, getUser }) {
   const [isOption, setIsOption] = useState(false);
 
   const reservCancel = () => {
-    useAxios.delete('/reservation/' + data?.ID).then(({ data }) => {
+    let userName = data?.USER_NAME;
+    let url = `/reservation/${data?.ID}?scheduleId=${scheduleData?.ID}&limit=${scheduleData?.COUNT}`;
+    useAxios.delete(url).then(({ data }) => {
       if (!data?.result) return useAlert.error('알림', data?.msg);
-      useAlert.success('알림', data?.USER_NAME + '님의 예약이 취소되었습니다.');
+      useAlert.success('알림', userName + '님의 예약이 취소되었습니다.');
     });
   };
   const reservStatusChange = (status, statusName) => {
@@ -49,6 +51,12 @@ export default function 예약회원_아이템({ data, getUser }) {
             <Button
               key={item?.id}
               color={item?.color}
+              style={{
+                display:
+                  (data?.STATUS === 2 || data?.STATUS === 3) && item?.id === 4
+                    ? 'none'
+                    : 'block',
+              }}
               onClick={() => statusChange(item?.id, item?.name)}
             >
               {item?.name}

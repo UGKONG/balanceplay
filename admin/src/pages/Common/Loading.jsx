@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Styled from 'styled-components';
 import loadImage from '~/images/load.gif';
 
 export default function 로딩애니메이션() {
-  return <Container><Circle img={loadImage} /></Container>
+  if (!loadImage) return null;
+
+  return (
+    <Container>
+      <Circle img={loadImage} />
+    </Container>
+  );
 }
 
 const Container = Styled.li`
@@ -13,7 +19,7 @@ const Container = Styled.li`
   display: flex;
   align-items: center;
   justify-content: center;
-`
+`;
 const Circle = Styled.div`
   width: 100px;
   height: 100px;
@@ -26,5 +32,5 @@ const Circle = Styled.div`
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
-  background-image: url(${x => x?.img});
-`
+  background-image: url(${(x) => x?.img});
+`;

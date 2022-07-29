@@ -214,7 +214,7 @@ export default function 툴팁({ getSchedule, setIsReservationModal }) {
               )}
             </>
           )}
-          {data?.IS_REPEAT > 0 && (
+          {data?.IS_REPEAT > 1 && (
             <Row
               style={{
                 marginTop: 5,
@@ -246,6 +246,7 @@ export default function 툴팁({ getSchedule, setIsReservationModal }) {
                   <ReservationUserItem
                     key={item?.ID}
                     data={item}
+                    scheduleData={data}
                     getUser={getUser}
                   />
                 ))

@@ -1316,7 +1316,7 @@ module.exports.getMember = (req, res) => {
       ORDER BY a.CRT_DT DESC;
 
       SELECT
-      a.ID, a.USER_ID, a.REMAIN_COUNT, a.REMAIN_DATE, b.USE_TYPE,
+      a.ID, a.REMAIN_COUNT, a.REMAIN_DATE, b.USE_TYPE,
       DATE_FORMAT(a.BUY_DT, '%Y-%m-%d %H:%i:%s') AS BUY_DATE
       FROM tn_user_voucher a
       LEFT JOIN tn_voucher b ON a.VOUCHER_ID = b.ID;
@@ -1523,7 +1523,7 @@ module.exports.putMemberModify = (req, res) => {
   });
 };
 // 회원 이용권 리스트 조회
-module.exports.getUserVoucher = (req, res) => {
+module.exports.getUserVoucherList = (req, res) => {
   log(req);
   let userId = req?.params?.id;
   if (!userId) return res.send(fail('유저 아이디가 없습니다.'));
@@ -1532,14 +1532,15 @@ module.exports.getUserVoucher = (req, res) => {
     db.query(
       `
       SELECT
-      a.ID, b.ID AS VOUCHER_ID,a.REMAIN_COUNT, a.REMAIN_DATE, a.STATUS,
-      DATE_FORMAT(a.BUY_DT, '%Y-%m-%d %H:%i:%s') AS BUY_DT,
-      b.CATEGORY_ID, c.NAME AS CATEGORY_NAME, 
-      b.NAME, b.PLACE, b.USE_TYPE, b.USE_COUNT, b.USE_DAY
-      FROM tn_user_voucher a
-      LEFT JOIN tn_voucher b ON a.VOUCHER_ID = b.ID
-      LEFT JOIN tn_voucher_category c ON b.CATEGORY_ID = c.ID
-      WHERE a.USER_ID = ${userId};
+      b.ID, b.ID AS VOUCHER_ID,b.REMAIN_COUNT, b.REMAIN_DATE, b.STATUS,
+      DATE_FORMAT(b.BUY_DT, '%Y-%m-%d %H:%i:%s') AS BUY_DT,
+      c.CATEGORY_ID, d.NAME AS CATEGORY_NAME,
+      c.NAME, c.PLACE, c.USE_TYPE, c.USE_COUNT, c.USE_DAY
+      FROM tn_user a
+      LEFT JOIN tn_user_voucher b ON b.USER_ID = '${userId}'
+      INNER JOIN tn_voucher c ON b.VOUCHER_ID = c.ID
+      LEFT JOIN tn_voucher_category d ON c.CATEGORY_ID = d.ID
+      WHERE a.USER_SN = '${userId}';
     `,
       (err, result) => {
         db.end();
@@ -2482,7 +2483,8 @@ module.exports.getSchedule = (req, res) => {
       c.ID AS ROOM_ID, c.NAME AS ROOM_NAME,
       d.ID AS TEACHER_ID, d.NAME AS TEACHER_NAME,
       IF(e.COUNT IS NULL, 0, e.COUNT) AS RESERVATION_COUNT,
-      f.COUNT AS IS_REPEAT
+      IF(f.COUNT IS NULL, 0, f.COUNT) AS RESERVATION_WAIT_COUNT,
+      g.COUNT AS IS_REPEAT
       FROM tn_schedule a 
       LEFT JOIN tn_calendar b ON a.CALENDAR_ID = b.ID
       LEFT JOIN tn_room c ON a.ROOM_ID = c.ID
@@ -2492,15 +2494,24 @@ module.exports.getSchedule = (req, res) => {
         SCHEDULE_ID,
         COUNT(SCHEDULE_ID) AS COUNT
         FROM tn_reservation
+        WHERE STATUS <> 4
         GROUP BY SCHEDULE_ID
       ) e ON a.ID = e.SCHEDULE_ID
+      LEFT JOIN (
+        SELECT
+        SCHEDULE_ID,
+        COUNT(SCHEDULE_ID) AS COUNT
+        FROM tn_reservation
+        WHERE STATUS = 4
+        GROUP BY SCHEDULE_ID
+      ) f ON a.ID = f.SCHEDULE_ID
       LEFT JOIN (
         SELECT
         SCHEDULE_GROUP_ID,
         COUNT(SCHEDULE_GROUP_ID) AS COUNT
         FROM tn_schedule
         GROUP BY SCHEDULE_GROUP_ID
-      ) f ON a.SCHEDULE_GROUP_ID = f.SCHEDULE_GROUP_ID
+      ) g ON a.SCHEDULE_GROUP_ID = g.SCHEDULE_GROUP_ID
       WHERE a.CENTER_ID = '${centerId}' 
       AND ('${data?.calendar}' = 0 OR a.CALENDAR_ID = '${data?.calendar}')
       AND ('${data?.room}' = 0 OR a.ROOM_ID = '${data?.room}')
@@ -2529,13 +2540,14 @@ module.exports.getReservation = (req, res) => {
     db.query(
       `
       SELECT
-      a.ID, b.USER_SN AS USER_ID, b.USER_NM AS USER_NAME,
-      a.STATUS, c.NAME AS STATUS_NAME, a.MEMO,
+      a.ID, c.USER_SN AS USER_ID, c.USER_NM AS USER_NAME,
+      a.STATUS, d.NAME AS STATUS_NAME, a.MEMO,
       DATE_FORMAT(a.CREATE_DATE, '%Y-%m-%d %H:%i:%s') AS CREATE_DATE
       FROM tn_reservation a
-      LEFT JOIN tn_user b ON b.USER_SN = a.USER_ID
-      LEFT JOIN tn_common c ON c.CODE = a.STATUS AND BASE_ID = 10
-      WHERE a.SCHEDULE_ID = ${scheduleId}
+      LEFT JOIN tn_user_voucher b ON a.USER_VOUCHER_ID = b.ID
+      LEFT JOIN tn_user c ON c.USER_SN = b.USER_ID
+      LEFT JOIN tn_common d ON d.CODE = a.STATUS AND BASE_ID = 10
+      WHERE a.SCHEDULE_ID = '${scheduleId}'
       ORDER BY a.STATUS;
     `,
       (err, result) => {
@@ -2575,9 +2587,15 @@ module.exports.putReservation = (req, res) => {
 module.exports.deleteReservation = (req, res) => {
   log(req);
   const reservationId = req?.params?.id;
+  const { scheduleId, limit } = req?.query;
+
   let query = `
     DELETE FROM tn_reservation WHERE ID = '${reservationId}';
+    UPDATE tn_reservation SET STATUS = 1
+    WHERE STATUS = 4 AND SCHEDULE_ID = '${scheduleId}'
+    LIMIT 1;
   `;
+
   dbConnect((db) => {
     db.query(query, (err, result) => {
       db.end();
@@ -2933,6 +2951,30 @@ module.exports.deleteRoom = (req, res) => {
 
         res.send(success(null));
       });
+    });
+  });
+};
+// 수업 예약
+module.exports.postReservation = (req, res) => {
+  log(req);
+  const data = req?.body;
+  const status = data?.IS_WAIT ? 4 : 1;
+
+  const sql = `
+    INSERT INTO tn_reservation
+    (SCHEDULE_ID, USER_VOUCHER_ID, STATUS)
+    VALUES
+    (${data?.SCHEDULE_ID}, ${data?.USER_VOUCHER_ID}, ${status});
+  `;
+
+  dbConnect((db) => {
+    db.query(sql, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        return res.send(fail('예약에 실패하였습니다.'));
+      }
+      res.send(success(null));
     });
   });
 };

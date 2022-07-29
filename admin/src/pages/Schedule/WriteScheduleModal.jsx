@@ -28,7 +28,6 @@ export default function 스케줄작성() {
     setWriteInfo,
     roomList,
     calendarList,
-    getSchedule,
   } = useContext(Store);
   const [data, setData] = useState({
     ...writeInfo,
@@ -126,7 +125,7 @@ export default function 스케줄작성() {
 
     let startDateTime = new Date(START_DATE + ' ' + START_TIME);
     let endDateTime = new Date(END_DATE + ' ' + END_TIME);
-    if (endDateTime - startDateTime > 0) {
+    if (endDateTime - startDateTime <= 0) {
       return useAlert?.warn('알림', '기간을 정확히 선택해주세요.');
     }
 
@@ -471,7 +470,9 @@ export default function 스케줄작성() {
               color: '#666',
             }}
           >
-            {data?.IS_REPEAT ? '※ 해당 스케줄은 반복 생성된 스케줄입니다.' : ''}
+            {data?.IS_REPEAT > 1
+              ? '※ 해당 스케줄은 반복 생성된 스케줄입니다.'
+              : ''}
           </Row>
         </Contents>
         <Row>
