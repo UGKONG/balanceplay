@@ -28,8 +28,9 @@ export default function 스케줄예약모달({ data, setIsReservationModal }) {
       .get('/userVoucherList/' + searchMemberData?.ID)
       .then(({ data }) => {
         if (!data?.result || !data?.data) {
-          return setSearchMemberVoucherList(null);
+          return setSearchMemberVoucherList([]);
         }
+        console.log(data?.data);
         let filter = data?.data?.filter((x) => {
           let now = new Date();
           let remainDate = new Date(x?.REMAIN_DATE);

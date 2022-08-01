@@ -167,6 +167,8 @@ const {
   putReservation,
   deleteReservation,
   putSetting,
+  putCalendar,
+  putRoom,
 } = require('./api');
 
 app.get('/api/menu/:id', getMenu);
@@ -232,9 +234,11 @@ app.get('/api/setting', getSetting);
 app.put('/api/setting', putSetting);
 app.get('/api/calendar', getCalendar);
 app.post('/api/calendar', postCalendar);
+app.put('/api/calendar/:id', putCalendar);
 app.delete('/api/calendar/:id', deleteCalendar);
 app.get('/api/room', getRoom);
 app.post('/api/room', postRoom);
+app.put('/api/room/:id', putRoom);
 app.delete('/api/room/:id', deleteRoom);
 app.get('/api/memberTest/:id', getMemberTest);
 app.get('/api/memberTestResult/:testId', getMemberTestResult);

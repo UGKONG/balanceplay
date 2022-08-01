@@ -2978,3 +2978,47 @@ module.exports.postReservation = (req, res) => {
     });
   });
 };
+// 캘린더 정보 수정
+module.exports.putCalendar = (req, res) => {
+  log(req);
+  const id = req?.params?.id;
+  const name = req?.body?.name;
+
+  const sql = `
+    UPDATE tn_calendar SET NAME = '${name}' WHERE ID = ${id};
+  `;
+
+  dbConnect((db) => {
+    db.query(sql, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('수정 실패하였습니다.'));
+        return;
+      }
+      res.send(success(null));
+    });
+  });
+};
+// 룸 정보 수정
+module.exports.putRoom = (req, res) => {
+  log(req);
+  const id = req?.params?.id;
+  const name = req?.body?.name;
+
+  const sql = `
+    UPDATE tn_room SET NAME = '${name}' WHERE ID = ${id};
+  `;
+
+  dbConnect((db) => {
+    db.query(sql, (err, result) => {
+      db.end();
+      if (err) {
+        console.log(err);
+        res.send(fail('수정 실패하였습니다.'));
+        return;
+      }
+      res.send(success(null));
+    });
+  });
+};

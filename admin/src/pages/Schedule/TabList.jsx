@@ -1,13 +1,13 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Styled from 'styled-components';
 import Loading from '@/pages/Common/Loading';
 import useAxios from '%/useAxios';
 import useAlert from '%/useAlert';
 import useStore from '%/useStore';
-import { useState } from 'react';
 import { FcCheckmark } from 'react-icons/fc';
 import { IoMdClose } from 'react-icons/io';
-import { BsTrash } from 'react-icons/bs';
+import { BsTrash, BsPencil } from 'react-icons/bs';
+import TabItemModifyModal from './TabItemModifyModal';
 
 export default function 탭리스트({
   initData,
@@ -20,6 +20,7 @@ export default function 탭리스트({
   const createRoomInputRef = useRef(null);
   const [createNameValue, setCreateNameValue] = useState('');
   const [createCalendarType, setCreateCalendarType] = useState(1);
+  const [isModifyModal, setIsModifyModal] = useState(null);
 
   const isActiveAll = useMemo(() => {
     let tab = active?.tab;
@@ -170,6 +171,9 @@ export default function 탭리스트({
                     >
                       {item?.NAME}
                     </span>
+                    <ModifyIcon
+                      onClick={() => setIsModifyModal({ tab: 1, info: item })}
+                    />
                     <DelIcon onClick={() => itemDelete(item?.ID, item?.TYPE)} />
                   </CalendarItem>
                 ))}
@@ -223,6 +227,9 @@ export default function 탭리스트({
                     >
                       {item?.NAME}
                     </span>
+                    <ModifyIcon
+                      onClick={() => setIsModifyModal({ tab: 2, info: item })}
+                    />
                     <DelIcon onClick={() => itemDelete(item?.ID)} />
                   </RoomItem>
                 ))}
@@ -254,6 +261,14 @@ export default function 탭리스트({
               ))}
           </TabItemList>
         </>
+      )}
+
+      {isModifyModal && (
+        <TabItemModifyModal
+          getCalendarInit={getCalendarInit}
+          isModifyModal={isModifyModal}
+          setIsModifyModal={setIsModifyModal}
+        />
       )}
     </Container>
   );
@@ -321,8 +336,8 @@ const Item = Styled.li`
     cursor: pointer;
     display: block;
     width: 100%;
-    min-width: calc(100% - 26px);
-    max-width: calc(100% - 26px);
+    min-width: calc(100% - 54px);
+    max-width: calc(100% - 54px);
     line-height: 33px;
     height: 33px;
     white-space: nowrap;
@@ -439,6 +454,21 @@ const DelIcon = Styled(BsTrash)`
 
   &:hover {
     color: #f00;
+  }
+`;
+const ModifyIcon = Styled(BsPencil)`
+  color: #bbb;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  max-width: 18px;
+  max-height: 18px;
+  margin: 0 4px;
+  cursor: pointer;
+
+  &:hover {
+    color: #333;
   }
 `;
 const OkIcon = Styled(FcCheckmark)`
